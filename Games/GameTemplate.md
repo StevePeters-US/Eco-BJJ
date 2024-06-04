@@ -1,14 +1,14 @@
 # Game Name
 
-## Purpose
+**Purpose**
 
 What is the point in playing this game? What principles are we trying to teach?
 
-## Environment
+**Environment**
 
 - Number of players: 2
 
-## Game Initiation Conditions
+**Game Initiation Conditions**
 
 - **Static** – Players start from a defined position with no movement.
 - **Inertial** – Players start after a defined movement is initiated. Example: Players start with one taking the other down with a single leg with no resistance. Game is live as soon as the takedown is initiated.
@@ -17,30 +17,30 @@ What is the point in playing this game? What principles are we trying to teach?
 ### Static. Side Control.
 Top has strong chest to chest connection with control of all inside spaces and connected hands.
 
-## Duration
-Round length can impact the intensity and variablity, with shorter rounds tending towards high intensity with little room for exploration.
+**Duration**
+Round length can impact the intensity and variability, with shorter rounds tending towards high intensity with little room for exploration.
 
 ex - 2 Minutes. Then find a new partner.
 
-## Goals
+**Goals**
 
 What are the win conditions for each player? What happens when a player wins?
 
 - **Top** – Maintain position. No win condition.
 - **Bottom** – Recover a guard, sweep, stand up, or submit. Flip flop on win.
 
-## Constraints
+**Constraints**
 
 How are you constraining the game so that the purpose of playing the game is achieved?
 
-## Invariants
+**Invariants**
 
 What must be true in order to obtain our goals?
 
-## Tasks
+**Tasks**
 
 How do we focus the players' attention so they can achieve their goals?
 
-## Notes
+**Notes**
 
 12/12/12 - Results of the game being used in practice.
