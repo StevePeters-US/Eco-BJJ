@@ -32,8 +32,3 @@
     
   - **Scissor Choke Technique**: Block behind the neck while using a scissoring motion on the front (e.g., as in a baseball choke). This technique applies focused pressure by squeezing from both sides of the throat.
 
-### Safety Note
-- Recognize submission cues such as tapping or signs of unconsciousness and release pressure immediately.
-
-### Application Strategy
-- **Time Limit**: Maintain choke application for no more than eight seconds before adjusting or transitioning to another technique.
