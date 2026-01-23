@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eco-BJJ Class Creator</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <header class="app-header">
+            <div class="logo">Eco-BJJ</div>
+            <nav>
+                <!-- Navigation can go here -->
+            </nav>
+        </header>
+
+        <main class="main-container">
+            <section id="setup-panel" class="panel">
+                <h1>Class Designer</h1>
+                <p class="subtitle">Select a concept to generate a class structure.</p>
+                
+                <div class="form-group">
+                    <label for="concept-select">Core Concept</label>
+                    <select id="concept-select">
+                        <option value="" disabled selected>Select a Theory...</option>
+                    </select>
+                </div>
+
+                <div id="class-meta" class="hidden">
+                    <!-- Class details will appear here -->
+                </div>
+            </section>
+
+            <section id="preview-panel" class="panel hidden">
+                <div class="class-header">
+                    <h2 id="class-title">Class Preview</h2>
+                    <button id="print-btn" class="btn secondary">Print / PDF</button>
+                </div>
+                <div id="class-timeline">
+                    <!-- Class segments will be rendered here -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>
