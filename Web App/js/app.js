@@ -69,13 +69,10 @@ function generateClassStructure() {
     document.getElementById('class-meta').classList.remove('hidden');
 
     // Update Meta
+    // Update Meta - Sidebar cleared as per user request
     const metaContainer = document.getElementById('class-meta');
-    metaContainer.innerHTML = `
-        <div class="theory-summary">
-            <h3>${theory.title}</h3>
-            ${markedParse(theory.content || '')} 
-        </div>
-    `;
+    metaContainer.innerHTML = '';
+    metaContainer.classList.add('hidden');
 
     // Render Timeline
     const timeline = document.getElementById('class-timeline');

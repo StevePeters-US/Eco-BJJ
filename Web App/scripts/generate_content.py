@@ -208,5 +208,21 @@ def main():
         
     print(f"Content generated at {OUTPUT_FILE}")
 
+    # Auto-Cache Busting for index.html
+    import time
+    index_path = os.path.join(BASE_DIR, '../index.html')
+    if os.path.exists(index_path):
+        with open(index_path, 'r', encoding='utf-8') as f:
+            html_content = f.read()
+        
+        # Replace existing version param or add one
+        timestamp = int(time.time())
+        # Regex to find src="js/app.js..."
+        new_html = re.sub(r'src="js/app\.js(\?v=\d+)?"', f'src="js/app.js?v={timestamp}"', html_content)
+        
+        with open(index_path, 'w', encoding='utf-8') as f:
+            f.write(new_html)
+        print(f"Updated index.html with version {timestamp}")
+
 if __name__ == "__main__":
     main()
