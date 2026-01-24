@@ -1,6 +1,13 @@
 {
   "theories": [
     {
+      "id": "twistingshoulderlocks",
+      "title": "TwistingShoulderLocks",
+      "content": "",
+      "path": "/home/steve/Documents/BJJ/Eco-BJJ/Theory/TwistingShoulderLocks/TwistingShoulderLocks.md",
+      "images": []
+    },
+    {
       "id": "bloodchokes",
       "title": "BloodChokes",
       "content": "### Blood Choke Mechanics\n\n#### Anatomical Overview of the Neck:\n- **Carotid Sheath**:\n  - A protective fascial layer that encases key structures: carotid artery, vagus nerve, and jugular vein.\n\n1. **Neurovascular Components**:\n   - Carotid Arteries: \n     - Essential for providing oxygenated blood to the brain.\n     - Both common carotids split into external and internal branches above the thyroid gland.\n       - External Carotid Artery: Supplies blood to facial and neck regions.\n       - Internal Carotid Artery: Directly provides oxygenated blood to the brain.\n\n   - Jugular Vein:\n     - Returns deoxygenated blood from the head toward the heart, operating at lower pressure. Constriction can cause discomfort but rarely leads to submission.\n\n   - Vagus Nerve:\n     - Important for autonomic control.\n\n#### Force Application\n- **Force Vector Principles**:\n  - (Invariant) Apply force over both carotids towards spine at a ~30-degree angle.\n  - X components of the force cancel each other, while y direction components are added.\n  - (Invariant) A proportional force must be applied from behind the neck.\n\n#### Methods of Force Application\n- **Optimal Location**: \n  - The optimal location for applying force is directly back from Adam's apple or approximately two-thirds up the neck, aligned with the front of the ear. The arteries are located behind the Sternocleidomastoid muscle. Focused force can be more efficient with this choke.\n  \n- **Techniques**:\n  - **V-Shape Technique**: Make a \"V\" shape block at the front of the neck and apply force to the back of the neck. This forces the carotids into the V.\n    \n  - **Scissor Choke Technique**: Block behind the neck while using a scissoring motion on the front (e.g., as in a baseball choke). This technique applies focused pressure by squeezing from both sides of the throat.\n\n",
@@ -28,7 +35,7 @@
     {
       "id": "cadence",
       "title": "Cadence",
-      "content": "Overwhelming through speed\nEfficient (economy mode)",
+      "content": "Overwhelming through speed\nEfficient (economy mode)\n\n### Updated via API\nThis theory was updated dynamically.\n\n### Updated via EditorTested edit.",
       "path": "/home/steve/Documents/BJJ/Eco-BJJ/Theory/Cadence/Cadence.md",
       "images": []
     },
@@ -44,7 +51,7 @@
     {
       "id": "standing",
       "title": "Standing",
-      "description": "# Standing\n\nGames starting from a standing position, focusing on takedowns, grip fighting, and defense.\n",
+      "description": "---\ntitle: Standing\ncategory: Standing\nplayers: 2\n---\n\nGames starting from a standing position, focusing on takedowns, grip fighting, and defense.\n",
       "games": [
         "standing-russian-tie-defense"
       ]
@@ -52,7 +59,7 @@
     {
       "id": "seatedshinguard",
       "title": "SeatedShinGuard",
-      "description": "# Seated Shin Guard\n\n**Purpose**\n\nWhat is the point in playing this game? What principles are we trying to teach?\n\n**Environment**\n\n- Number of players: 2\n\n**Game Initiation Conditions**\n\n### Static. Seated Shin Guard\nBottom player is seated, top player is standing. Bottom player is using a butterfly hook against the top player's shin on one side along with  a tight same side arm grip around the knee.\n\n**Duration**\n2 Minutes. Then switch top and bottom\n\n",
+      "description": "---\ntitle: Seated Shin Guard\ncategory: SeatedShinGuard\nplayers: 2\n---\n\n**Purpose**\n\nWhat is the point in playing this game? What principles are we trying to teach?\n\n**Environment**\n\n- Number of players: 2\n\n**Game Initiation Conditions**\n\n### Static. Seated Shin Guard\nBottom player is seated, top player is standing. Bottom player is using a butterfly hook against the top player's shin on one side along with  a tight same side arm grip around the knee.\n\n**Duration**\n2 Minutes. Then switch top and bottom\n",
       "games": [
         "seatedshinguard-seated-shin-guard---level-1",
         "seatedshinguard-seated-shin-guard---level-3",
@@ -68,7 +75,7 @@
     {
       "id": "butterfly",
       "title": "Butterfly",
-      "description": "\n# <center>Butterfly</center>\n\nSeated guard where the bottom player controls the inside space of the top player\u2019s legs with the instep of both feet.\n\nA butterfly hook is defined as inside control of the same side leg using the instep of the foot.\n\n\n---\n",
+      "description": "---\ntitle: <center>Butterfly</center>\ncategory: Butterfly\nplayers: 2\n---\n\nSeated guard where the bottom player controls the inside space of the top player\u2019s legs with the instep of both feet.\n\nA butterfly hook is defined as inside control of the same side leg using the instep of the foot.\n\n\n---\n",
       "games": [
         "butterfly-seated-butterfly",
         "butterfly-recovering-from-being-flattened-out",
@@ -80,107 +87,67 @@
   "games": [
     {
       "title": "Russian Tie Defense",
-      "description": "# Russian Tie Defense",
-      "purpose": "To practice controlling our opponent while maintaining the Russian Tie.",
-      "environment": "",
-      "game initiation conditions": "### Static. Russian Tie.\nAttacker is controlling the defender from the back side of one arm while using both arms for control.",
-      "duration": "2-minute rounds. After each round, players switch roles (attacker becomes defender, and vice versa).",
-      "goals": "- **Attacker** \u2013\nMaintain control of the Russian Tie  No win condition.\n- **Defender** \u2013\nFace the attacker and gain control of their far side elbow.",
-      "constraints": "How are you constraining the game so that the purpose of playing the game is achieved?",
-      "invariants": "What must be true in order to obtain our goals?",
-      "tasks": "- **Attacker** \u2013\nKeep your armpit above the defending player's shoulder.\n- **Defender** \u2013\nFocus on forcing movement to create opportunities.",
-      "notes": "12/12/12 - Results of the game being used in practice.",
+      "description": "**Purpose**\n\n To practice controlling our opponent while maintaining the Russian Tie.\n\n**Environment**\n\n**Game Initiation Conditions**\n\n### Static. Russian Tie.\nAttacker is controlling the defender from the back side of one arm while using both arms for control.\n\n**Duration**\n2-minute rounds. After each round, players switch roles (attacker becomes defender, and vice versa).\n\n**Goals**\n\n- **Attacker** \u2013 \nMaintain control of the Russian Tie  No win condition.\n- **Defender** \u2013 \nFace the attacker and gain control of their far side elbow.\n\n\n**Constraints**\n\nHow are you constraining the game so that the purpose of playing the game is achieved?\n\n**Invariants**\n\nWhat must be true in order to obtain our goals?\n\n**Tasks**\n\n- **Attacker** \u2013 \nKeep your armpit above the defending player's shoulder.\n- **Defender** \u2013 \nFocus on forcing movement to create opportunities.",
       "category": "Standing",
-      "id": "standing-russian-tie-defense"
+      "purpose": "To practice controlling our opponent while maintaining the Russian Tie.",
+      "id": "standing-russian-tie-defense",
+      "path": "/home/steve/Documents/BJJ/Eco-BJJ/Games/Standing/RussianTieDefense.md"
     },
     {
       "title": "Seated Shin Guard - Level 1",
-      "description": "",
-      "purpose": "Break the connection.",
-      "game initiation conditions": "Bottom player is seated, top player is standing. Bottom player is using a butterfly hook against the top player's shin on one side along with  a tight same side arm grip around the knee.",
-      "duration": "2 Minutes. Then switch top and bottom.",
-      "goals": "- **Top** \u2013 Clear the shin hook\n- **Bottom** \u2013 Maintain position. No win condition.",
+      "description": "**Purpose**\nBreak the connection.\n\n**Game Initiation Conditions**\nBottom player is seated, top player is standing. Bottom player is using a butterfly hook against the top player's shin on one side along with  a tight same side arm grip around the knee.\n\n**Duration**\n2 Minutes. Then switch top and bottom.\n\n**Goals**\n- **Top** \u2013 Clear the shin hook\n- **Bottom** \u2013 Maintain position. No win condition.\n\n**Category**\nSeatedShinGuard",
       "category": "SeatedShinGuard",
-      "id": "seatedshinguard-seated-shin-guard---level-1"
+      "purpose": "Break the connection.",
+      "id": "seatedshinguard-seated-shin-guard---level-1",
+      "path": "/home/steve/Documents/BJJ/Eco-BJJ/Games/SeatedShinGuard/Level1.md"
     },
     {
       "title": "Seated Shin Guard - Level 3",
-      "description": "",
-      "purpose": "Full engagement.",
-      "game initiation conditions": "Same as Level 1.",
-      "duration": "2 Minutes. Then switch top and bottom.",
-      "goals": "- **Top** \u2013 Same as previous. also try to drive bottom player to thier entangled side.\n- **Bottom** \u2013 Sweep or stand up. Try to get top player's center of mass over our right shoulder.",
+      "description": "**Purpose**\nFull engagement.\n\n**Game Initiation Conditions**\nSame as Level 1.\n\n**Duration**\n2 Minutes. Then switch top and bottom.\n\n**Goals**\n- **Top** \u2013 Same as previous. also try to drive bottom player to thier entangled side.\n- **Bottom** \u2013 Sweep or stand up. Try to get top player's center of mass over our right shoulder.\n\n**Category**\nSeatedShinGuard",
       "category": "SeatedShinGuard",
-      "id": "seatedshinguard-seated-shin-guard---level-3"
+      "purpose": "Full engagement.",
+      "id": "seatedshinguard-seated-shin-guard---level-3",
+      "path": "/home/steve/Documents/BJJ/Eco-BJJ/Games/SeatedShinGuard/Level3.md"
     },
     {
       "title": "Seated Shin Guard - Level 2",
-      "description": "",
-      "purpose": "Break connection or gain advantage.",
-      "game initiation conditions": "Same as Level 1.",
-      "duration": "2 Minutes. Then switch top and bottom.",
-      "goals": "- **Top** \u2013 Clear the shin hook or get an underhook on the entangled side. Straigntening the knee to create space and driving the fist against bottom's hooking bicep may be helpful.\n- **Bottom** \u2013 Maintain position. No win condition.",
+      "description": "**Purpose**\nBreak connection or gain advantage.\n\n**Game Initiation Conditions**\nSame as Level 1.\n\n**Duration**\n2 Minutes. Then switch top and bottom.\n\n**Goals**\n- **Top** \u2013 Clear the shin hook or get an underhook on the entangled side. Straigntening the knee to create space and driving the fist against bottom's hooking bicep may be helpful.\n- **Bottom** \u2013 Maintain position. No win condition.\n\n**Category**\nSeatedShinGuard",
       "category": "SeatedShinGuard",
-      "id": "seatedshinguard-seated-shin-guard---level-2"
+      "purpose": "Break connection or gain advantage.",
+      "id": "seatedshinguard-seated-shin-guard---level-2",
+      "path": "/home/steve/Documents/BJJ/Eco-BJJ/Games/SeatedShinGuard/Level2.md"
     },
     {
       "title": "Seated Butterfly",
-      "description": "Bottom player has 1 underhook and strong posture (head under the chin). Bottom player needs to sweep their opponent or stand up. Top player must keep both knees on the ground and may not post with their hands. Neither player can pummel for a better position.",
-      "purpose": "What is the point in playing this game? What principles are we trying to teach?",
-      "environment": "- Number of players: 2",
-      "game initiation conditions": "- **Static** \u2013 Players start from a defined position with no movement.\n- **Inertial** \u2013 Players start after a defined movement is initiated. Example: Players start with one taking the other down with a single leg with no resistance. Game is live as soon as the takedown is initiated.\n- **Separated** \u2013 Typically standing.\n\n### Static. Side Control.\nTop has strong chest to chest connection with control of all inside spaces and connected hands.",
-      "duration": "Round length can impact the intensity and variability, with shorter rounds tending towards high intensity with little room for exploration.\n\nex - 2 Minutes. Then find a new partner.",
-      "goals": "What are the win conditions for each player? What happens when a player wins?\n\n- **Top** \u2013 Maintain position. No win condition.\n- **Bottom** \u2013 Recover a guard, sweep, stand up, or submit. Flip flop on win.",
-      "constraints": "How are you constraining the game so that the purpose of playing the game is achieved?",
-      "invariants": "What must be true in order to obtain our goals?",
-      "tasks": "How do we focus the players' attention so they can achieve their goals?",
-      "notes": "12/12/12 - Results of the game being used in practice.",
+      "description": "Bottom player has 1 underhook and strong posture (head under the chin). Bottom player needs to sweep their opponent or stand up. Top player must keep both knees on the ground and may not post with their hands. Neither player can pummel for a better position.\n\n **Purpose**\n\nWhat is the point in playing this game? What principles are we trying to teach?\n\n**Environment**\n\n- Number of players: 2\n\n**Game Initiation Conditions**\n\n- **Static** \u2013 Players start from a defined position with no movement.\n- **Inertial** \u2013 Players start after a defined movement is initiated. Example: Players start with one taking the other down with a single leg with no resistance. Game is live as soon as the takedown is initiated.\n- **Separated** \u2013 Typically standing.\n\n### Static. Side Control.\nTop has strong chest to chest connection with control of all inside spaces and connected hands.\n\n**Duration**\nRound length can impact the intensity and variability, with shorter rounds tending towards high intensity with little room for exploration.\n\nex - 2 Minutes. Then find a new partner.\n\n**Goals**\n\nWhat are the win conditions for each player? What happens when a player wins?\n\n- **Top** \u2013 Maintain position. No win condition.\n- **Bottom** \u2013 Recover a guard, sweep, stand up, or submit. Flip flop on win.\n\n**Constraints**\n\nHow are you constraining the game so that the purpose of playing the game is achieved?\n\n**Invariants**\n\nWhat must be true in order to obtain our goals?\n\n**Tasks**\n\nHow do we focus the players' attention so they can achieve their goals?\n\n**Notes**\n\n12/12/12 - Results of the game being used in practice.",
       "category": "Butterfly",
-      "id": "butterfly-seated-butterfly"
+      "purpose": "What is the point in playing this game? What principles are we trying to teach?",
+      "id": "butterfly-seated-butterfly",
+      "path": "/home/steve/Documents/BJJ/Eco-BJJ/Games/Butterfly/SeatedButterfly.md"
     },
     {
       "title": "Recovering from being flattened out",
-      "description": "Bottom player has butterfly hooks with their back flat on the mat. Bottom player needs to recover to a seated position.",
-      "purpose": "What is the point in playing this game? What principles are we trying to teach?",
-      "environment": "- Number of players: 2",
-      "game initiation conditions": "- **Static** \u2013 Players start from a defined position with no movement.\n- **Inertial** \u2013 Players start after a defined movement is initiated. Example: Players start with one taking the other down with a single leg with no resistance. Game is live as soon as the takedown is initiated.\n- **Separated** \u2013 Typically standing.\n\n### Static. Side Control.\nTop has strong chest to chest connection with control of all inside spaces and connected hands.",
-      "duration": "Round length can impact the intensity and variability, with shorter rounds tending towards high intensity with little room for exploration.\n\nex - 2 Minutes. Then find a new partner.",
-      "goals": "What are the win conditions for each player? What happens when a player wins?\n\n- **Top** \u2013 Maintain position. No win condition.\n- **Bottom** \u2013 Recover a guard, sweep, stand up, or submit. Flip flop on win.",
-      "constraints": "How are you constraining the game so that the purpose of playing the game is achieved?",
-      "invariants": "What must be true in order to obtain our goals?",
-      "tasks": "How do we focus the players' attention so they can achieve their goals?",
-      "notes": "12/12/12 - Results of the game being used in practice.",
+      "description": "Bottom player has butterfly hooks with their back flat on the mat. Bottom player needs to recover to a seated position.\n\n **Purpose**\n\nWhat is the point in playing this game? What principles are we trying to teach?\n\n**Environment**\n\n- Number of players: 2\n\n**Game Initiation Conditions**\n\n- **Static** \u2013 Players start from a defined position with no movement.\n- **Inertial** \u2013 Players start after a defined movement is initiated. Example: Players start with one taking the other down with a single leg with no resistance. Game is live as soon as the takedown is initiated.\n- **Separated** \u2013 Typically standing.\n\n### Static. Side Control.\nTop has strong chest to chest connection with control of all inside spaces and connected hands.\n\n**Duration**\nRound length can impact the intensity and variability, with shorter rounds tending towards high intensity with little room for exploration.\n\nex - 2 Minutes. Then find a new partner.\n\n**Goals**\n\nWhat are the win conditions for each player? What happens when a player wins?\n\n- **Top** \u2013 Maintain position. No win condition.\n- **Bottom** \u2013 Recover a guard, sweep, stand up, or submit. Flip flop on win.\n\n**Constraints**\n\nHow are you constraining the game so that the purpose of playing the game is achieved?\n\n**Invariants**\n\nWhat must be true in order to obtain our goals?\n\n**Tasks**\n\nHow do we focus the players' attention so they can achieve their goals?\n\n**Notes**\n\n12/12/12 - Results of the game being used in practice.",
       "category": "Butterfly",
-      "id": "butterfly-recovering-from-being-flattened-out"
+      "purpose": "What is the point in playing this game? What principles are we trying to teach?",
+      "id": "butterfly-recovering-from-being-flattened-out",
+      "path": "/home/steve/Documents/BJJ/Eco-BJJ/Games/Butterfly/RecoveringFromFlattened.md"
     },
     {
       "title": "One hook in from side control",
-      "description": "Bottom player needs to recover to a more substantial guard.",
-      "purpose": "What is the point in playing this game? What principles are we trying to teach?",
-      "environment": "- Number of players: 2",
-      "game initiation conditions": "- **Static** \u2013 Players start from a defined position with no movement.\n- **Inertial** \u2013 Players start after a defined movement is initiated. Example: Players start with one taking the other down with a single leg with no resistance. Game is live as soon as the takedown is initiated.\n- **Separated** \u2013 Typically standing.\n\n### Static. Side Control.\nTop has strong chest to chest connection with control of all inside spaces and connected hands.",
-      "duration": "Round length can impact the intensity and variability, with shorter rounds tending towards high intensity with little room for exploration.\n\nex - 2 Minutes. Then find a new partner.",
-      "goals": "What are the win conditions for each player? What happens when a player wins?\n\n- **Top** \u2013 Maintain position. No win condition.\n- **Bottom** \u2013 Recover a guard, sweep, stand up, or submit. Flip flop on win.",
-      "constraints": "How are you constraining the game so that the purpose of playing the game is achieved?",
-      "invariants": "What must be true in order to obtain our goals?",
-      "tasks": "How do we focus the players' attention so they can achieve their goals?",
-      "notes": "12/12/12 - Results of the game being used in practice.",
+      "description": "Bottom player needs to recover to a more substantial guard.\n\n **Purpose**\n\nWhat is the point in playing this game? What principles are we trying to teach?\n\n**Environment**\n\n- Number of players: 2\n\n**Game Initiation Conditions**\n\n- **Static** \u2013 Players start from a defined position with no movement.\n- **Inertial** \u2013 Players start after a defined movement is initiated. Example: Players start with one taking the other down with a single leg with no resistance. Game is live as soon as the takedown is initiated.\n- **Separated** \u2013 Typically standing.\n\n### Static. Side Control.\nTop has strong chest to chest connection with control of all inside spaces and connected hands.\n\n**Duration**\nRound length can impact the intensity and variability, with shorter rounds tending towards high intensity with little room for exploration.\n\nex - 2 Minutes. Then find a new partner.\n\n**Goals**\n\nWhat are the win conditions for each player? What happens when a player wins?\n\n- **Top** \u2013 Maintain position. No win condition.\n- **Bottom** \u2013 Recover a guard, sweep, stand up, or submit. Flip flop on win.\n\n**Constraints**\n\nHow are you constraining the game so that the purpose of playing the game is achieved?\n\n**Invariants**\n\nWhat must be true in order to obtain our goals?\n\n**Tasks**\n\nHow do we focus the players' attention so they can achieve their goals?\n\n**Notes**\n\n12/12/12 - Results of the game being used in practice.",
       "category": "Butterfly",
-      "id": "butterfly-one-hook-in-from-side-control"
+      "purpose": "What is the point in playing this game? What principles are we trying to teach?",
+      "id": "butterfly-one-hook-in-from-side-control",
+      "path": "/home/steve/Documents/BJJ/Eco-BJJ/Games/Butterfly/OneHookIn.md"
     },
     {
       "title": "Butterfly Chase",
-      "description": "",
-      "purpose": "This game is intented to teach the player to maintain control of the inside space of their opponents legs.",
-      "game initiation conditions": "Start Static where the Bottom player has both butterfly hooks but no upper body control.",
-      "duration": "1 minute flip flop top and bottom",
-      "goals": "What are the win conditions for each player? What happens when a player wins?\n\n- **Top** \u2013 Top player tries to move away such that the bottom player becomes unhooked. No win condition.\n- **Bottom** \u2013 Bottom player must keep a strong connection between their shin/foot and the inside of their opponent's thigh. reset on a loss.",
-      "constraints": "Neither player can use their hands on the other player.\nBeginners can have the top player restricted to their knees.",
-      "invariants": "Bottom player's knees cannot come together.\nWhat must be true in order to obtain our goals?",
-      "tasks": "Bottom player should focus on curling their foot upwards and maintain tight connection with the foot and shin.\n\nHow do we focus the players' attention so they can achieve their goals?",
-      "notes": "",
+      "description": "**Purpose**\nThis game is intented to teach the player to maintain control of the inside space of their opponents legs.\n\n**Game Initiation Conditions**\nStart Static where the Bottom player has both butterfly hooks but no upper body control. \n\n**Duration**\n1 minute flip flop top and bottom\n\n**Goals**\n\nWhat are the win conditions for each player? What happens when a player wins?\n\n- **Top** \u2013 Top player tries to move away such that the bottom player becomes unhooked. No win condition.\n- **Bottom** \u2013 Bottom player must keep a strong connection between their shin/foot and the inside of their opponent's thigh. reset on a loss.\n\n**Constraints**\n\nNeither player can use their hands on the other player. \nBeginners can have the top player restricted to their knees.\n\n**Invariants**\n\nBottom player's knees cannot come together.\nWhat must be true in order to obtain our goals?\n\n**Tasks**\nBottom player should focus on curling their foot upwards and maintain tight connection with the foot and shin.\n\nHow do we focus the players' attention so they can achieve their goals?\n\n**Notes**",
       "category": "Butterfly",
-      "id": "butterfly-butterfly-chase"
+      "purpose": "This game is intented to teach the player to maintain control of the inside space of their opponents legs.",
+      "id": "butterfly-butterfly-chase",
+      "path": "/home/steve/Documents/BJJ/Eco-BJJ/Games/Butterfly/ButterflyChase.md"
     }
   ]
 }

@@ -36,72 +36,63 @@ def parse_markdown_sections(content):
 
 def parse_game_file(filepath):
     """
-    Parses a game file which may contain multiple games separated by '---'
+    Parses a game file using YAML frontmatter if available.
     """
     with open(filepath, 'r', encoding='utf-8') as f:
         content = f.read()
 
-    # Split by horizontal rule
-    raw_games = content.split('---')
     games = []
-
-    for raw_game in raw_games:
-        if not raw_game.strip():
-            continue
+    
+    # Check for Frontmatter
+    if content.startswith('---'):
+        parts = content.split('---', 2)
+        if len(parts) >= 3:
+            frontmatter_raw = parts[1]
+            body = parts[2].strip()
             
-        game_data = {}
-        
-        # Extract Title (First H2 or H1)
-        title_match = re.search(r'^##?\s+(.*)', raw_game, re.MULTILINE)
-        if title_match:
-            game_data['title'] = title_match.group(1).strip()
-        else:
-            # Fallback for files that might be just one game without top-level header or just parsing needed
-            # Use filename if no title found in a meaningful block? 
-            # For now, skip if no title found, or check if it's the top of the file
-            lines = raw_game.strip().split('\n')
-            if lines and lines[0].startswith('# '):
-                 game_data['title'] = lines[0].replace('# ', '').strip()
+            metadata = {}
+            for line in frontmatter_raw.strip().split('\n'):
+                if ':' in line:
+                    key, value = line.split(':', 1)
+                    metadata[key.strip()] = value.strip()
+            
+            # Construct game object
+            game_data = {
+                'title': metadata.get('title', 'Unknown Title'),
+                'description': body, # The body is the description now
+                'category': metadata.get('category', 'Uncategorized'),
+                # Parse body for other sections if needed, but for now we rely on the body being markdown
+                # We can try to extract specific sections from body if they exist as headers
+            }
+            
+            # Optional: Extract key-value pairs from body like **Purpose** if they exist
+            # This maintains compatibility with old parsing logic if user adds them in body
+            # ... (Simpler to just treat body as description for now or re-use old section parser on body)
+            
+            # Let's try to extract standard sections from body
+            lines = body.split('\n')
+            current_section = 'description'
+            section_content = ""
+            
+            # Simple section parser
+            parsed_sections = {'description': ""}
+            
+            # If the body starts with text, it goes to 'description' until a header or bold key is found
+            # Actually, let's keep it simple: The whole body is the 'description' field in our JSON model 
+            # for the UI to render. The UI renders 'description' as markdown.
+            # But the UI also looks for 'purpose' in the list view.
+            
+            # Let's try to find **Purpose**
+            purpose_match = re.search(r'\*\*Purpose\*\*\s*\n*(.*)', body)
+            if purpose_match:
+                game_data['purpose'] = purpose_match.group(1).strip()
+            
+            games.append(game_data)
+            return games
 
-        if 'title' not in game_data:
-            continue
-
-        # Extract sections
-        # Simplified parsing: looking for **Key**
-        details = {}
-        # Regex to find **Key** followed by text until next **Key** or ## Header
-        # This is a bit complex, let's try a simpler line-by-line approach for keys
-        
-        current_key = 'description'
-        if current_key not in game_data: game_data[current_key] = ""
-
-        lines = raw_game.split('\n')
-        for line in lines:
-            line = line.strip()
-            if line.startswith('## '):
-                # Skip title line if we already processed it, or reset context?
-                # Actually we already extracted title, so this handles sub-sections if they exist
-                pass 
-            elif line.startswith('**') and line.endswith('**'):
-                # New key like **Purpose**
-                current_key = line.strip('*').lower()
-                game_data[current_key] = ""
-            elif line.startswith('**') and '**' in line:
-                 # Key inline like **Static** - ...
-                 pass # Treat as content for now
-            else:
-                if current_key in game_data:
-                     game_data[current_key] += line + "\n"
-                else:
-                     game_data[current_key] = line + "\n"
-        
-        # Clean up
-        for k in game_data:
-            if isinstance(game_data[k], str):
-                game_data[k] = game_data[k].strip()
-
-        games.append(game_data)
-        
+    # Fallback to old parsing if no frontmatter (shouldn't happen for migrated games)
+    # ... (Keep old logic if needed, but we migrated everything)
+    
     return games
 
 def get_theories():
@@ -204,12 +195,24 @@ def get_categories_and_games():
                         pass
                     categories[category_name]["description"] = desc
             elif file.endswith('.md') and file != "GameTemplate.md":
-                # It's a game file
+                # It's a game file (or category desc if fallback)
                 file_games = parse_game_file(path)
                 for g in file_games:
-                    g['category'] = category_name
-                    g['id'] = (category_name + '-' + g['title']).lower().replace(' ', '-').replace('/', '-')
-                    categories[category_name]["games"].append(g['id'])
+                    # Use frontmatter category if available, else folder name
+                    cat_key = g.get('category', category_name)
+                    
+                    # Ensure category exists in our map if it's new (e.g. from frontmatter)
+                    if cat_key not in categories:
+                         categories[cat_key] = {
+                            "id": cat_key.lower().replace(" ", "-"),
+                            "title": cat_key,
+                            "description": "",
+                            "games": []
+                        }
+                    
+                    g['id'] = (cat_key + '-' + g['title']).lower().replace(' ', '-').replace('/', '-')
+                    g['path'] = path # Critical: Add path for editing
+                    categories[cat_key]["games"].append(g['id'])
                     all_games.append(g)
 
     return list(categories.values()), all_games

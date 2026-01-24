@@ -423,6 +423,71 @@ select:focus {
     border-radius: 4px;
 }
 
+/* Editor Logic */
+.editor-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-sm);
+}
+
+.editor-textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: var(--spacing-sm);
+    font-family: 'Monaco', 'Consolas', monospace;
+    font-size: 0.9rem;
+    background: #0d1117;
+    color: #c9d1d9;
+    border: 1px solid var(--border-active);
+    border-radius: var(--radius-sm);
+    line-height: 1.5;
+    resize: vertical;
+}
+
+.editor-controls {
+    display: flex;
+    gap: var(--spacing-sm);
+    justify-content: flex-end;
+}
+
+.btn-small {
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    border-radius: 4px;
+}
+
+.icon-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.icon-btn:hover {
+    color: var(--text-active);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.section-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-sm);
+}
+
+.edit-theory-btn {
+    opacity: 0.7;
+}
+
+.edit-theory-btn:hover {
+    opacity: 1;
+}
+
 /* Print Styles */
 @media print {
     body {

@@ -5,9 +5,11 @@
 // Data State
 let state = {
     content: null,
+    content: null,
     selectedTheoryId: null,
     classStructure: []
 };
+window.state = state; // Expose for Editor
 
 // Constants based on ClassStructure.md
 const CLASS_TEMPLATE = [
@@ -105,7 +107,11 @@ function generateClassStructure() {
             }
 
             contentHtml = `
-                <div class="theory-content">
+                <div class="section-header-row">
+                    <!-- Header is rendered by parent usually, but we want button next to content -->
+                    <button class="btn-small secondary edit-theory-btn" onclick="window.editor.editTheory()">✎ Edit Concept</button>
+                </div>
+                <div class="theory-content" id="theory-content-display">
                     ${markedParse(theory.content || theory.description || 'No content available.')}
                     ${imagesHtml}
                 </div>
@@ -213,10 +219,14 @@ window.selectGame = (gameId, segmentId, slotIndex) => {
             <div class="selected-game">
                 <div class="game-header">
                     <h4>${game.title}</h4>
-                    <button class="remove-btn" onclick="clearSlot('${segmentId}', ${slotIndex})">×</button>
+                    <div class="actions">
+                        <button class="icon-btn edit-btn" title="Edit Game" onclick="window.editor.editGame('${game.id}', '${segmentId}', ${slotIndex})">✎</button>
+                        <button class="icon-btn remove-btn" title="Remove" onclick="clearSlot('${segmentId}', ${slotIndex})">×</button>
+                    </div>
                 </div>
-                <div class="game-details">
+                <div class="game-details" id="game-content-${segmentId}-${slotIndex}">
                     <p><strong>Goal:</strong> ${game.goals || 'N/A'}</p>
+                    <div class="game-description">${markedParse(game.description || '')}</div>
                 </div>
             </div>
         `;
@@ -242,5 +252,11 @@ window.clearSlot = (segmentId, slotIndex) => {
     }
 }
 
-// Auto init
-init();
+// Auto init logic
+import { Editor } from './editor.js';
+
+// Init App
+init().then(() => {
+    // Init Editor after content load
+    window.editor = new Editor();
+});

@@ -21,6 +21,7 @@ else
     xdg-open http://localhost:8000 &
 fi
 
-echo "Starting server at http://localhost:8000..."
-python3 -m http.server 8000
+# Start Server
+echo "Starting Eco-BJJ Server..."
+python3 server.py
 

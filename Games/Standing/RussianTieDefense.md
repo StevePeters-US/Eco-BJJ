@@ -40,7 +40,3 @@ What must be true in order to obtain our goals?
 Keep your armpit above the defending player's shoulder.
 - **Defender** – 
 Focus on forcing movement to create opportunities.
-
-**Notes**
-
-12/12/12 - Results of the game being used in practice.
