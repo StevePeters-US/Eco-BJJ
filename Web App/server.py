@@ -14,8 +14,88 @@ class EcoHandler(http.server.SimpleHTTPRequestHandler):
     def do_POST(self):
         if self.path == '/api/save':
             self.handle_save()
+        elif self.path == '/api/create':
+            self.handle_create()
         else:
             self.send_error(404, "Endpoint not found")
+
+    def handle_create(self):
+        try:
+            content_len = int(self.headers.get('Content-Length', 0))
+            post_body = self.rfile.read(content_len)
+            data = json.loads(post_body)
+            
+            type_ = data.get('type')
+            name = data.get('name')
+            
+            if not type_ or not name:
+                self.send_error(400, "Missing type or name")
+                return
+                
+            # Sanitize name
+            safe_name = "".join([c for c in name if c.isalnum() or c in " -_"])
+            filename = safe_name.replace(" ", "") + ".md"
+            
+            if type_ == 'concept':
+                # Create Concepts/safe_name/safe_name.md
+                folder = os.path.join(PROJECT_ROOT, 'Concepts', safe_name.replace(" ", ""))
+                if not os.path.exists(folder):
+                    os.makedirs(folder)
+                
+                filepath = os.path.join(folder, filename)
+                content = f"# {name}\n\nDescription of the concept."
+                
+            elif type_ == 'game':
+                category = data.get('category')
+                description = data.get('description', f'Description of {name}.')
+                goals = data.get('goals', '')
+                purpose = data.get('purpose', '')
+                
+                if not category:
+                     self.send_error(400, "Missing category for game")
+                     return
+                     
+                folder = os.path.join(PROJECT_ROOT, 'Games', category)
+                if not os.path.exists(folder):
+                    os.makedirs(folder)
+                    
+                filepath = os.path.join(folder, filename)
+                content = f"""---
+title: {name}
+category: {category}
+players: 2
+goals: {goals}
+purpose: {purpose}
+---
+
+{description}
+"""
+            else:
+                 self.send_error(400, "Invalid type")
+                 return
+                 
+            # Write file
+            if os.path.exists(filepath):
+                 self.send_error(409, "File already exists")
+                 return
+
+            with open(filepath, 'w', encoding='utf-8') as f:
+                f.write(content)
+                
+            print(f"Created: {filepath}")
+            
+            # Regenerate
+            gen_script = os.path.join(BASE_DIR, 'scripts/generate_content.py')
+            subprocess.run(["python3", gen_script], check=True)
+
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({'status': 'success', 'path': filepath}).encode())
+
+        except Exception as e:
+            print(f"Error creating: {e}")
+            self.send_error(500, str(e))
 
     def handle_save(self):
         try:

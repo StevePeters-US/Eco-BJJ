@@ -55,7 +55,28 @@ export class Editor {
 
         const theory = window.state.content.theories.find(t => t.id === window.state.selectedTheoryId);
 
-        await this.saveToFile(theory.path, newContent);
+        await this.saveToFile(theory.path, newContent, () => {
+            // Update State
+            theory.content = newContent;
+
+            // Update UI
+            // Re-render discussion content (description + images)
+            // Ideally we should re-use app.js rendering logic or just simple parse
+            // Let's assume images haven't changed for now, or re-render them if we can access them
+            let imagesHtml = '';
+            if (theory.images && theory.images.length > 0) {
+                imagesHtml = `<div class="theory-images">
+                    ${theory.images.map(img => `<img src="${img}" alt="Theory Image" loading="lazy">`).join('')}
+                </div>`;
+            }
+
+            container.innerHTML = `
+                ${window.markedParse(newContent)}
+                ${imagesHtml}
+            `;
+
+            this.activeEditors.delete('theory');
+        });
     }
 
     // --- Game Editing ---
@@ -142,8 +163,21 @@ players: ${game.players || 2}
 `;
             const fullContent = frontmatter + newContent;
 
-            await this.saveToFile(game.path, fullContent);
-            this.activeEditors.delete(editorKey);
+            await this.saveToFile(game.path, fullContent, () => {
+                // Update State
+                game.description = newContent;
+
+                // Update UI
+                // Only update the description part, but our container includes goals...
+                // Actually containerId points to 'game-content-...' which contains Goal + Description
+                // Let's rebuild it.
+                container.innerHTML = `
+                    <p><strong>Goal:</strong> ${game.goals || 'N/A'}</p>
+                    <div class="game-description">${window.markedParse(newContent)}</div>
+                `;
+
+                this.activeEditors.delete(editorKey);
+            });
 
         } catch (e) {
             console.error(e);
@@ -164,7 +198,7 @@ players: ${game.players || 2}
         }
     }
 
-    async saveToFile(path, content) {
+    async saveToFile(path, content, onSuccess) {
         try {
             const response = await fetch('/api/save', {
                 method: 'POST',
@@ -176,10 +210,8 @@ players: ${game.players || 2}
             });
 
             if (response.ok) {
-                // Success
-                // Don't reload full page if possible, just re-fetch content?
-                // For MVP, reload is safest to update all state.
-                window.location.reload();
+                // Success - Execute callback for UI update
+                if (onSuccess) onSuccess();
             } else {
                 alert("Server Error: " + await response.text());
             }

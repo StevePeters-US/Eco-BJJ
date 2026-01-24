@@ -4,7 +4,7 @@
 cd "$(dirname "$0")"
 
 # Link data folders if they don't exist
-ln -sfn ../Theory Theory
+ln -sfn ../Concepts Concepts
 ln -sfn ../Games Games
 
 # Generate

@@ -488,6 +488,67 @@ select:focus {
     opacity: 1;
 }
 
+/* Modal Accordions */
+.category-group {
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+}
+
+.category-group[open] {
+    padding-bottom: var(--spacing-md);
+}
+
+summary.category-header {
+    cursor: pointer;
+    list-style: none;
+    /* Hide default arrow */
+    display: flex;
+    flex-direction: row;
+    /* Horizontal */
+    align-items: center;
+    /* Vertical center */
+    justify-content: flex-start;
+    /* Left align */
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) 0;
+    user-select: none;
+}
+
+summary.category-header::-webkit-details-marker {
+    display: none;
+}
+
+summary.category-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--primary-color);
+}
+
+/* Arrow on the left */
+summary.category-header::before {
+    content: '▶';
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    transition: transform 0.2s;
+    display: inline-block;
+}
+
+summary.category-header::after {
+    display: none;
+}
+
+details[open] summary.category-header::before {
+    transform: rotate(90deg);
+}
+
+.category-games {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-sm);
+}
+
 /* Print Styles */
 @media print {
     body {

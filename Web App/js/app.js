@@ -5,8 +5,7 @@
 // Data State
 let state = {
     content: null,
-    content: null,
-    selectedTheoryId: null,
+    selectedConceptId: null, // Renamed
     classStructure: []
 };
 window.state = state; // Expose for Editor
@@ -30,7 +29,7 @@ async function init() {
         state.content = await response.json();
         console.log('Content loaded:', state.content);
 
-        renderTheorySelect();
+        renderConceptSelect(); // Renamed
         setupEventListeners();
     } catch (error) {
         console.error('Initialization error:', error);
@@ -38,14 +37,14 @@ async function init() {
     }
 }
 
-function renderTheorySelect() {
+function renderConceptSelect() {
     const select = document.getElementById('concept-select');
-    if (!state.content.theories) return;
+    if (!state.content.concepts) return; // Renamed key
 
-    state.content.theories.forEach(theory => {
+    state.content.concepts.forEach(concept => {
         const option = document.createElement('option');
-        option.value = theory.id;
-        option.textContent = theory.title;
+        option.value = concept.id;
+        option.textContent = concept.title;
         select.appendChild(option);
     });
 }
@@ -53,25 +52,61 @@ function renderTheorySelect() {
 function setupEventListeners() {
     const select = document.getElementById('concept-select');
     select.addEventListener('change', (e) => {
-        state.selectedTheoryId = e.target.value;
+        state.selectedConceptId = e.target.value;
         generateClassStructure();
     });
 
     document.getElementById('print-btn').addEventListener('click', () => {
         window.print();
     });
+
+    // Inject Create Concept Button if not present
+    const headerParams = document.querySelector('.header-params');
+    if (headerParams && !document.getElementById('create-concept-btn')) {
+        const createBtn = document.createElement('button');
+        createBtn.id = 'create-concept-btn';
+        createBtn.className = 'icon-btn';
+        createBtn.innerHTML = '+';
+        createBtn.title = 'Create New Concept';
+        createBtn.style.marginLeft = '10px';
+        createBtn.style.border = '1px solid currentColor';
+        createBtn.onclick = createConcept;
+        // Insert after select
+        headerParams.appendChild(createBtn);
+    }
+}
+
+async function createConcept() {
+    const name = prompt("Enter new Concept name:");
+    if (!name) return;
+
+    try {
+        const response = await fetch('/api/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'concept', name: name })
+        });
+
+        if (response.ok) {
+            alert('Concept created!');
+            window.location.reload();
+        } else {
+            alert('Error creating: ' + await response.text());
+        }
+    } catch (e) {
+        alert('Error: ' + e.message);
+    }
 }
 
 function generateClassStructure() {
-    const theory = state.content.theories.find(t => t.id === state.selectedTheoryId);
-    if (!theory) return;
+    const concept = state.content.concepts.find(t => t.id === state.selectedConceptId);
+    if (!concept) return;
 
     // Show panels
     document.getElementById('preview-panel').classList.remove('hidden');
     document.getElementById('class-meta').classList.remove('hidden');
 
     // Update Meta
-    // Update Meta - Sidebar cleared as per user request
     const metaContainer = document.getElementById('class-meta');
     metaContainer.innerHTML = '';
     metaContainer.classList.add('hidden');
@@ -98,21 +133,21 @@ function generateClassStructure() {
                 `;
             }
         } else if (segment.type === 'discussion') {
-            // Inject Theory Content here
+            // Inject Concept Content here
             let imagesHtml = '';
-            if (theory.images && theory.images.length > 0) {
+            if (concept.images && concept.images.length > 0) {
                 imagesHtml = `<div class="theory-images">
-                    ${theory.images.map(img => `<img src="${img}" alt="Theory Image" loading="lazy">`).join('')}
+                    ${concept.images.map(img => `<img src="${img}" alt="Concept Image" loading="lazy">`).join('')}
                 </div>`;
             }
 
             contentHtml = `
                 <div class="section-header-row">
                     <!-- Header is rendered by parent usually, but we want button next to content -->
-                    <button class="btn-small secondary edit-theory-btn" onclick="window.editor.editTheory()">✎ Edit Concept</button>
+                    <button class="btn-small secondary edit-theory-btn" onclick="window.editor.editConcept()">✎ Edit Concept</button>
                 </div>
                 <div class="theory-content" id="theory-content-display">
-                    ${markedParse(theory.content || theory.description || 'No content available.')}
+                    ${markedParse(concept.content || concept.description || 'No content available.')}
                     ${imagesHtml}
                 </div>
              `;
@@ -139,6 +174,7 @@ function markedParse(text) {
         .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
         .replace(/\n/gim, '<br>');
 }
+window.markedParse = markedParse;
 
 // Global Game Picker handler
 window.openGamePicker = (segmentId, slotIndex) => {
@@ -146,6 +182,7 @@ window.openGamePicker = (segmentId, slotIndex) => {
     // For MVP, let's just prompt or show a crude list
     // A premium app needs a modal. Let's create one dynamically or used a pre-built dialog.
 
+    window.lastModalArgs = { segmentId, slotIndex }; // Store for refresh
     createModal(segmentId, slotIndex);
 };
 
@@ -167,15 +204,14 @@ function createModal(segmentId, slotIndex) {
 
             if (catGames.length > 0) {
                 contentHtml += `
-                    <div class="category-group">
-                        <div class="category-header">
-                            ${markedParse(cat.description || `<h3>${cat.title}</h3>`)}
-                        </div>
+                    <details class="category-group">
+                        <summary class="category-header">
+                            <h3>${cat.title}</h3>
+                        </summary>
                         <div class="category-games">
                             ${renderGameOptions(catGames, segmentId, slotIndex)}
                         </div>
-                    </div>
-                    <hr class="category-divider">
+                    </details>
                 `;
             }
         });
@@ -188,7 +224,10 @@ function createModal(segmentId, slotIndex) {
         <div class="modal">
             <div class="modal-header">
                 <h3>Select Activity</h3>
-                <button onclick="this.closest('.modal-overlay').remove()">×</button>
+                <div class="modal-actions">
+                    <button class="btn-small secondary" onclick="createGame()">+ New Game</button>
+                    <button class="icon-btn close-btn" onclick="this.closest('.modal-overlay').remove()">×</button>
+                </div>
             </div>
             <div class="modal-body">
                 ${contentHtml}
@@ -254,6 +293,145 @@ window.clearSlot = (segmentId, slotIndex) => {
 
 // Auto init logic
 import { Editor } from './editor.js';
+
+window.createGame = (preselectedCategory) => {
+    // Remove existing modal if any
+    const existing = document.querySelector('.modal-overlay');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+
+    // Get categories for dropdown
+    const categories = window.state.content.categories || [];
+    const optionsHtml = categories.map(c =>
+        `<option value="${c.title}" ${c.title === preselectedCategory ? 'selected' : ''}>${c.title}</option>`
+    ).join('');
+
+    overlay.innerHTML = `
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Create New Game</h3>
+                <button onclick="this.closest('.modal-overlay').remove()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="new-game-category">
+                        <option value="" disabled ${!preselectedCategory ? 'selected' : ''}>Select Category...</option>
+                        ${optionsHtml}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Game Title</label>
+                    <input type="text" id="new-game-title" class="editor-textarea" style="height: auto;" placeholder="e.g. King of the Hill">
+                </div>
+                <div class="form-group">
+                    <label>Goals</label>
+                    <input type="text" id="new-game-goals" class="editor-textarea" style="height: auto;" placeholder="e.g. Take the back">
+                </div>
+                <div class="form-group">
+                    <label>Purpose</label>
+                    <input type="text" id="new-game-purpose" class="editor-textarea" style="height: auto;" placeholder="e.g. Learn control">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="new-game-desc" class="editor-textarea" rows="4" placeholder="Describe the rules..."></textarea>
+                </div>
+                <div class="editor-controls">
+                    <button class="btn secondary" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
+                    <button class="btn primary" onclick="submitNewGame()">Create Game</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(overlay);
+    // Focus title
+    setTimeout(() => document.getElementById('new-game-title').focus(), 100);
+};
+
+window.submitNewGame = async () => {
+    const category = document.getElementById('new-game-category').value;
+    const name = document.getElementById('new-game-title').value;
+    const goals = document.getElementById('new-game-goals').value;
+    const purpose = document.getElementById('new-game-purpose').value;
+    const description = document.getElementById('new-game-desc').value;
+
+    if (!category || !name) {
+        alert('Category and Title are required.');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                type: 'game',
+                name: name,
+                category: category,
+                goals: goals,
+                purpose: purpose,
+                description: description
+            })
+        });
+
+        if (response.ok) {
+            // Optimistic Update
+            const result = await response.json();
+            const newId = (category + '-' + name).toLowerCase().replace(' ', '-').replace('/', '-');
+
+            const newGame = {
+                id: newId,
+                title: name,
+                category: category,
+                description: description || `Description of ${name}.`,
+                path: result.path,
+                goals: goals,
+                purpose: purpose
+            };
+
+            // Update State
+            window.state.content.games.push(newGame);
+
+            // Update Category State
+            let catObj = window.state.content.categories.find(c => c.title === category);
+            if (!catObj) {
+                // Should exist if selected from dropdown, but handling edge cases
+                catObj = {
+                    id: category.toLowerCase().replace(" ", "-"),
+                    title: category,
+                    description: "",
+                    games: []
+                };
+                window.state.content.categories.push(catObj);
+            }
+            catObj.games.push(newId);
+
+            // Refresh UI
+            // Close create modal
+            document.querySelector('.modal-overlay').remove();
+
+            // Allow time for modal to close then refresh the picker if it was open...
+            // Actually, wait. createModal is the Picker. We just replaced it with the Create Modal.
+            // So the Picker is GONE.
+            // We need to re-open the Picker using lastModalArgs.
+
+            if (window.lastModalArgs) {
+                // Re-open picker
+                createModal(window.lastModalArgs.segmentId, window.lastModalArgs.slotIndex);
+            } else {
+                alert('Game created!');
+            }
+
+        } else {
+            alert('Error creating: ' + await response.text());
+        }
+    } catch (e) {
+        alert('Error: ' + e.message);
+    }
+};
 
 // Init App
 init().then(() => {

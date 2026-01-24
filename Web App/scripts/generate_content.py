@@ -7,32 +7,10 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.abspath(os.path.join(BASE_DIR, '../../'))
 WEB_APP_DATA_DIR = os.path.join(BASE_DIR, '../data')
 
-THEORY_DIR = os.path.join(PROJECT_ROOT, 'Theory')
+THEORY_DIR = os.path.join(PROJECT_ROOT, 'Concepts') # Updated to Concepts
 GAMES_DIR = os.path.join(PROJECT_ROOT, 'Games')
 
 OUTPUT_FILE = os.path.join(WEB_APP_DATA_DIR, 'content.json')
-
-def parse_markdown_sections(content):
-    """
-    Parses markdown content into a dictionary of sections based on headers.
-    """
-    sections = {}
-    current_section = "description"
-    lines = content.split('\n')
-    
-    for line in lines:
-        if line.startswith('#'):
-            # New section
-            header_match = re.match(r'#+\s*(.*)', line)
-            if header_match:
-                current_section = header_match.group(1).strip().lower()
-                sections[current_section] = ""
-        else:
-            if current_section not in sections:
-                sections[current_section] = ""
-            sections[current_section] += line + "\n"
-            
-    return {k: v.strip() for k, v in sections.items()}
 
 def parse_game_file(filepath):
     """
@@ -65,24 +43,10 @@ def parse_game_file(filepath):
                 # We can try to extract specific sections from body if they exist as headers
             }
             
-            # Optional: Extract key-value pairs from body like **Purpose** if they exist
-            # This maintains compatibility with old parsing logic if user adds them in body
-            # ... (Simpler to just treat body as description for now or re-use old section parser on body)
+            # Use body as description. 
+            # If we needed specific fields like 'purpose' extracted from body, we'd do it here.
+            # Keeping it simple as per previous logic.
             
-            # Let's try to extract standard sections from body
-            lines = body.split('\n')
-            current_section = 'description'
-            section_content = ""
-            
-            # Simple section parser
-            parsed_sections = {'description': ""}
-            
-            # If the body starts with text, it goes to 'description' until a header or bold key is found
-            # Actually, let's keep it simple: The whole body is the 'description' field in our JSON model 
-            # for the UI to render. The UI renders 'description' as markdown.
-            # But the UI also looks for 'purpose' in the list view.
-            
-            # Let's try to find **Purpose**
             purpose_match = re.search(r'\*\*Purpose\*\*\s*\n*(.*)', body)
             if purpose_match:
                 game_data['purpose'] = purpose_match.group(1).strip()
@@ -90,23 +54,19 @@ def parse_game_file(filepath):
             games.append(game_data)
             return games
 
-    # Fallback to old parsing if no frontmatter (shouldn't happen for migrated games)
-    # ... (Keep old logic if needed, but we migrated everything)
-    
     return games
 
-def get_theories():
-    theories = []
+def get_concepts():
+    concepts = []
     if not os.path.exists(THEORY_DIR):
         print(f"Warning: {THEORY_DIR} does not exist.")
-        return theories
+        return concepts
 
     for root, dirs, files in os.walk(THEORY_DIR):
         for file in files:
             if file.endswith('.md'):
                 path = os.path.join(root, file)
-                # Theory usually matches folder name, e.g. Theory/Pressure/Pressure.md
-                # We can just parse all md files in Theory as potential concepts
+                # Theory usually matches folder name, e.g. Concepts/Pressure/Pressure.md
                 with open(path, 'r', encoding='utf-8') as f:
                     content = f.read()
                 
@@ -118,37 +78,17 @@ def get_theories():
                 images = []
                 for img_file in os.listdir(root):
                     if img_file.lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.webp')):
-                        # Relative path for web app to access?
-                        # We need to serve them. The simplest way is to assume python http server serves root.
-                        # So path should be relative to Web App root or absolute if we symlink?
-                        # Let's use relative path from the processed content root.
-                        # Actually, our server is converting local file paths? No.
-                        # We should likely copy them or just reference them relatively if the server allows.
-                        # Current server is simple static server in 'Web App'. 
-                        # Theory/Images are in ../Theory.
-                        # Chrome blocks local file access. 
-                        # We need to symlink or copy 'Theory' and 'Games' into 'Web App' or Configure server.
-                        # For now, let's store the relative path from project root and handle serving later 
-                        # or assume 'Theory' is accessible via ../
-                        # Wait, SimpleHTTPRequestHandler serves CWD. If we run in 'Web App', ../Theory is not accessible by default unless we symlink?
-                        # Actually, let's try to reference them as ../Theory/..., but browsers might block that.
-                        # Ideally 'run.sh' should symlink data.
-                        # Since we symlinked Theory into Web App, we can just use Theory/Folder/Image
-                        images.append(f"Theory/{os.path.basename(root)}/{img_file}")
+                         # Updated path: Concepts/Folder/Image
+                        images.append(f"Concepts/{os.path.basename(root)}/{img_file}")
 
-                # Let's actually fix the pathing. 
-                # If we run server in 'Web App', we need 'Theory' to be inside 'Web App' or available.
-                # Let's adjust the path to be accessible.
-                # Only way is to symlink '../Theory' to 'Web App/Theory'
-                
-                theories.append({
+                concepts.append({
                     'id': title.lower().replace(' ', '-'),
                     'title': title,
                     'content': content,
                     'path': path,
                     'images': sorted(images)
                 })
-    return theories
+    return concepts
 
 def get_categories_and_games():
     categories = {}
@@ -183,17 +123,7 @@ def get_categories_and_games():
                 # This is the category description
                 with open(path, 'r', encoding='utf-8') as f:
                     content = f.read()
-                    # Strip H1 title from content if present, as we use folder name as title or parse it
-                    # Simple heuristic: take everything
-                    desc = content
-                    # If it starts with # Title, maybe remove it? 
-                    # Let's keep it raw for now, or just remove the first line if it is a header
-                    lines = content.strip().split('\n')
-                    if lines and lines[0].startswith('#'):
-                        # Check if it matches directory name roughly? 
-                        # User wants "Butterfly and it's description should be a header"
-                        pass
-                    categories[category_name]["description"] = desc
+                    categories[category_name]["description"] = content
             elif file.endswith('.md') and file != "GameTemplate.md":
                 # It's a game file (or category desc if fallback)
                 file_games = parse_game_file(path)
@@ -219,14 +149,14 @@ def get_categories_and_games():
 
 def main():
     print("Generating content...")
-    theories = get_theories()
-    print(f"Found {len(theories)} theories.")
+    concepts = get_concepts()
+    print(f"Found {len(concepts)} concepts.")
     
     categories, games = get_categories_and_games()
     print(f"Found {len(categories)} categories and {len(games)} games.")
     
     data = {
-        "theories": theories,
+        "concepts": concepts, 
         "categories": categories,
         "games": games
     }

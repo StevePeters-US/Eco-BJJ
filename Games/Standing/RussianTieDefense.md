@@ -39,4 +39,4 @@ What must be true in order to obtain our goals?
 - **Attacker** – 
 Keep your armpit above the defending player's shoulder.
 - **Defender** – 
-Focus on forcing movement to create opportunities.
+Focus on forcing movement to create opportunities. Optimistic Update.
