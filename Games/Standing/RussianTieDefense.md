@@ -1,4 +1,8 @@
-# Russian Tie Defense
+---
+title: Russian Tie Defense
+category: Standing
+players: 2
+---
 
 **Purpose**
 
@@ -40,5 +44,3 @@ Focus on forcing movement to create opportunities.
 **Notes**
 
 12/12/12 - Results of the game being used in practice.
-
-

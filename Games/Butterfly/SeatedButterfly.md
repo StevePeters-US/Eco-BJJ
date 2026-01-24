@@ -1,5 +1,10 @@
-## Seated Butterfly
- Bottom player has 1 underhook and strong posture (head under the chin). Bottom player needs to sweep their opponent or stand up. Top player must keep both knees on the ground and may not post with their hands. Neither player can pummel for a better position.
+---
+title: Seated Butterfly
+category: Butterfly
+players: 2
+---
+
+Bottom player has 1 underhook and strong posture (head under the chin). Bottom player needs to sweep their opponent or stand up. Top player must keep both knees on the ground and may not post with their hands. Neither player can pummel for a better position.
 
  **Purpose**
 

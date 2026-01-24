@@ -1,5 +1,8 @@
-
-# <center>Butterfly</center>
+---
+title: <center>Butterfly</center>
+category: Butterfly
+players: 2
+---
 
 Seated guard where the bottom player controls the inside space of the top player’s legs with the instep of both feet.
 

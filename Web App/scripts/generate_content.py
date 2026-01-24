@@ -123,11 +123,39 @@ def get_theories():
                 title_match = re.match(r'^#\s+(.*)', content)
                 title = title_match.group(1).strip() if title_match else file.replace('.md', '')
                 
+                # Check for images in the same directory
+                images = []
+                for img_file in os.listdir(root):
+                    if img_file.lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.webp')):
+                        # Relative path for web app to access?
+                        # We need to serve them. The simplest way is to assume python http server serves root.
+                        # So path should be relative to Web App root or absolute if we symlink?
+                        # Let's use relative path from the processed content root.
+                        # Actually, our server is converting local file paths? No.
+                        # We should likely copy them or just reference them relatively if the server allows.
+                        # Current server is simple static server in 'Web App'. 
+                        # Theory/Images are in ../Theory.
+                        # Chrome blocks local file access. 
+                        # We need to symlink or copy 'Theory' and 'Games' into 'Web App' or Configure server.
+                        # For now, let's store the relative path from project root and handle serving later 
+                        # or assume 'Theory' is accessible via ../
+                        # Wait, SimpleHTTPRequestHandler serves CWD. If we run in 'Web App', ../Theory is not accessible by default unless we symlink?
+                        # Actually, let's try to reference them as ../Theory/..., but browsers might block that.
+                        # Ideally 'run.sh' should symlink data.
+                        # Since we symlinked Theory into Web App, we can just use Theory/Folder/Image
+                        images.append(f"Theory/{os.path.basename(root)}/{img_file}")
+
+                # Let's actually fix the pathing. 
+                # If we run server in 'Web App', we need 'Theory' to be inside 'Web App' or available.
+                # Let's adjust the path to be accessible.
+                # Only way is to symlink '../Theory' to 'Web App/Theory'
+                
                 theories.append({
                     'id': title.lower().replace(' ', '-'),
                     'title': title,
                     'content': content,
-                    'path': path 
+                    'path': path,
+                    'images': sorted(images)
                 })
     return theories
 

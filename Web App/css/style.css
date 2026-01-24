@@ -304,6 +304,29 @@ select:focus {
     padding-left: var(--spacing-lg);
 }
 
+.theory-images {
+    display: flex;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+    margin-top: var(--spacing-md);
+}
+
+.theory-images img {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-subtle);
+    max-height: 200px;
+    /* Keep them reasonable size */
+    object-fit: cover;
+    cursor: pointer;
+}
+
+.theory-images img:hover {
+    transform: scale(1.02);
+    transition: transform 0.2s ease;
+}
+
 .category-games {
     display: grid;
     gap: var(--spacing-sm);

@@ -1,4 +1,8 @@
-## Seated Shin Guard - Level 3
+---
+title: Seated Shin Guard - Level 3
+category: SeatedShinGuard
+players: 2
+---
 
 **Purpose**
 Full engagement.

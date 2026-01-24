@@ -97,9 +97,17 @@ function generateClassStructure() {
             }
         } else if (segment.type === 'discussion') {
             // Inject Theory Content here
+            let imagesHtml = '';
+            if (theory.images && theory.images.length > 0) {
+                imagesHtml = `<div class="theory-images">
+                    ${theory.images.map(img => `<img src="${img}" alt="Theory Image" loading="lazy">`).join('')}
+                </div>`;
+            }
+
             contentHtml = `
                 <div class="theory-content">
                     ${markedParse(theory.content || theory.description || 'No content available.')}
+                    ${imagesHtml}
                 </div>
              `;
         } else {

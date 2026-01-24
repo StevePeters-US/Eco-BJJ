@@ -1,4 +1,9 @@
-## Butterfly Chase
+---
+title: Butterfly Chase
+category: Butterfly
+players: 2
+---
+
 **Purpose**
 This game is intented to teach the player to maintain control of the inside space of their opponents legs.
 

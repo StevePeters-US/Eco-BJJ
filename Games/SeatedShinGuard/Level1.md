@@ -1,4 +1,8 @@
-## Seated Shin Guard - Level 1
+---
+title: Seated Shin Guard - Level 1
+category: SeatedShinGuard
+players: 2
+---
 
 **Purpose**
 Break the connection.

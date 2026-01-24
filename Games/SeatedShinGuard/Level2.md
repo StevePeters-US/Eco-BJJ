@@ -1,4 +1,8 @@
-## Seated Shin Guard - Level 2
+---
+title: Seated Shin Guard - Level 2
+category: SeatedShinGuard
+players: 2
+---
 
 **Purpose**
 Break connection or gain advantage.

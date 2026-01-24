@@ -1,5 +1,10 @@
-## One hook in from side control
- Bottom player needs to recover to a more substantial guard.
+---
+title: One hook in from side control
+category: Butterfly
+players: 2
+---
+
+Bottom player needs to recover to a more substantial guard.
 
  **Purpose**
 

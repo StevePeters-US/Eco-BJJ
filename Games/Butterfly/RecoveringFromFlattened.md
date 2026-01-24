@@ -1,5 +1,10 @@
-## Recovering from being flattened out
- Bottom player has butterfly hooks with their back flat on the mat. Bottom player needs to recover to a seated position.
+---
+title: Recovering from being flattened out
+category: Butterfly
+players: 2
+---
+
+Bottom player has butterfly hooks with their back flat on the mat. Bottom player needs to recover to a seated position.
 
  **Purpose**
 

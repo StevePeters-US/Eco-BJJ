@@ -1,4 +1,8 @@
-# Seated Shin Guard
+---
+title: Seated Shin Guard
+category: SeatedShinGuard
+players: 2
+---
 
 **Purpose**
 
@@ -15,4 +19,3 @@ Bottom player is seated, top player is standing. Bottom player is using a butter
 
 **Duration**
 2 Minutes. Then switch top and bottom
-
