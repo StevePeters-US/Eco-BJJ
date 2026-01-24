@@ -163,6 +163,101 @@ function generateClassStructure() {
 
         timeline.appendChild(segmentEl);
     });
+
+    setupDragAndDrop();
+}
+
+// Drag & Drop
+let draggedImageSrc = null;
+
+function setupDragAndDrop() {
+    // Draggable Images
+    const images = document.querySelectorAll('.theory-images img');
+    images.forEach(img => {
+        img.draggable = true;
+        img.addEventListener('dragstart', (e) => {
+            draggedImageSrc = e.target.src;
+            e.dataTransfer.setData('text/plain', e.target.src);
+            e.dataTransfer.effectAllowed = 'copy';
+        });
+    });
+
+    // Drop Zone (Timeline)
+    const timeline = document.getElementById('class-timeline');
+    // Ensure relative positioning for absolute children
+    if (getComputedStyle(timeline).position === 'static') {
+        timeline.style.position = 'relative';
+    }
+
+    timeline.addEventListener('dragover', (e) => {
+        e.preventDefault(); // Allow drop
+        e.dataTransfer.dropEffect = 'copy';
+    });
+
+    timeline.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const src = e.dataTransfer.getData('text/plain') || draggedImageSrc;
+        if (src) {
+            const rect = timeline.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            createDroppedImage(src, x, y, timeline);
+        }
+    });
+}
+
+function createDroppedImage(src, x, y, container) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'dropped-image-wrapper';
+    wrapper.style.left = `${x}px`;
+    wrapper.style.top = `${y}px`;
+
+    // Resizable Image
+    const img = document.createElement('img');
+    img.src = src;
+
+    // Controls
+    const closeBtn = document.createElement('button');
+    closeBtn.innerText = '×';
+    closeBtn.className = 'image-close-btn';
+    closeBtn.onclick = () => wrapper.remove();
+
+    wrapper.appendChild(img);
+    wrapper.appendChild(closeBtn);
+    container.appendChild(wrapper);
+
+    // Draggable within timeline
+    makeElementDraggable(wrapper);
+}
+
+function makeElementDraggable(el) {
+    let isDragging = false;
+    let startX, startY, initialLeft, initialTop;
+
+    el.onmousedown = (e) => {
+        if (e.target.tagName === 'BUTTON') return; // Don't drag on close click
+        e.preventDefault();
+        isDragging = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        initialLeft = el.offsetLeft;
+        initialTop = el.offsetTop;
+
+        document.onmousemove = (e) => {
+            if (!isDragging) return;
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+            el.style.left = `${initialLeft + dx}px`;
+            el.style.top = `${initialTop + dy}px`;
+        };
+
+        document.onmouseup = () => {
+            isDragging = false;
+            document.onmousemove = null;
+            document.onmouseup = null;
+        };
+    };
 }
 
 // Simple markdown parser for description

@@ -37,19 +37,17 @@ def parse_game_file(filepath):
             # Construct game object
             game_data = {
                 'title': metadata.get('title', 'Unknown Title'),
-                'description': body, # The body is the description now
+                'description': body, 
                 'category': metadata.get('category', 'Uncategorized'),
-                # Parse body for other sections if needed, but for now we rely on the body being markdown
-                # We can try to extract specific sections from body if they exist as headers
+                'goals': metadata.get('goals', ''),
+                'purpose': metadata.get('purpose', ''),
             }
             
-            # Use body as description. 
-            # If we needed specific fields like 'purpose' extracted from body, we'd do it here.
-            # Keeping it simple as per previous logic.
-            
-            purpose_match = re.search(r'\*\*Purpose\*\*\s*\n*(.*)', body)
-            if purpose_match:
-                game_data['purpose'] = purpose_match.group(1).strip()
+            # Fallback for old purpose format in body if not in frontmatter
+            if not game_data['purpose']:
+                purpose_match = re.search(r'\*\*Purpose\*\*\s*\n*(.*)', body)
+                if purpose_match:
+                    game_data['purpose'] = purpose_match.group(1).strip()
             
             games.append(game_data)
             return games
@@ -93,55 +91,47 @@ def get_concepts():
 def get_categories_and_games():
     categories = {}
     
-    if not os.path.exists(GAMES_DIR):
-        print(f"Warning: {GAMES_DIR} does not exist.")
+    # Scan Concepts Directory for Games
+    if not os.path.exists(THEORY_DIR):
+        print(f"Warning: {THEORY_DIR} does not exist.")
         return [], []
 
     all_games = []
 
-    for root, dirs, files in os.walk(GAMES_DIR):
-        category_name = os.path.basename(root)
-        if root == GAMES_DIR:
+    # Iterate over each Concept folder
+    for concept_name in os.listdir(THEORY_DIR):
+        concept_path = os.path.join(THEORY_DIR, concept_name)
+        if not os.path.isdir(concept_path):
             continue
             
-        # Initialize category if new
-        if category_name not in categories:
-            categories[category_name] = {
-                "id": category_name.lower().replace(" ", "-"),
-                "title": category_name,
-                "description": "",
+        # Check for Games subfolder
+        games_dir = os.path.join(concept_path, 'Games')
+        if not os.path.exists(games_dir):
+            continue
+            
+        # Initialize category (Concept name is the category)
+        if concept_name not in categories:
+            categories[concept_name] = {
+                "id": concept_name.lower().replace(" ", "-"),
+                "title": concept_name,
+                "description": "", # Could read concept file for this?
                 "games": []
             }
-
-        # Look for category description file (same name as folder)
-        category_file = f"{category_name}.md"
-        
-        for file in files:
-            path = os.path.join(root, file)
             
-            if file == category_file:
-                # This is the category description
-                with open(path, 'r', encoding='utf-8') as f:
-                    content = f.read()
-                    categories[category_name]["description"] = content
-            elif file.endswith('.md') and file != "GameTemplate.md":
-                # It's a game file (or category desc if fallback)
+        # Scan games in this folder
+        for file in os.listdir(games_dir):
+            if file.endswith('.md'):
+                path = os.path.join(games_dir, file)
                 file_games = parse_game_file(path)
+                
                 for g in file_games:
-                    # Use frontmatter category if available, else folder name
-                    cat_key = g.get('category', category_name)
-                    
-                    # Ensure category exists in our map if it's new (e.g. from frontmatter)
-                    if cat_key not in categories:
-                         categories[cat_key] = {
-                            "id": cat_key.lower().replace(" ", "-"),
-                            "title": cat_key,
-                            "description": "",
-                            "games": []
-                        }
+                    # Force category to match the folder structure logic
+                    cat_key = concept_name # g.get('category', concept_name)
+                    # Or trust frontmatter? Let's prefer folder structure for consistency now.
+                    g['category'] = cat_key
                     
                     g['id'] = (cat_key + '-' + g['title']).lower().replace(' ', '-').replace('/', '-')
-                    g['path'] = path # Critical: Add path for editing
+                    g['path'] = path 
                     categories[cat_key]["games"].append(g['id'])
                     all_games.append(g)
 

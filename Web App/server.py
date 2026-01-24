@@ -55,7 +55,8 @@ class EcoHandler(http.server.SimpleHTTPRequestHandler):
                      self.send_error(400, "Missing category for game")
                      return
                      
-                folder = os.path.join(PROJECT_ROOT, 'Games', category)
+                # New Path: Concepts/Category/Games
+                folder = os.path.join(PROJECT_ROOT, 'Concepts', category, 'Games')
                 if not os.path.exists(folder):
                     os.makedirs(folder)
                     
