@@ -3,11 +3,7 @@
 # Ensure we are in the script's directory
 cd "$(dirname "$0")"
 
-# Link data folders if they don't exist
-ln -sfn ../Concepts Concepts
-ln -sfn ../Games Games
-
-# Generate
+# Generate content (reads from project root Concepts folder)
 echo "Generating content..."
 python3 scripts/generate_content.py
 
