@@ -42,6 +42,8 @@ def parse_game_file(filepath):
                 'goals': metadata.get('goals', ''),
                 'purpose': metadata.get('purpose', ''),
                 'duration': metadata.get('duration', ''),
+                'players': metadata.get('players', ''),
+                'type': metadata.get('type', ''),
             }
             
             # Fallback for old purpose format in body if not in frontmatter

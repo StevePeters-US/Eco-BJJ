@@ -641,12 +641,101 @@ window.createGame = (preselectedCategory) => {
     setTimeout(() => document.getElementById('new-game-title').focus(), 100);
 };
 
+window.createGame = (preselectedCategory) => {
+    // Remove existing modal if any
+    const existing = document.querySelector('.modal-overlay');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+
+    // Get categories for dropdown
+    const categories = window.state.content.categories || [];
+    const optionsHtml = categories.map(c =>
+        `<option value="${c.title}" ${c.title === preselectedCategory ? 'selected' : ''}>${c.title}</option>`
+    ).join('');
+
+    overlay.innerHTML = `
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Create New Game</h3>
+                <button onclick="this.closest('.modal-overlay').remove()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="new-game-category">
+                        <option value="" disabled ${!preselectedCategory ? 'selected' : ''}>Select Category...</option>
+                        ${optionsHtml}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Game Title</label>
+                    <input type="text" id="new-game-title" class="editor-textarea" style="height: auto;" placeholder="e.g. King of the Hill">
+                </div>
+                <div class="form-row" style="display: flex; gap: 10px;">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Players</label>
+                        <input type="number" id="new-game-players" class="editor-textarea" style="height: auto;" value="2" min="1">
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Duration (mins)</label>
+                        <select id="new-game-duration" class="editor-textarea" style="height: auto;">
+                            <option value="3">3</option>
+                            <option value="5" selected>5</option>
+                            <option value="7">7</option>
+                            <option value="10">10</option>
+                            <option value="15">15</option>
+                            <option value="20">20</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                         <label>Game Type</label>
+                         <select id="new-game-type" class="editor-textarea" style="height: auto;">
+                             <option value="Continuous">Continuous</option>
+                             <option value="Switching">Switching</option>
+                             <option value="Wall/Island">Wall/Island</option>
+                             <option value="Positional">Positional</option>
+                             <option value="Constrained">Constrained</option>
+                         </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Goals</label>
+                    <input type="text" id="new-game-goals" class="editor-textarea" style="height: auto;" placeholder="e.g. Take the back">
+                </div>
+                <div class="form-group">
+                    <label>Purpose</label>
+                    <input type="text" id="new-game-purpose" class="editor-textarea" style="height: auto;" placeholder="e.g. Learn control">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="new-game-desc" class="editor-textarea" rows="4" placeholder="Describe the rules..."></textarea>
+                </div>
+                <div class="editor-controls">
+                    <button class="btn secondary" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
+                    <button class="btn primary" onclick="submitNewGame()">Create Game</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(overlay);
+    // Focus title
+    setTimeout(() => document.getElementById('new-game-title').focus(), 100);
+};
+
 window.submitNewGame = async () => {
     const category = document.getElementById('new-game-category').value;
     const name = document.getElementById('new-game-title').value;
     const goals = document.getElementById('new-game-goals').value;
     const purpose = document.getElementById('new-game-purpose').value;
     const description = document.getElementById('new-game-desc').value;
+
+    // New Fields
+    const players = document.getElementById('new-game-players').value;
+    const duration = document.getElementById('new-game-duration').value;
+    const gameType = document.getElementById('new-game-type').value;
 
     if (!category || !name) {
         alert('Category and Title are required.');
@@ -663,7 +752,10 @@ window.submitNewGame = async () => {
                 category: category,
                 goals: goals,
                 purpose: purpose,
-                description: description
+                description: description,
+                players: players,
+                duration: duration,
+                gameType: gameType
             })
         });
 
@@ -680,7 +772,10 @@ window.submitNewGame = async () => {
                 description: description || `Description of ${name}.`,
                 path: result.path,
                 goals: goals,
-                purpose: purpose
+                purpose: purpose,
+                players: players,
+                duration: duration,
+                type: gameType
             };
 
             // Update State

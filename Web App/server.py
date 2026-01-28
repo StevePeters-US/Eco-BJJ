@@ -150,6 +150,9 @@ class EcoHandler(http.server.SimpleHTTPRequestHandler):
                 description = data.get('description', f'Description of {name}.')
                 goals = data.get('goals', '')
                 purpose = data.get('purpose', '')
+                players = data.get('players', '2')
+                duration = data.get('duration', '5')
+                game_type = data.get('gameType', 'Continuous')
                 
                 if not category:
                      self.send_error(400, "Missing category for game")
@@ -164,7 +167,9 @@ class EcoHandler(http.server.SimpleHTTPRequestHandler):
                 content = f"""---
 title: {name}
 category: {category}
-players: 2
+players: {players}
+duration: {duration}
+type: {game_type}
 goals: {goals}
 purpose: {purpose}
 ---
