@@ -1,26 +1,17 @@
 nohup: ignoring input
-127.0.0.1 - - [28/Jan/2026 08:32:20] "GET / HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 08:32:20] "GET /js/app.js?v=1769617940 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 08:32:20] "GET /data/content.json HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 08:32:20] code 404, message File not found
-127.0.0.1 - - [28/Jan/2026 08:32:20] "GET /favicon.ico HTTP/1.1" 404 -
-127.0.0.1 - - [28/Jan/2026 08:36:15] "GET / HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 08:36:15] "GET /js/app.js?v=1769618175 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 08:36:15] "GET /data/content.json HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 08:36:15] code 404, message File not found
-127.0.0.1 - - [28/Jan/2026 08:36:15] "GET /favicon.ico HTTP/1.1" 404 -
-127.0.0.1 - - [28/Jan/2026 09:00:15] "GET / HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 09:00:15] "GET /js/app.js?v=1769619615 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 09:00:15] "GET /data/content.json HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 09:00:15] code 404, message File not found
-127.0.0.1 - - [28/Jan/2026 09:00:15] "GET /favicon.ico HTTP/1.1" 404 -
-127.0.0.1 - - [28/Jan/2026 09:02:41] "GET / HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 09:02:41] "GET /js/app.js?v=1769619760 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 09:02:41] "GET /data/content.json HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 09:02:41] code 404, message File not found
-127.0.0.1 - - [28/Jan/2026 09:02:41] "GET /favicon.ico HTTP/1.1" 404 -
-127.0.0.1 - - [28/Jan/2026 09:06:16] "GET / HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 09:06:16] "GET /js/app.js?v=1769619976 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 09:06:16] "GET /data/content.json HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 09:06:16] code 404, message File not found
-127.0.0.1 - - [28/Jan/2026 09:06:16] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [28/Jan/2026 09:10:11] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [28/Jan/2026 09:10:11] "GET /js/app.js?v=1769620211 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Jan/2026 09:10:11] "GET /data/content.json HTTP/1.1" 200 -
+127.0.0.1 - - [28/Jan/2026 09:12:57] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [28/Jan/2026 09:12:57] "GET /js/app.js?v=1769620376 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Jan/2026 09:12:57] "GET /data/content.json HTTP/1.1" 200 -
+127.0.0.1 - - [28/Jan/2026 09:12:57] code 404, message File not found
+127.0.0.1 - - [28/Jan/2026 09:12:57] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [28/Jan/2026 09:13:01] "GET /Concepts/BloodChokes/Carotid_sheath_magnified.jpg HTTP/1.1" 304 -
+127.0.0.1 - - [28/Jan/2026 09:13:01] "GET /Concepts/BloodChokes/Carotid_artery_med_01-3834831394.jpg HTTP/1.1" 304 -
+127.0.0.1 - - [28/Jan/2026 09:13:01] "GET /Concepts/BloodChokes/Neurovascularature_Neck.jpg HTTP/1.1" 304 -
+127.0.0.1 - - [28/Jan/2026 09:22:47] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [28/Jan/2026 09:22:47] "GET /js/app.js?v=1769620966 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Jan/2026 09:22:47] "GET /data/content.json HTTP/1.1" 200 -
+127.0.0.1 - - [28/Jan/2026 09:22:47] code 404, message File not found
+127.0.0.1 - - [28/Jan/2026 09:22:47] "GET /favicon.ico HTTP/1.1" 404 -

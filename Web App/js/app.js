@@ -77,7 +77,7 @@ function renderConceptSelect() {
     // Inline styling for the button to match height or looks
     btn.style.height = '43px'; // Match standard input height roughly?
     btn.style.padding = '0 15px';
-    btn.onclick = () => window.createConcept();
+    btn.onclick = () => window.openConceptModal();
 
     wrapper.appendChild(btn);
 }
@@ -232,27 +232,7 @@ async function loadClass() {
     }
 }
 
-async function createConcept() {
-    const name = prompt("Enter new Concept name:");
-    if (!name) return;
 
-    try {
-        const response = await fetch('/api/create', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type: 'concept', name: name })
-        });
-
-        if (response.ok) {
-            alert('Concept created!');
-            window.location.reload();
-        } else {
-            alert('Error creating: ' + await response.text());
-        }
-    } catch (e) {
-        alert('Error: ' + e.message);
-    }
-}
 
 function generateClassStructure() {
     const concept = state.content.concepts.find(t => t.id === state.selectedConceptId);
@@ -333,7 +313,7 @@ function generateClassStructure() {
                         <div class="game-header">
                             <h4>${title}</h4>
                             <div class="actions">
-                                <button class="icon-btn edit-btn" title="Edit Game" onclick="window.editor.editGame('${g.gameId}', '${segment.id}', ${index})">✎</button>
+                                <button class="icon-btn edit-btn" title="Edit Game" onclick="window.openGameModal('${g.gameId}')">✎</button>
                                 <button class="icon-btn remove-btn" title="Remove" onclick="removeGame('${segment.id}', ${index})">×</button>
                             </div>
                         </div>
