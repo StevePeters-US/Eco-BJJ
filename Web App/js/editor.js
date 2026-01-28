@@ -10,43 +10,47 @@ export class Editor {
 
     // --- Theory Editing ---
 
+    editConcept() {
+        console.log("Editor.editConcept called");
+        console.log("selectedConceptId:", window.state.selectedConceptId);
+        console.log("openConceptModal defined:", !!window.openConceptModal);
+
+        if (window.openConceptModal && window.state.selectedConceptId) {
+            window.openConceptModal(window.state.selectedConceptId);
+        } else {
+            console.warn("Edit Concept blocked checks failed.");
+            alert("Debug: Cannot edit. ID: " + window.state.selectedConceptId);
+        }
+    }
+
     editTheory() {
         if (!window.state.selectedTheoryId) return;
-        const theory = window.state.content.theories.find(t => t.id === window.state.selectedTheoryId);
-        if (!theory) return;
 
-        const container = document.getElementById('theory-content-display');
-        if (!container) return;
-
-        // Check if already editing
-        if (this.activeEditors.has('theory')) return;
-
-        // Save original HTML to restore on cancel
-        const originalHtml = container.innerHTML;
-        this.activeEditors.set('theory', originalHtml);
-
-        // Create Editor UI
-        const wrapper = document.createElement('div');
-        wrapper.className = 'editor-wrapper';
-
-        const textarea = document.createElement('textarea');
-        textarea.className = 'editor-textarea';
-        textarea.value = theory.content || '';
-        textarea.style.minHeight = '400px';
-
-        const controls = document.createElement('div');
-        controls.className = 'editor-controls';
-        controls.innerHTML = `
-            <button class="btn primary" onclick="window.editor.saveTheory()">Save Concept</button>
-            <button class="btn secondary" onclick="window.editor.cancelEdit('theory', 'theory-content-display')">Cancel</button>
-        `;
-
-        wrapper.appendChild(textarea);
-        wrapper.appendChild(controls);
-
-        container.innerHTML = '';
-        container.appendChild(wrapper);
+        // Redirect to new Modal which supports Delete
+        if (window.openConceptModal) {
+            window.openConceptModal(window.state.selectedTheoryId);
+        } else {
+            console.error("openConceptModal not defined");
+            // Fallback to legacy editor? 
+            // The legacy editor was for content. The new modal is for Metadata/Delete.
+            // Requirement was "Edit concept button doesn't work" + "Should have delete".
+            // If I just show formatting modal, I lose content editing?
+            // User probably wants to be able to DELETE it.
+            // If I redirect to modal, can they still edit content?
+            // My modal currently only has Name. 
+            // I should probably add "Edit Content" button IN the modal?
+            // Or keep the "Edit Content" separate?
+            // "edit concept button doesn't work" -> The button in UI calls editTheory (line 283).
+            // Line 283 says: <button ... onclick="window.editor.editConcept()">.
+            // Wait, my `editTheory` is what was responding to that?
+            // Line 283 calls `window.editor.editConcept()`. METHOD NAME MISMATCH?
+            // `editor.js` defines `editTheory()`. `app.js` HTML calls `window.editor.editConcept()`.
+            // THAT IS THE BUG!
+        }
     }
+
+    // Create Editor UI
+
 
     async saveTheory() {
         const container = document.getElementById('theory-content-display');
@@ -82,46 +86,12 @@ export class Editor {
     // --- Game Editing ---
 
     editGame(gameId, segmentId, slotIndex) {
-        const game = window.state.content.games.find(g => g.id === gameId);
-        if (!game) return;
-
-        const containerId = `game-content-${segmentId}-${slotIndex}`;
-        const container = document.getElementById(containerId);
-        if (!container) return;
-
-        const editorKey = `game-${segmentId}-${slotIndex}`;
-        if (this.activeEditors.has(editorKey)) return;
-
-        this.activeEditors.set(editorKey, container.innerHTML);
-
-        // Create Editor
-        const wrapper = document.createElement('div');
-        wrapper.className = 'editor-wrapper';
-
-        const textarea = document.createElement('textarea');
-        textarea.className = 'editor-textarea';
-        // We allow editing the 'description' (body of the markdown)
-        // If we want to edit goals, we might need separate fields or parse them back?
-        // For simplicity now, let's just edit the body 'description'.
-        // Wait, the 'game' object has 'description' (from body) and 'goals' (from generic parsing).
-        // If we want to edit everything, we should edit the RAW FILE CONTENT?
-        // But we don't have the raw full file content in the JSON easily mapable back if it was split?
-        // Actually, 'description' in our new parser IS the body.
-        textarea.value = game.description || '';
-        textarea.style.minHeight = '200px';
-
-        const controls = document.createElement('div');
-        controls.className = 'editor-controls';
-        controls.innerHTML = `
-            <button class="btn primary" onclick="window.editor.saveGame('${gameId}', '${editorKey}', '${containerId}')">Save Game</button>
-            <button class="btn secondary" onclick="window.editor.cancelEdit('${editorKey}', '${containerId}')">Cancel</button>
-        `;
-
-        wrapper.appendChild(textarea);
-        wrapper.appendChild(controls);
-
-        container.innerHTML = '';
-        container.appendChild(wrapper);
+        // Redirect to new Modal Editor in app.js
+        if (window.openGameModal) {
+            window.openGameModal(gameId);
+        } else {
+            console.error("openGameModal not definitions");
+        }
     }
 
     async saveGame(gameId, editorKey, containerId) {

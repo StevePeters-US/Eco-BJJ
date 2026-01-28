@@ -20,6 +20,8 @@ class EcoHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_save_class()
         elif self.path == '/api/load_class':
             self.handle_load_class()
+        elif self.path == '/api/delete':
+            self.handle_delete()
         else:
             self.send_error(404, "Endpoint not found")
 
@@ -143,7 +145,8 @@ class EcoHandler(http.server.SimpleHTTPRequestHandler):
                     os.makedirs(folder)
                 
                 filepath = os.path.join(folder, filename)
-                content = f"# {name}\n\nDescription of the concept."
+                description = data.get('description', 'Description of the concept.')
+                content = f"# {name}\n\n{description}"
                 
             elif type_ == 'game':
                 category = data.get('category')
@@ -181,7 +184,7 @@ purpose: {purpose}
                  return
                  
             # Write file
-            if os.path.exists(filepath):
+            if os.path.exists(filepath) and not data.get('overwrite', False):
                  self.send_error(409, "File already exists")
                  return
 

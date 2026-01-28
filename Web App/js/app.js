@@ -41,14 +41,45 @@ async function init() {
 
 function renderConceptSelect() {
     const select = document.getElementById('concept-select');
-    if (!state.content.concepts) return; // Renamed key
+    if (!state.content.concepts) return;
 
+    // Clear and Populate
+    select.innerHTML = '<option value="" disabled selected>Select a Concept...</option>';
     state.content.concepts.forEach(concept => {
         const option = document.createElement('option');
         option.value = concept.id;
         option.textContent = concept.title;
         select.appendChild(option);
     });
+
+    const parent = select.parentElement;
+
+    // Check if already wrapped (prevent duplicate wrapping on re-renders)
+    if (parent.classList.contains('select-wrapper')) return;
+
+    // Create Wrapper
+    const wrapper = document.createElement('div');
+    wrapper.className = 'select-wrapper';
+    wrapper.style.display = 'flex';
+    wrapper.style.alignItems = 'center';
+    wrapper.style.gap = '10px';
+    wrapper.style.width = '100%';
+
+    // Move select into wrapper
+    parent.replaceChild(wrapper, select);
+    wrapper.appendChild(select);
+
+    // Create Button
+    const btn = document.createElement('button');
+    btn.innerText = '+';
+    btn.className = 'btn-small new-concept-btn';
+    btn.title = "Create New Concept";
+    // Inline styling for the button to match height or looks
+    btn.style.height = '43px'; // Match standard input height roughly?
+    btn.style.padding = '0 15px';
+    btn.onclick = () => window.createConcept();
+
+    wrapper.appendChild(btn);
 }
 
 function setupEventListeners() {
@@ -280,7 +311,7 @@ function generateClassStructure() {
 
             contentHtml = `
                 <div class="section-header-row">
-                    <button class="btn-small secondary edit-theory-btn" onclick="window.editor.editConcept()">✎ Edit Concept</button>
+                    <button class="btn-small secondary edit-theory-btn" onclick="window.openConceptModal(window.state.selectedConceptId)">✎ Edit Concept</button>
                 </div>
                 <div class="theory-content" id="theory-content-display">
                     ${markedParse(concept.content || concept.description || 'No content available.')}
@@ -584,155 +615,108 @@ window.selectGame = (gameId, segmentId) => {
 // Auto init logic
 import { Editor } from './editor.js';
 
-window.createGame = (preselectedCategory) => {
-    // Remove existing modal if any
+
+// Game Editor Modal
+window.openGameModal = (gameId = null, preselectedCategory = null) => {
+    // Remove existing modal
     const existing = document.querySelector('.modal-overlay');
     if (existing) existing.remove();
 
     const overlay = document.createElement('div');
     overlay.className = 'modal-overlay';
 
-    // Get categories for dropdown
+    let game = null;
+    let isEdit = false;
+
+    if (gameId) {
+        game = window.state.content.games.find(g => g.id === gameId);
+        if (game) isEdit = true;
+    }
+
     const categories = window.state.content.categories || [];
     const optionsHtml = categories.map(c =>
-        `<option value="${c.title}" ${c.title === preselectedCategory ? 'selected' : ''}>${c.title}</option>`
+        `<option value="${c.title}" ${c.title === (game ? game.category : preselectedCategory) ? 'selected' : ''}>${c.title}</option>`
     ).join('');
 
     overlay.innerHTML = `
         <div class="modal">
             <div class="modal-header">
-                <h3>Create New Game</h3>
+                <h3>${isEdit ? 'Edit Game' : 'Create New Game'}</h3>
                 <button onclick="this.closest('.modal-overlay').remove()">×</button>
             </div>
             <div class="modal-body">
+                <input type="hidden" id="game-edit-id" value="${game ? game.id : ''}">
                 <div class="form-group">
                     <label>Category</label>
-                    <select id="new-game-category">
-                        <option value="" disabled ${!preselectedCategory ? 'selected' : ''}>Select Category...</option>
+                    <select id="new-game-category" ${isEdit ? 'disabled' : ''}> <!-- Disable category change for now to avoid move logic -->
+                        <option value="" disabled ${!preselectedCategory && !game ? 'selected' : ''}>Select Category...</option>
                         ${optionsHtml}
                     </select>
                 </div>
                 <div class="form-group">
                     <label>Game Title</label>
-                    <input type="text" id="new-game-title" class="editor-textarea" style="height: auto;" placeholder="e.g. King of the Hill">
-                </div>
-                <div class="form-group">
-                    <label>Goals</label>
-                    <input type="text" id="new-game-goals" class="editor-textarea" style="height: auto;" placeholder="e.g. Take the back">
-                </div>
-                <div class="form-group">
-                    <label>Purpose</label>
-                    <input type="text" id="new-game-purpose" class="editor-textarea" style="height: auto;" placeholder="e.g. Learn control">
-                </div>
-                <div class="form-group">
-                    <label>Description</label>
-                    <textarea id="new-game-desc" class="editor-textarea" rows="4" placeholder="Describe the rules..."></textarea>
-                </div>
-                <div class="editor-controls">
-                    <button class="btn secondary" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
-                    <button class="btn primary" onclick="submitNewGame()">Create Game</button>
-                </div>
-            </div>
-        </div>
-    `;
-
-    document.body.appendChild(overlay);
-    // Focus title
-    setTimeout(() => document.getElementById('new-game-title').focus(), 100);
-};
-
-window.createGame = (preselectedCategory) => {
-    // Remove existing modal if any
-    const existing = document.querySelector('.modal-overlay');
-    if (existing) existing.remove();
-
-    const overlay = document.createElement('div');
-    overlay.className = 'modal-overlay';
-
-    // Get categories for dropdown
-    const categories = window.state.content.categories || [];
-    const optionsHtml = categories.map(c =>
-        `<option value="${c.title}" ${c.title === preselectedCategory ? 'selected' : ''}>${c.title}</option>`
-    ).join('');
-
-    overlay.innerHTML = `
-        <div class="modal">
-            <div class="modal-header">
-                <h3>Create New Game</h3>
-                <button onclick="this.closest('.modal-overlay').remove()">×</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label>Category</label>
-                    <select id="new-game-category">
-                        <option value="" disabled ${!preselectedCategory ? 'selected' : ''}>Select Category...</option>
-                        ${optionsHtml}
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Game Title</label>
-                    <input type="text" id="new-game-title" class="editor-textarea" style="height: auto;" placeholder="e.g. King of the Hill">
+                    <input type="text" id="new-game-title" class="editor-textarea" style="height: auto;" 
+                           value="${game ? game.title : ''}" placeholder="e.g. King of the Hill">
                 </div>
                 <div class="form-row" style="display: flex; gap: 10px;">
                     <div class="form-group" style="flex: 1;">
                         <label>Players</label>
-                        <input type="number" id="new-game-players" class="editor-textarea" style="height: auto;" value="2" min="1">
+                        <input type="number" id="new-game-players" class="editor-textarea" style="height: auto;" 
+                               value="${game ? (game.players || 2) : 2}" min="1">
                     </div>
                     <div class="form-group" style="flex: 1;">
                         <label>Duration (mins)</label>
                         <select id="new-game-duration" class="editor-textarea" style="height: auto;">
-                            <option value="3">3</option>
-                            <option value="5" selected>5</option>
-                            <option value="7">7</option>
-                            <option value="10">10</option>
-                            <option value="15">15</option>
-                            <option value="20">20</option>
+                            ${[3, 5, 7, 10, 15, 20].map(d => `<option value="${d}" ${game && game.duration == d ? 'selected' : (d === 5 ? 'selected' : '')}>${d}</option>`).join('')}
                         </select>
                     </div>
                     <div class="form-group" style="flex: 1;">
                          <label>Game Type</label>
                          <select id="new-game-type" class="editor-textarea" style="height: auto;">
-                             <option value="Continuous">Continuous</option>
-                             <option value="Switching">Switching</option>
-                             <option value="Wall/Island">Wall/Island</option>
-                             <option value="Positional">Positional</option>
-                             <option value="Constrained">Constrained</option>
+                             ${['Continuous', 'Switching', 'Wall/Island', 'Positional', 'Constrained'].map(t =>
+        `<option value="${t}" ${game && (game.type === t || game.gameType === t) ? 'selected' : ''}>${t}</option>`
+    ).join('')}
                          </select>
                     </div>
                 </div>
                 <div class="form-group">
                     <label>Goals</label>
-                    <input type="text" id="new-game-goals" class="editor-textarea" style="height: auto;" placeholder="e.g. Take the back">
+                    <input type="text" id="new-game-goals" class="editor-textarea" style="height: auto;" 
+                           value="${game ? (game.goals || '') : ''}" placeholder="e.g. Take the back">
                 </div>
                 <div class="form-group">
                     <label>Purpose</label>
-                    <input type="text" id="new-game-purpose" class="editor-textarea" style="height: auto;" placeholder="e.g. Learn control">
+                    <input type="text" id="new-game-purpose" class="editor-textarea" style="height: auto;" 
+                           value="${game ? (game.purpose || '') : ''}" placeholder="e.g. Learn control">
                 </div>
                 <div class="form-group">
                     <label>Description</label>
-                    <textarea id="new-game-desc" class="editor-textarea" rows="4" placeholder="Describe the rules..."></textarea>
+                    <textarea id="new-game-desc" class="editor-textarea" rows="4" placeholder="Describe the rules...">${game ? (game.description || '') : ''}</textarea>
                 </div>
-                <div class="editor-controls">
-                    <button class="btn secondary" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
-                    <button class="btn primary" onclick="submitNewGame()">Create Game</button>
+                <div class="editor-controls" style="justify-content: space-between;">
+                    ${isEdit ? `<button class="btn remove-btn" onclick="window.deleteGame('${game.id}')" style="background: #d32f2f; color: white;">Delete Game</button>` : '<div></div>'}
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn secondary" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
+                        <button class="btn primary" onclick="submitGameForm(${isEdit})">${isEdit ? 'Save Changes' : 'Create Game'}</button>
+                    </div>
                 </div>
             </div>
         </div>
     `;
 
     document.body.appendChild(overlay);
-    // Focus title
-    setTimeout(() => document.getElementById('new-game-title').focus(), 100);
+    if (!isEdit) setTimeout(() => document.getElementById('new-game-title').focus(), 100);
 };
 
-window.submitNewGame = async () => {
+// Redirect old createGame calls
+window.createGame = (cat) => window.openGameModal(null, cat);
+
+window.submitGameForm = async (isEdit) => {
     const category = document.getElementById('new-game-category').value;
     const name = document.getElementById('new-game-title').value;
     const goals = document.getElementById('new-game-goals').value;
     const purpose = document.getElementById('new-game-purpose').value;
     const description = document.getElementById('new-game-desc').value;
-
-    // New Fields
     const players = document.getElementById('new-game-players').value;
     const duration = document.getElementById('new-game-duration').value;
     const gameType = document.getElementById('new-game-type').value;
@@ -743,34 +727,35 @@ window.submitNewGame = async () => {
     }
 
     try {
+        const payload = {
+            type: 'game',
+            name: name,
+            category: category,
+            goals: goals,
+            purpose: purpose,
+            description: description,
+            players: players,
+            duration: duration,
+            gameType: gameType,
+            overwrite: isEdit // Allow overwrite if editing
+        };
+
         const response = await fetch('/api/create', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                type: 'game',
-                name: name,
-                category: category,
-                goals: goals,
-                purpose: purpose,
-                description: description,
-                players: players,
-                duration: duration,
-                gameType: gameType
-            })
+            body: JSON.stringify(payload)
         });
 
         if (response.ok) {
-            // Optimistic Update
             const result = await response.json();
-            // Use global regex to replace ALL spaces and slashes
             const newId = (category + '-' + name).toLowerCase().replace(/[\s\/]/g, '-');
 
-            const newGame = {
+            const gameData = {
                 id: newId,
                 title: name,
                 category: category,
-                description: description || `Description of ${name}.`,
-                path: result.path,
+                description: description,
+                path: result.path, // May change if renamed, but simple overwrite keeps path usually
                 goals: goals,
                 purpose: purpose,
                 players: players,
@@ -778,42 +763,256 @@ window.submitNewGame = async () => {
                 type: gameType
             };
 
-            // Update State
-            window.state.content.games.push(newGame);
-
-            // Update Category State
-            let catObj = window.state.content.categories.find(c => c.title === category);
-            if (!catObj) {
-                // Should exist if selected from dropdown, but handling edge cases
-                catObj = {
-                    id: category.toLowerCase().replace(/ /g, "-"),
-                    title: category,
-                    description: "",
-                    games: []
-                };
-                window.state.content.categories.push(catObj);
-            }
-            catObj.games.push(newId);
-
-            // Refresh UI
-            // Close create modal
-            document.querySelector('.modal-overlay').remove();
-
-            if (window.lastModalArgs) {
-                // Auto-select the new game in the slot we came from
-                const { segmentId, slotIndex } = window.lastModalArgs;
-                selectGame(newId, segmentId, slotIndex);
+            if (isEdit) {
+                // Update existing game object in state
+                const editId = document.getElementById('game-edit-id').value;
+                const idx = window.state.content.games.findIndex(g => g.id === editId);
+                if (idx !== -1) {
+                    window.state.content.games[idx] = { ...window.state.content.games[idx], ...gameData };
+                }
+                alert('Game updated!');
             } else {
-                alert('Game created!');
+                // Create New
+                window.state.content.games.push(gameData);
+                // Update Category State
+                let catObj = window.state.content.categories.find(c => c.title === category);
+                if (!catObj) {
+                    catObj = {
+                        id: category.toLowerCase().replace(/ /g, "-"),
+                        title: category,
+                        description: "",
+                        games: []
+                    };
+                    window.state.content.categories.push(catObj);
+                }
+                catObj.games.push(newId);
+
+                if (window.lastModalArgs) {
+                    const { segmentId, slotIndex } = window.lastModalArgs;
+                    selectGame(newId, segmentId, slotIndex);
+                } else {
+                    alert('Game created!');
+                }
             }
 
+            document.querySelector('.modal-overlay').remove();
+            // Re-render class structure to reflect changes if the game is used
+            generateClassStructure();
+
+        } else {
+            alert('Error saving: ' + await response.text());
+        }
+    } catch (e) {
+        alert('Error: ' + e.message);
+    }
+};
+
+// Concept Creation Modal
+// Implement deleteGame
+window.deleteGame = async (gameId) => {
+    if (!confirm("Are you sure you want to delete this game? This cannot be undone.")) return;
+
+    const game = window.state.content.games.find(g => g.id === gameId);
+    if (!game) return;
+
+    try {
+        const response = await fetch('/api/delete', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ path: game.path })
+        });
+
+        if (response.ok) {
+            alert("Game deleted.");
+            window.location.reload();
+        } else {
+            alert("Error deleting: " + await response.text());
+        }
+    } catch (e) {
+        alert("Error: " + e.message);
+    }
+};
+
+// Concept Creation/Edit Modal
+window.openConceptModal = (conceptId = null) => {
+    console.log("openConceptModal called with ID:", conceptId);
+    const existing = document.querySelector('.modal-overlay');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+
+    let concept = null;
+    let isEdit = false;
+    if (conceptId) {
+        concept = window.state.content.concepts.find(c => c.id === conceptId);
+        if (concept) isEdit = true;
+    }
+
+    overlay.innerHTML = `
+        <div class="modal">
+            <div class="modal-header">
+                <h3>${isEdit ? 'Edit Concept' : 'Create New Concept'}</h3>
+                <button onclick="this.closest('.modal-overlay').remove()">×</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="concept-edit-id" value="${concept ? concept.id : ''}">
+                <div class="form-group">
+                    <label>Concept Name</label>
+                    <input type="text" id="new-concept-name" class="editor-textarea" style="height: auto;" 
+                           value="${concept ? concept.title : ''}" placeholder="e.g. Guard Passing">
+                </div>
+                
+                <div class="editor-controls" style="justify-content: space-between;">
+                     ${isEdit ? `<button class="btn remove-btn" onclick="window.deleteConcept('${concept.id}')" style="background: #d32f2f; color: white;">Delete Concept</button>` : '<div></div>'}
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn secondary" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
+                        <button class="btn primary" onclick="submitConceptForm(${isEdit})">${isEdit ? 'Save Name' : 'Create Concept'}</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+    setTimeout(() => document.getElementById('new-concept-name').focus(), 100);
+}
+
+window.deleteConcept = async (conceptId) => {
+    if (!confirm("Are you sure you want to delete this concept? ALL associated games and files will be deleted.")) return;
+
+    const concept = window.state.content.concepts.find(c => c.id === conceptId);
+    if (!concept) return;
+
+    try {
+        const folderPath = concept.path.substring(0, concept.path.lastIndexOf('/'));
+
+        const response = await fetch('/api/delete', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ path: folderPath })
+        });
+
+        if (response.ok) {
+            alert("Concept deleted.");
+            window.location.reload();
+        } else {
+            alert("Error deleting: " + await response.text());
+        }
+    } catch (e) {
+        alert("Error: " + e.message);
+    }
+}
+
+window.openConceptModal = (conceptId = null) => {
+    console.log("openConceptModal called with ID:", conceptId);
+    const existing = document.querySelector('.modal-overlay');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+
+    let concept = null;
+    let isEdit = false;
+    let contentBody = '';
+
+    if (conceptId) {
+        concept = window.state.content.concepts.find(c => c.id === conceptId);
+        if (concept) {
+            isEdit = true;
+            // Strip header # Title if present to just show body
+            contentBody = (concept.content || '').replace(/^# .*(\r?\n|\r)+/, '');
+        }
+    }
+
+    overlay.innerHTML = `
+        <div class="modal">
+            <div class="modal-header">
+                <h3>${isEdit ? 'Edit Concept' : 'Create New Concept'}</h3>
+                <button onclick="this.closest('.modal-overlay').remove()">×</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="concept-edit-id" value="${concept ? concept.id : ''}">
+                <div class="form-group">
+                    <label>Concept Name</label>
+                    <input type="text" id="new-concept-name" class="editor-textarea" style="height: auto;" 
+                           value="${concept ? concept.title : ''}" placeholder="e.g. Guard Passing">
+                </div>
+                <div class="form-group">
+                    <label>Description (Template Content)</label>
+                    <textarea id="new-concept-desc" class="editor-textarea" rows="6" placeholder="Describe the concept...">${contentBody}</textarea>
+                </div>
+                
+                <div class="editor-controls" style="justify-content: space-between;">
+                     ${isEdit ? `<button class="btn remove-btn" onclick="window.deleteConcept('${concept.id}')" style="background: #d32f2f; color: white;">Delete Concept</button>` : '<div></div>'}
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn secondary" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
+                        <button class="btn primary" onclick="submitConceptForm(${isEdit})">${isEdit ? 'Save Changes' : 'Create Concept'}</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+    setTimeout(() => document.getElementById('new-concept-name').focus(), 100);
+}
+
+window.deleteConcept = async (conceptId) => {
+    if (!confirm("Are you sure you want to delete this concept? ALL associated games and files will be deleted.")) return;
+
+    const concept = window.state.content.concepts.find(c => c.id === conceptId);
+    if (!concept) return;
+
+    try {
+        // Assuming path is .../ConceptName.md, and folder is parent
+        const folderPath = concept.path.substring(0, concept.path.lastIndexOf('/'));
+
+        const response = await fetch('/api/delete', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ path: folderPath })
+        });
+
+        if (response.ok) {
+            alert("Concept deleted.");
+            window.location.reload();
+        } else {
+            alert("Error deleting: " + await response.text());
+        }
+    } catch (e) {
+        alert("Error: " + e.message);
+    }
+}
+
+window.submitConceptForm = async (isEdit) => {
+    const name = document.getElementById('new-concept-name').value;
+    const description = document.getElementById('new-concept-desc').value;
+
+    if (!name) return;
+
+    try {
+        const response = await fetch('/api/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                type: 'concept',
+                name: name,
+                description: description
+            })
+        });
+
+        if (response.ok) {
+            alert(isEdit ? 'Concept updated!' : 'Concept created!');
+            window.location.reload();
         } else {
             alert('Error creating: ' + await response.text());
         }
     } catch (e) {
         alert('Error: ' + e.message);
     }
-};
+}
+
+// Redirect createConcept
+window.createConcept = window.openConceptModal;
 
 // Init App
 init().then(() => {

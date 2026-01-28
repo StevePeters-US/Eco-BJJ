@@ -63,32 +63,48 @@ def get_concepts():
         print(f"Warning: {THEORY_DIR} does not exist.")
         return concepts
 
-    for root, dirs, files in os.walk(THEORY_DIR):
-        for file in files:
-            if file.endswith('.md'):
-                path = os.path.join(root, file)
-                # Theory usually matches folder name, e.g. Concepts/Pressure/Pressure.md
-                with open(path, 'r', encoding='utf-8') as f:
-                    content = f.read()
-                
-                # Extract Title
-                title_match = re.match(r'^#\s+(.*)', content)
-                title = title_match.group(1).strip() if title_match else file.replace('.md', '')
-                
-                # Check for images in the same directory
-                images = []
-                for img_file in os.listdir(root):
-                    if img_file.lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.webp')):
-                         # Updated path: Concepts/Folder/Image
-                        images.append(f"Concepts/{os.path.basename(root)}/{img_file}")
+    # Iterate top-level folders only
+    for concept_name in os.listdir(THEORY_DIR):
+        concept_path = os.path.join(THEORY_DIR, concept_name)
+        
+        if os.path.isdir(concept_path):
+            # Look for ConceptName.md
+            md_file = os.path.join(concept_path, f"{concept_name}.md")
+            
+            # If strictly matching name doesn't exist, maybe look for any MD that isn't in Games?
+            # But strictly matching is safer and cleaner practice.
+            if not os.path.exists(md_file):
+                 # Try finding *any* .md file at this level (that isn't in a subfolder)
+                 # This handles cases where file casing might differ slightly or legacy naming?
+                 candidates = [f for f in os.listdir(concept_path) if f.endswith('.md')]
+                 if candidates:
+                     md_file = os.path.join(concept_path, candidates[0])
+                 else:
+                     continue
 
-                concepts.append({
-                    'id': title.lower().replace(' ', '-'),
-                    'title': title,
-                    'content': content,
-                    'path': path,
-                    'images': sorted(images)
-                })
+            with open(md_file, 'r', encoding='utf-8') as f:
+                content = f.read()
+
+            # Extract Title
+            title_match = re.match(r'^#\s+(.*)', content)
+            
+            # Prefer title from file content, fallback to folder name
+            title = title_match.group(1).strip() if title_match else concept_name
+            
+            # Images
+            images = []
+            for img_file in os.listdir(concept_path):
+                if img_file.lower().endswith(('.jpg', '.jpeg', '.png', '.gif', '.webp')):
+                    images.append(f"Concepts/{concept_name}/{img_file}")
+
+            concepts.append({
+                'id': title.lower().replace(' ', '-'),
+                'title': title,
+                'content': content,
+                'path': md_file,
+                'images': sorted(images)
+            })
+            
     return concepts
 
 def get_categories_and_games():
