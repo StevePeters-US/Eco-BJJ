@@ -1,0 +1,21 @@
+{
+  "title": "tesdt",
+  "conceptId": "pressure",
+  "segments": {
+    "standing": [
+      {
+        "gameId": "grips-hjhg"
+      }
+    ],
+    "mobility": [
+      {
+        "gameId": "mobility-auto-select-test"
+      }
+    ],
+    "takedowns": [],
+    "discussion": [],
+    "applications": [],
+    "review": [],
+    "rolling": []
+  }
+}

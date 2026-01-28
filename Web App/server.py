@@ -16,8 +16,108 @@ class EcoHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_save()
         elif self.path == '/api/create':
             self.handle_create()
+        elif self.path == '/api/save_class':
+            self.handle_save_class()
+        elif self.path == '/api/load_class':
+            self.handle_load_class()
         else:
             self.send_error(404, "Endpoint not found")
+
+    def do_GET(self):
+        if self.path == '/api/list_classes':
+            self.handle_list_classes()
+        else:
+            super().do_GET()
+
+    def handle_save_class(self):
+        try:
+            content_len = int(self.headers.get('Content-Length', 0))
+            post_body = self.rfile.read(content_len)
+            data = json.loads(post_body)
+
+            name = data.get('name')
+            class_data = data.get('data')
+
+            if not name or not class_data:
+                self.send_error(400, "Missing name or data")
+                return
+
+            # Sanitize name
+            safe_name = "".join([c for c in name if c.isalnum() or c in " -_"])
+            filename = safe_name.replace(" ", "_") + ".json"
+            
+            # Save to 'Saved Classes' directory
+            classes_dir = os.path.join(PROJECT_ROOT, 'Saved Classes')
+            if not os.path.exists(classes_dir):
+                os.makedirs(classes_dir)
+
+            filepath = os.path.join(classes_dir, filename)
+
+            with open(filepath, 'w', encoding='utf-8') as f:
+                json.dump(class_data, f, indent=2)
+
+            print(f"Saved Class: {filepath}")
+
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({'status': 'success', 'path': filepath}).encode())
+
+        except Exception as e:
+            print(f"Error saving class: {e}")
+            self.send_error(500, str(e))
+
+    def handle_list_classes(self):
+        try:
+            classes_dir = os.path.join(PROJECT_ROOT, 'Saved Classes')
+            if not os.path.exists(classes_dir):
+                os.makedirs(classes_dir)
+
+            classes = []
+            for filename in os.listdir(classes_dir):
+                if filename.endswith('.json'):
+                    classes.append(filename.replace('.json', '').replace('_', ' '))
+            
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({'classes': sorted(classes)}).encode())
+
+        except Exception as e:
+            print(f"Error listing classes: {e}")
+            self.send_error(500, str(e))
+
+    def handle_load_class(self):
+        try:
+            content_len = int(self.headers.get('Content-Length', 0))
+            post_body = self.rfile.read(content_len)
+            data = json.loads(post_body)
+
+            name = data.get('name')
+            if not name:
+                self.send_error(400, "Missing name")
+                return
+
+            safe_name = "".join([c for c in name if c.isalnum() or c in " -_"])
+            filename = safe_name.replace(" ", "_") + ".json"
+            classes_dir = os.path.join(PROJECT_ROOT, 'Saved Classes')
+            filepath = os.path.join(classes_dir, filename)
+
+            if not os.path.exists(filepath):
+                self.send_error(404, "Class not found")
+                return
+
+            with open(filepath, 'r', encoding='utf-8') as f:
+                class_data = json.load(f)
+
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({'status': 'success', 'data': class_data}).encode())
+
+        except Exception as e:
+            print(f"Error loading class: {e}")
+            self.send_error(500, str(e))
 
     def handle_create(self):
         try:

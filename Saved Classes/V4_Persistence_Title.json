@@ -1,0 +1,17 @@
+{
+  "title": "V4 Persistence Title",
+  "conceptId": "mobility",
+  "segments": {
+    "standing": [],
+    "mobility": [
+      {
+        "gameId": "mobility-test-game-for-persistence"
+      }
+    ],
+    "takedowns": [],
+    "discussion": [],
+    "applications": [],
+    "review": [],
+    "rolling": []
+  }
+}

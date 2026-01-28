@@ -1,0 +1,33 @@
+{
+  "conceptId": "mobility",
+  "segments": [
+    {
+      "id": "standing",
+      "slots": []
+    },
+    {
+      "id": "mobility",
+      "slots": []
+    },
+    {
+      "id": "takedowns",
+      "slots": []
+    },
+    {
+      "id": "discussion",
+      "slots": []
+    },
+    {
+      "id": "applications",
+      "slots": []
+    },
+    {
+      "id": "review",
+      "slots": []
+    },
+    {
+      "id": "rolling",
+      "slots": []
+    }
+  ]
+}

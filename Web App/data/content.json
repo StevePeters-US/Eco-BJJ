@@ -42,8 +42,29 @@
     {
       "id": "mobility",
       "title": "Mobility",
-      "content": "",
+      "content": "A class designed around conditioning and mobility for jiu jitsu. ",
       "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Mobility/Mobility.md",
+      "images": []
+    },
+    {
+      "id": "testgameforpersistence",
+      "title": "TestGameforPersistence",
+      "content": "---\ntitle: Test Game for Persistence\ncategory: Mobility\nplayers: 2\ngoals: Test Goals\npurpose: Test Purpose\n---\n\nTest Description\n",
+      "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Mobility/Games/TestGameforPersistence.md",
+      "images": []
+    },
+    {
+      "id": "buttscoottotripodsweep",
+      "title": "Buttscoottotripodsweep",
+      "content": "---\ntitle: Butt scoot to tripod sweep\ncategory: Mobility\nplayers: 2\ngoals: \npurpose: \n---\n\n\n",
+      "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Mobility/Games/Buttscoottotripodsweep.md",
+      "images": []
+    },
+    {
+      "id": "autoselecttest",
+      "title": "AutoSelectTest",
+      "content": "---\ntitle: Auto Select Test\ncategory: Mobility\nplayers: 2\ngoals: Test Goals\npurpose: Test Purpose\n---\n\n\n",
+      "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Mobility/Games/AutoSelectTest.md",
       "images": []
     },
     {
@@ -133,7 +154,7 @@
     {
       "id": "standing",
       "title": "Standing",
-      "content": "",
+      "content": "Judo and wrestling for jiu jitsu.",
       "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Standing/Standing.md",
       "images": []
     },
@@ -149,6 +170,13 @@
       "title": "RussianTieDefense",
       "content": "---\ntitle: Russian Tie Defense\ncategory: Standing\nplayers: 2\n---\n\n**Purpose**\n\n To practice controlling our opponent while maintaining the Russian Tie.\n\n**Environment**\n\n**Game Initiation Conditions**\n\n### Static. Russian Tie.\nAttacker is controlling the defender from the back side of one arm while using both arms for control.\n\n**Duration**\n2-minute rounds. After each round, players switch roles (attacker becomes defender, and vice versa).\n\n**Goals**\n\n- **Attacker** \u2013 \nMaintain control of the Russian Tie  No win condition.\n- **Defender** \u2013 \nFace the attacker and gain control of their far side elbow.\n\n\n**Constraints**\n\nHow are you constraining the game so that the purpose of playing the game is achieved?\n\n**Invariants**\n\nWhat must be true in order to obtain our goals?\n\n**Tasks**\n\n- **Attacker** \u2013 \nKeep your armpit above the defending player's shoulder.\n- **Defender** \u2013 \nFocus on forcing movement to create opportunities. Optimistic Update.",
       "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Standing/Games/RussianTieDefense.md",
+      "images": []
+    },
+    {
+      "id": "apehangersingleleg",
+      "title": "ApeHangersingleleg",
+      "content": "---\ntitle: Ape Hanger single leg\ncategory: Standing\nplayers: 2\ngoals: \npurpose: \n---\n\n\n",
+      "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Standing/Games/ApeHangersingleleg.md",
       "images": []
     },
     {
@@ -212,6 +240,9 @@
       "title": "Mobility",
       "description": "",
       "games": [
+        "mobility-test-game-for-persistence",
+        "mobility-butt-scoot-to-tripod-sweep",
+        "mobility-auto-select-test",
         "mobility-potato",
         "mobility-layouttest",
         "mobility-headergame"
@@ -224,6 +255,7 @@
       "games": [
         "standing-standing",
         "standing-russian-tie-defense",
+        "standing-ape-hanger-single-leg",
         "standing-testgame"
       ]
     },
@@ -249,8 +281,39 @@
       "category": "Grips",
       "goals": "",
       "purpose": "",
+      "duration": "",
       "id": "grips-hjhg",
       "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Grips/Games/hjhg.md"
+    },
+    {
+      "title": "Test Game for Persistence",
+      "description": "Test Description",
+      "category": "Mobility",
+      "goals": "Test Goals",
+      "purpose": "Test Purpose",
+      "duration": "",
+      "id": "mobility-test-game-for-persistence",
+      "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Mobility/Games/TestGameforPersistence.md"
+    },
+    {
+      "title": "Butt scoot to tripod sweep",
+      "description": "",
+      "category": "Mobility",
+      "goals": "",
+      "purpose": "",
+      "duration": "",
+      "id": "mobility-butt-scoot-to-tripod-sweep",
+      "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Mobility/Games/Buttscoottotripodsweep.md"
+    },
+    {
+      "title": "Auto Select Test",
+      "description": "",
+      "category": "Mobility",
+      "goals": "Test Goals",
+      "purpose": "Test Purpose",
+      "duration": "",
+      "id": "mobility-auto-select-test",
+      "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Mobility/Games/AutoSelectTest.md"
     },
     {
       "title": "potato",
@@ -258,6 +321,7 @@
       "category": "Mobility",
       "goals": "",
       "purpose": "",
+      "duration": "",
       "id": "mobility-potato",
       "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Mobility/Games/potato.md"
     },
@@ -267,6 +331,7 @@
       "category": "Mobility",
       "goals": "",
       "purpose": "",
+      "duration": "",
       "id": "mobility-layouttest",
       "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Mobility/Games/LayoutTest.md"
     },
@@ -276,6 +341,7 @@
       "category": "Mobility",
       "goals": "",
       "purpose": "",
+      "duration": "",
       "id": "mobility-headergame",
       "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Mobility/Games/HeaderGame.md"
     },
@@ -285,6 +351,7 @@
       "category": "Standing",
       "goals": "",
       "purpose": "",
+      "duration": "",
       "id": "standing-standing",
       "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Standing/Games/Standing.md"
     },
@@ -294,8 +361,19 @@
       "category": "Standing",
       "goals": "",
       "purpose": "To practice controlling our opponent while maintaining the Russian Tie.",
+      "duration": "",
       "id": "standing-russian-tie-defense",
       "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Standing/Games/RussianTieDefense.md"
+    },
+    {
+      "title": "Ape Hanger single leg",
+      "description": "",
+      "category": "Standing",
+      "goals": "",
+      "purpose": "",
+      "duration": "",
+      "id": "standing-ape-hanger-single-leg",
+      "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Standing/Games/ApeHangersingleleg.md"
     },
     {
       "title": "TestGame",
@@ -303,6 +381,7 @@
       "category": "Standing",
       "goals": "",
       "purpose": "",
+      "duration": "",
       "id": "standing-testgame",
       "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Standing/Games/TestGame.md"
     },
@@ -312,6 +391,7 @@
       "category": "Arm Bars",
       "goals": "Test Goals",
       "purpose": "Test Purpose",
+      "duration": "",
       "id": "arm-bars-modalgame",
       "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Arm Bars/Games/ModalGame.md"
     }

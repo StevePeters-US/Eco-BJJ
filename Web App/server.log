@@ -1,0 +1,16 @@
+nohup: ignoring input
+127.0.0.1 - - [28/Jan/2026 07:53:53] "POST /api/save_class HTTP/1.1" 200 -
+127.0.0.1 - - [28/Jan/2026 07:53:53] "GET /api/list_classes HTTP/1.1" 200 -
+127.0.0.1 - - [28/Jan/2026 07:54:57] "POST /api/save_class HTTP/1.1" 200 -
+127.0.0.1 - - [28/Jan/2026 07:54:57] "GET /api/list_classes HTTP/1.1" 200 -
+127.0.0.1 - - [28/Jan/2026 07:54:57] "POST /api/load_class HTTP/1.1" 200 -
+127.0.0.1 - - [28/Jan/2026 08:01:31] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [28/Jan/2026 08:01:31] "GET /js/app.js?v=1769616091 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Jan/2026 08:01:31] "GET /css/style.css HTTP/1.1" 304 -
+127.0.0.1 - - [28/Jan/2026 08:01:31] "GET /js/editor.js HTTP/1.1" 304 -
+127.0.0.1 - - [28/Jan/2026 08:01:31] "GET /data/content.json HTTP/1.1" 200 -
+127.0.0.1 - - [28/Jan/2026 08:01:31] code 404, message File not found
+127.0.0.1 - - [28/Jan/2026 08:01:31] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [28/Jan/2026 08:02:00] "POST /api/save_class HTTP/1.1" 200 -
+127.0.0.1 - - [28/Jan/2026 08:02:02] "GET /api/list_classes HTTP/1.1" 200 -
+127.0.0.1 - - [28/Jan/2026 08:02:13] "POST /api/load_class HTTP/1.1" 200 -

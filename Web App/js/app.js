@@ -5,20 +5,22 @@
 // Data State
 let state = {
     content: null,
-    selectedConceptId: null, // Renamed
-    classStructure: []
+    selectedConceptId: null,
+    classTitle: "",
+    segments: {} // { segmentId: [ { gameId: '...', ... } ] }
 };
 window.state = state; // Expose for Editor
 
 // Constants based on ClassStructure.md
+// Constants based on ClassStructure.md
 const CLASS_TEMPLATE = [
-    { id: 'standing', title: '1. Standing', duration: '10 min', type: 'standing', count: 1 },
-    { id: 'mobility', title: '2. Mobility', duration: '10-15 min', type: 'game', count: 2 },
-    { id: 'takedowns', title: '3. Takedowns', duration: '10-15 min', type: 'takedown', count: 1 },
-    { id: 'discussion', title: '4. Discussion', duration: '5 min', type: 'discussion', count: 0 },
-    { id: 'applications', title: '5. Concept Applications', duration: '25-30 min', type: 'game', count: 4 },
-    { id: 'review', title: '6. Review', duration: '5 min', type: 'review', count: 0 },
-    { id: 'rolling', title: '7. Free Roll', duration: '15+ min', type: 'rolling', count: 1 }
+    { id: 'standing', title: '1. Standing', targetDuration: 10, type: 'standing' },
+    { id: 'mobility', title: '2. Mobility', targetDuration: 15, type: 'game' },
+    { id: 'takedowns', title: '3. Takedowns', targetDuration: 15, type: 'takedown' },
+    { id: 'discussion', title: '4. Discussion', targetDuration: 5, type: 'discussion' },
+    { id: 'applications', title: '5. Concept Applications', targetDuration: 30, type: 'game' },
+    { id: 'review', title: '6. Review', targetDuration: 5, type: 'review' },
+    { id: 'rolling', title: '7. Free Roll', targetDuration: 15, type: 'rolling' }
 ];
 
 async function init() {
@@ -60,19 +62,142 @@ function setupEventListeners() {
         window.print();
     });
 
-    // Inject Create Concept Button if not present
-    const headerParams = document.querySelector('.header-params');
-    if (headerParams && !document.getElementById('create-concept-btn')) {
-        const createBtn = document.createElement('button');
-        createBtn.id = 'create-concept-btn';
-        createBtn.className = 'icon-btn';
-        createBtn.innerHTML = '+';
-        createBtn.title = 'Create New Concept';
-        createBtn.style.marginLeft = '10px';
-        createBtn.style.border = '1px solid currentColor';
-        createBtn.onclick = createConcept;
-        // Insert after select
-        headerParams.appendChild(createBtn);
+    // Class Title Input
+    const titleInput = document.getElementById('class-title-input');
+    if (titleInput) {
+        titleInput.addEventListener('input', (e) => {
+            state.classTitle = e.target.value;
+        });
+    }
+
+    // User requested removal of extra + button, so we remove the dynamic injection.
+
+    // Save/Load Listeners
+    const saveBtn = document.getElementById('save-class-btn');
+    if (saveBtn) {
+        saveBtn.addEventListener('click', () => {
+            console.log("Save clicked");
+            saveClass();
+        });
+    }
+
+    const loadBtn = document.getElementById('load-class-btn');
+    if (loadBtn) {
+        loadBtn.addEventListener('click', loadClass);
+    }
+}
+
+async function saveClass() {
+    // 1. Get Title
+    const name = state.classTitle;
+    if (!name || name.trim() === "") {
+        alert("Please enter a Class Title before saving.");
+        return;
+    }
+
+    // 2. Build Data Payload from State
+    const classData = {
+        title: name,
+        conceptId: state.selectedConceptId,
+        segments: state.segments // Maps segmentId -> array of game objects
+    };
+
+    console.log("Saving class:", classData);
+
+    try {
+        const response = await fetch('/api/save_class', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: name,
+                data: classData
+            })
+        });
+
+        if (response.ok) {
+            alert('Class saved successfully!');
+        } else {
+            alert('Error saving class');
+        }
+    } catch (e) {
+        console.error(e);
+        alert('Error saving class');
+    }
+}
+
+async function loadClass() {
+    // Fetch list of classes
+    try {
+        const response = await fetch('/api/list_classes');
+        const data = await response.json();
+        const classes = data.classes;
+
+        // Show modal to select
+        const existing = document.querySelector('.modal-overlay');
+        if (existing) existing.remove();
+
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+
+        const options = classes.map(c => `<option value="${c}">${c}</option>`).join('');
+
+        overlay.innerHTML = `
+            <div class="modal">
+                <div class="modal-header">
+                    <h3>Load Class</h3>
+                    <button onclick="this.closest('.modal-overlay').remove()">×</button>
+                </div>
+                <div class="modal-body">
+                    <select id="load-class-select" style="width: 100%; padding: 10px; margin-bottom: 20px;">
+                        ${options}
+                    </select>
+                    <div style="text-align: right;">
+                        <button class="btn primary" id="confirm-load-btn">Load</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+
+        document.getElementById('confirm-load-btn').onclick = async () => {
+            const selectedName = document.getElementById('load-class-select').value;
+            if (selectedName) {
+                // Load it
+                const res = await fetch('/api/load_class', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: selectedName })
+                });
+
+                if (res.ok) {
+                    const result = await res.json();
+                    const loadedData = result.data;
+
+                    // Restore State
+                    state.classTitle = loadedData.title || selectedName;
+                    state.selectedConceptId = loadedData.conceptId;
+                    state.segments = loadedData.segments || {};
+
+                    // Update UI
+                    const titleInput = document.getElementById('class-title-input');
+                    if (titleInput) titleInput.value = state.classTitle;
+
+                    const conceptSelect = document.getElementById('concept-select');
+                    if (conceptSelect) conceptSelect.value = state.selectedConceptId;
+
+                    // Re-render
+                    generateClassStructure();
+
+                    document.querySelector('.modal-overlay').remove();
+                } else {
+                    alert("Error loading class");
+                }
+            }
+        };
+
+    } catch (e) {
+        console.error(e);
+        alert('Error listing classes');
     }
 }
 
@@ -115,24 +240,36 @@ function generateClassStructure() {
     const timeline = document.getElementById('class-timeline');
     timeline.innerHTML = '';
 
-    CLASS_TEMPLATE.forEach((segment, index) => {
+    CLASS_TEMPLATE.forEach((segment) => {
+        // Init state for segment if needed
+        if (!state.segments[segment.id]) {
+            state.segments[segment.id] = [];
+        }
+
+        const currentGames = state.segments[segment.id];
+
+        // Calculate Duration
+        let totalDuration = 0;
+        currentGames.forEach(g => {
+            // Find game metadata to get default duration if not overriden?
+            // For now assume we store duration in the segment instance
+            // Or lookup in content
+            const gameMeta = state.content.games.find(x => x.id === g.gameId);
+            let dur = 0;
+            if (gameMeta && gameMeta.duration) {
+                dur = parseInt(gameMeta.duration.replace(/[^0-9]/g, '')) || 5;
+            }
+            // For testing simple logic
+            totalDuration += (dur || 5); // Default 5 mins if not specified
+        });
+
+
         const segmentEl = document.createElement('div');
         segmentEl.className = 'class-segment';
 
         let contentHtml = '';
 
-        if (segment.count > 0) {
-            // Create slots for games
-            for (let i = 0; i < segment.count; i++) {
-                contentHtml += `
-                    <div class="game-slot" data-segment="${segment.id}" data-index="${i}">
-                        <div class="empty-slot-btn" onclick="openGamePicker('${segment.id}', ${i})">
-                            + Select ${segment.type === 'game' ? 'Game' : 'Option'}
-                        </div>
-                    </div>
-                `;
-            }
-        } else if (segment.type === 'discussion') {
+        if (segment.type === 'discussion') {
             // Inject Concept Content here
             let imagesHtml = '';
             if (concept.images && concept.images.length > 0) {
@@ -143,7 +280,6 @@ function generateClassStructure() {
 
             contentHtml = `
                 <div class="section-header-row">
-                    <!-- Header is rendered by parent usually, but we want button next to content -->
                     <button class="btn-small secondary edit-theory-btn" onclick="window.editor.editConcept()">✎ Edit Concept</button>
                 </div>
                 <div class="theory-content" id="theory-content-display">
@@ -151,13 +287,61 @@ function generateClassStructure() {
                     ${imagesHtml}
                 </div>
              `;
+        } else if (segment.type === 'review') {
+            contentHtml = `<p class="segment-note">Review concepts</p>`;
         } else {
-            contentHtml = `<p class="segment-note">${segment.type === 'review' ? 'Review concepts' : 'Open mat time'}</p>`;
+            // Game List
+            let gamesHtml = currentGames.map((g, index) => {
+                const gameMeta = state.content.games.find(x => x.id === g.gameId);
+                const title = gameMeta ? gameMeta.title : 'Unknown Game';
+                const description = gameMeta ? (gameMeta.description || '') : '';
+                const goals = gameMeta ? (gameMeta.goals || 'N/A') : 'N/A';
+
+                return `
+                    <div class="selected-game">
+                        <div class="game-header">
+                            <h4>${title}</h4>
+                            <div class="actions">
+                                <button class="icon-btn edit-btn" title="Edit Game" onclick="window.editor.editGame('${g.gameId}', '${segment.id}', ${index})">✎</button>
+                                <button class="icon-btn remove-btn" title="Remove" onclick="removeGame('${segment.id}', ${index})">×</button>
+                            </div>
+                        </div>
+                        <div class="game-details" id="game-content-${segment.id}-${index}">
+                            <p><strong>Goal:</strong> ${goals}</p>
+                            <div class="game-description">${markedParse(description)}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Add Button
+            gamesHtml += `
+                <div class="add-game-row">
+                    <button class="icon-btn add-btn" onclick="openGamePicker('${segment.id}')" title="Add Activity" style="width: 100%; border: 1px dashed #444; padding: 10px;">
+                        +
+                    </button>
+                </div>
+            `;
+
+            contentHtml = gamesHtml;
         }
+
+        // Time Badge Logic
+        let timeColor = '#888';
+        if (totalDuration > 0) {
+            const diff = totalDuration - segment.targetDuration;
+            if (Math.abs(diff) <= 2) timeColor = '#4caf50'; // Green
+            else if (diff > 2) timeColor = '#f44336'; // Red (Over)
+            else timeColor = '#ff9800'; // Orange (Under)
+        }
+
+        const timeDisplay = totalDuration > 0
+            ? `<span style="color: ${timeColor}; margin-left: 5px;">(${totalDuration} / ${segment.targetDuration} min)</span>`
+            : `<span class="time-badge">${segment.targetDuration} min</span>`;
 
         segmentEl.innerHTML = `
             <div class="segment-badge"></div>
-            <h3>${segment.title} <span class="time-badge">${segment.duration}</span></h3>
+            <h3>${segment.title} ${timeDisplay}</h3>
             ${contentHtml}
         `;
 
@@ -166,6 +350,13 @@ function generateClassStructure() {
 
     setupDragAndDrop();
 }
+
+window.removeGame = (segmentId, index) => {
+    if (state.segments[segmentId]) {
+        state.segments[segmentId].splice(index, 1);
+        generateClassStructure();
+    }
+};
 
 // Drag & Drop
 let draggedImageSrc = null;
@@ -272,47 +463,61 @@ function markedParse(text) {
 window.markedParse = markedParse;
 
 // Global Game Picker handler
-window.openGamePicker = (segmentId, slotIndex) => {
-    // Ideally this would be a modal
-    // For MVP, let's just prompt or show a crude list
-    // A premium app needs a modal. Let's create one dynamically or used a pre-built dialog.
-
-    window.lastModalArgs = { segmentId, slotIndex }; // Store for refresh
-    createModal(segmentId, slotIndex);
+// Global Game Picker handler
+window.openGamePicker = (segmentId) => {
+    window.lastModalArgs = { segmentId };
+    // Default filter to selected Concept if possible, or All?
+    // Let's default to All for exploration, or matching category?
+    // User requested "drop down for each of the concepts".
+    createModal(segmentId);
 };
 
-function createModal(segmentId, slotIndex) {
-    // Remove existing modal if any
+function createModal(segmentId, filterCategory = null) {
     const existing = document.querySelector('.modal-overlay');
     if (existing) existing.remove();
 
     const overlay = document.createElement('div');
     overlay.className = 'modal-overlay';
 
-    // Group games by category if categories exist, otherwise fallback
+    // Concept Dropdown options
+    const concepts = state.content.concepts || [];
+    const conceptOptions = concepts.map(c =>
+        `<option value="${c.title}" ${c.title === filterCategory ? 'selected' : ''}>${c.title}</option>`
+    ).join('');
+
+    // Filter Games
+    let gamesToShow = state.content.games;
+    if (filterCategory && filterCategory !== 'All') {
+        gamesToShow = gamesToShow.filter(g => g.category === filterCategory);
+    }
+
     let contentHtml = '';
+    // Check if we should group by category if no filter selected?
+    // Or just show flat list if filtered?
 
-    if (state.content.categories && state.content.categories.length > 0) {
-        state.content.categories.forEach(cat => {
-            // Find games for this category
-            const catGames = state.content.games.filter(g => g.category === cat.title);
-
-            if (catGames.length > 0) {
-                contentHtml += `
-                    <details class="category-group">
-                        <summary class="category-header">
-                            <h3>${cat.title}</h3>
-                        </summary>
-                        <div class="category-games">
-                            ${renderGameOptions(catGames, segmentId, slotIndex)}
-                        </div>
-                    </details>
-                `;
-            }
-        });
+    if (filterCategory && filterCategory !== 'All') {
+        contentHtml = renderGameOptions(gamesToShow, segmentId);
     } else {
-        // Fallback for flat list
-        contentHtml = renderGameOptions(state.content.games, segmentId, slotIndex);
+        // Grouped View (Default)
+        if (state.content.categories && state.content.categories.length > 0) {
+            state.content.categories.forEach(cat => {
+                const catGames = state.content.games.filter(g => g.category === cat.title);
+                if (catGames.length > 0) {
+                    contentHtml += `
+                        <details class="category-group" open>
+                            <summary class="category-header">
+                                <h3>${cat.title}</h3>
+                            </summary>
+                            <div class="category-games">
+                                ${renderGameOptions(catGames, segmentId)}
+                            </div>
+                        </details>
+                    `;
+                }
+            });
+        } else {
+            contentHtml = renderGameOptions(state.content.games, segmentId);
+        }
     }
 
     overlay.innerHTML = `
@@ -320,9 +525,15 @@ function createModal(segmentId, slotIndex) {
             <div class="modal-header">
                 <h3>Select Activity</h3>
                 <div class="modal-actions">
-                    <button class="btn-small secondary" onclick="createGame()">+ New Game</button>
+                    <button class="btn-small secondary" onclick="createGame('${filterCategory || ''}')">+ New Game</button>
                     <button class="icon-btn close-btn" onclick="this.closest('.modal-overlay').remove()">×</button>
                 </div>
+            </div>
+            <div class="modal-subheader" style="padding: 10px; border-bottom: 1px solid #333;">
+                <select id="picker-concept-filter" onchange="window.filterPicker('${segmentId}', this.value)" style="width: 100%; padding: 8px;">
+                     <option value="All">All Concepts</option>
+                     ${conceptOptions}
+                </select>
             </div>
             <div class="modal-body">
                 ${contentHtml}
@@ -333,58 +544,42 @@ function createModal(segmentId, slotIndex) {
     document.body.appendChild(overlay);
 }
 
-function renderGameOptions(games, segmentId, slotIndex) {
+window.filterPicker = (segmentId, category) => {
+    createModal(segmentId, category);
+};
+
+function renderGameOptions(games, segmentId) {
     return games.map(game => `
-        <div class="game-option" onclick="selectGame('${game.id}', '${segmentId}', ${slotIndex})">
+        <div class="game-option" onclick="selectGame('${game.id}', '${segmentId}')">
             <h4>${game.title}</h4>
+            <div style="font-size: 0.8rem; opacity: 0.7;">
+                ${game.duration ? `⏱ ${game.duration}` : ''}
+            </div>
             <p>${game.purpose || ''}</p>
         </div>
     `).join('');
 }
 
-window.selectGame = (gameId, segmentId, slotIndex) => {
+window.selectGame = (gameId, segmentId) => {
     const game = state.content.games.find(g => g.id === gameId);
     if (!game) return;
 
-    // Find the slot
-    const slot = document.querySelector(`.game-slot[data-segment="${segmentId}"][data-index="${slotIndex}"]`);
-    if (slot) {
-        slot.innerHTML = `
-            <div class="selected-game">
-                <div class="game-header">
-                    <h4>${game.title}</h4>
-                    <div class="actions">
-                        <button class="icon-btn edit-btn" title="Edit Game" onclick="window.editor.editGame('${game.id}', '${segmentId}', ${slotIndex})">✎</button>
-                        <button class="icon-btn remove-btn" title="Remove" onclick="clearSlot('${segmentId}', ${slotIndex})">×</button>
-                    </div>
-                </div>
-                <div class="game-details" id="game-content-${segmentId}-${slotIndex}">
-                    <p><strong>Goal:</strong> ${game.goals || 'N/A'}</p>
-                    <div class="game-description">${markedParse(game.description || '')}</div>
-                </div>
-            </div>
-        `;
-    }
+    // Add to State
+    if (!state.segments[segmentId]) state.segments[segmentId] = [];
+
+    state.segments[segmentId].push({
+        gameId: game.id,
+        // We could store custom duration here later if we want to override
+    });
+
+    generateClassStructure();
 
     // Close modal
-    document.querySelector('.modal-overlay').remove();
+    const overlay = document.querySelector('.modal-overlay');
+    if (overlay) overlay.remove();
 };
 
-window.clearSlot = (segmentId, slotIndex) => {
-    const slot = document.querySelector(`.game-slot[data-segment="${segmentId}"][data-index="${slotIndex}"]`);
-    if (slot) {
-        // Reset to empty state
-        // Get segment info to restore correct label
-        const segment = CLASS_TEMPLATE.find(s => s.id === segmentId);
-        const typeLabel = segment.type === 'game' ? 'Game' : 'Option';
-
-        slot.innerHTML = `
-            <div class="empty-slot-btn" onclick="openGamePicker('${segmentId}', ${slotIndex})">
-                + Select ${typeLabel}
-            </div>
-         `;
-    }
-}
+// Removed clearSlot as we check for existence in generateClassStructure via removeGame
 
 // Auto init logic
 import { Editor } from './editor.js';
@@ -475,7 +670,8 @@ window.submitNewGame = async () => {
         if (response.ok) {
             // Optimistic Update
             const result = await response.json();
-            const newId = (category + '-' + name).toLowerCase().replace(' ', '-').replace('/', '-');
+            // Use global regex to replace ALL spaces and slashes
+            const newId = (category + '-' + name).toLowerCase().replace(/[\s\/]/g, '-');
 
             const newGame = {
                 id: newId,
@@ -495,7 +691,7 @@ window.submitNewGame = async () => {
             if (!catObj) {
                 // Should exist if selected from dropdown, but handling edge cases
                 catObj = {
-                    id: category.toLowerCase().replace(" ", "-"),
+                    id: category.toLowerCase().replace(/ /g, "-"),
                     title: category,
                     description: "",
                     games: []
@@ -508,14 +704,10 @@ window.submitNewGame = async () => {
             // Close create modal
             document.querySelector('.modal-overlay').remove();
 
-            // Allow time for modal to close then refresh the picker if it was open...
-            // Actually, wait. createModal is the Picker. We just replaced it with the Create Modal.
-            // So the Picker is GONE.
-            // We need to re-open the Picker using lastModalArgs.
-
             if (window.lastModalArgs) {
-                // Re-open picker
-                createModal(window.lastModalArgs.segmentId, window.lastModalArgs.slotIndex);
+                // Auto-select the new game in the slot we came from
+                const { segmentId, slotIndex } = window.lastModalArgs;
+                selectGame(newId, segmentId, slotIndex);
             } else {
                 alert('Game created!');
             }

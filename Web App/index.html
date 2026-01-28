@@ -22,8 +22,16 @@
 
         <main class="main-container">
             <section id="setup-panel" class="panel">
-                <h1>Class Designer</h1>
+                <div class="header-row"
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h1>Class Designer</h1>
+                    <div class="header-params" style="display: flex; align-items: center; gap: 10px;"></div>
+                </div>
+                <input type="text" id="class-title-input" class="editor-textarea" placeholder="Class Title"
+                    style="width: 100%; font-size: 1.2rem; margin-bottom: 20px; padding: 10px; box-sizing: border-box; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white;">
+
                 <p class="subtitle">Select a concept to generate a class structure.</p>
+                <!-- <div class="header-params" style="display: flex; align-items: center; margin-bottom: 20px;"></div> -->
 
                 <div class="form-group">
                     <label for="concept-select">Core Concept</label>
@@ -36,7 +44,9 @@
                     <!-- Class details will appear here -->
                 </div>
 
-                <div style="margin-top: auto; padding-top: 20px;">
+                <div style="margin-top: auto; padding-top: 20px; display: flex; flex-direction: column; gap: 10px;">
+                    <button id="save-class-btn" class="btn secondary" style="width: 100%">Save Class</button>
+                    <button id="load-class-btn" class="btn secondary" style="width: 100%">Load Class</button>
                     <button id="print-btn" class="btn secondary" style="width: 100%">Print / PDF</button>
                 </div>
             </section>
@@ -52,7 +62,7 @@
         </main>
     </div>
 
-    <script type="module" src="js/app.js?v=1769239397"></script>
+    <script type="module" src="js/app.js?v=1769616091"></script>
 </body>
 
 </html>

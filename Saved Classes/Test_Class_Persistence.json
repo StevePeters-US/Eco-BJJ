@@ -1,0 +1,38 @@
+{
+  "conceptId": "mobility",
+  "segments": [
+    {
+      "id": "standing",
+      "slots": []
+    },
+    {
+      "id": "mobility",
+      "slots": [
+        {
+          "index": 0,
+          "gameId": "mobility-test-game-for-persistence"
+        }
+      ]
+    },
+    {
+      "id": "takedowns",
+      "slots": []
+    },
+    {
+      "id": "discussion",
+      "slots": []
+    },
+    {
+      "id": "applications",
+      "slots": []
+    },
+    {
+      "id": "review",
+      "slots": []
+    },
+    {
+      "id": "rolling",
+      "slots": []
+    }
+  ]
+}
