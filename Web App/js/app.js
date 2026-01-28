@@ -25,7 +25,7 @@ const CLASS_TEMPLATE = [
 
 async function init() {
     try {
-        const response = await fetch('data/content.json');
+        const response = await fetch('data/content.json?v=' + Date.now()); // Cache bust
         if (!response.ok) throw new Error('Failed to load content');
 
         state.content = await response.json();
@@ -41,7 +41,11 @@ async function init() {
 
 function renderConceptSelect() {
     const select = document.getElementById('concept-select');
-    if (!state.content.concepts) return;
+    if (!state.content.concepts) {
+        console.error("No concepts found in state.content");
+        return;
+    }
+    console.log("Rendering concepts:", state.content.concepts.length);
 
     // Clear and Populate
     select.innerHTML = '<option value="" disabled selected>Select a Concept...</option>';
@@ -262,16 +266,21 @@ function generateClassStructure() {
         // Calculate Duration
         let totalDuration = 0;
         currentGames.forEach(g => {
-            // Find game metadata to get default duration if not overriden?
-            // For now assume we store duration in the segment instance
-            // Or lookup in content
             const gameMeta = state.content.games.find(x => x.id === g.gameId);
-            let dur = 0;
-            if (gameMeta && gameMeta.duration) {
-                dur = parseInt(gameMeta.duration.replace(/[^0-9]/g, '')) || 5;
+            if (gameMeta) {
+                let roundTime = parseInt(gameMeta.duration) || 5;
+                let players = parseInt(gameMeta.players) || 2;
+                let type = gameMeta.type || 'Continuous';
+
+                if (type === 'Round Switching') {
+                    // Total = Round Time * Players
+                    totalDuration += (roundTime * players);
+                } else {
+                    totalDuration += roundTime;
+                }
+            } else {
+                totalDuration += 5; // Default fallback
             }
-            // For testing simple logic
-            totalDuration += (dur || 5); // Default 5 mins if not specified
         });
 
 
@@ -285,7 +294,7 @@ function generateClassStructure() {
             let imagesHtml = '';
             if (concept.images && concept.images.length > 0) {
                 imagesHtml = `<div class="theory-images">
-                    ${concept.images.map(img => `<img src="${img}" alt="Concept Image" loading="lazy">`).join('')}
+                ${concept.images.map(img => `<img src="${img}" alt="Concept Image" loading="lazy">`).join('')}
                 </div>`;
             }
 
@@ -297,7 +306,7 @@ function generateClassStructure() {
                     ${markedParse(concept.content || concept.description || 'No content available.')}
                     ${imagesHtml}
                 </div>
-             `;
+            `;
         } else if (segment.type === 'review') {
             contentHtml = `<p class="segment-note">Review concepts</p>`;
         } else {
@@ -308,10 +317,26 @@ function generateClassStructure() {
                 const description = gameMeta ? (gameMeta.description || '') : '';
                 const goals = gameMeta ? (gameMeta.goals || 'N/A') : 'N/A';
 
+                // Duration detail for display
+                let durationTxt = '';
+                if (gameMeta) {
+                    let rt = parseInt(gameMeta.duration) || 5;
+                    let p = parseInt(gameMeta.players) || 2;
+                    let t = gameMeta.type || 'Continuous';
+                    if (t === 'Round Switching') {
+                        durationTxt = `<span class="duration-badge">${rt}m x ${p}p = ${rt * p}m</span>`;
+                    } else {
+                        durationTxt = `<span class="duration-badge">${rt}m</span>`;
+                    }
+                }
+
                 return `
-                    <div class="selected-game">
+                <div class="selected-game">
                         <div class="game-header">
-                            <h4>${title}</h4>
+                            <h4 style="display: flex; align-items: center; gap: 10px;">
+                                ${title} 
+                                ${durationTxt}
+                            </h4>
                             <div class="actions">
                                 <button class="icon-btn edit-btn" title="Edit Game" onclick="window.openGameModal('${g.gameId}')">✎</button>
                                 <button class="icon-btn remove-btn" title="Remove" onclick="removeGame('${segment.id}', ${index})">×</button>
@@ -332,7 +357,7 @@ function generateClassStructure() {
                         +
                     </button>
                 </div>
-            `;
+                `;
 
             contentHtml = gamesHtml;
         }
@@ -347,14 +372,14 @@ function generateClassStructure() {
         }
 
         const timeDisplay = totalDuration > 0
-            ? `<span style="color: ${timeColor}; margin-left: 5px;">(${totalDuration} / ${segment.targetDuration} min)</span>`
+            ? `<span style="color: ${timeColor}; margin-left: 5px;">(${totalDuration}/${segment.targetDuration} min)</span>`
             : `<span class="time-badge">${segment.targetDuration} min</span>`;
 
         segmentEl.innerHTML = `
-            <div class="segment-badge"></div>
-            <h3>${segment.title} ${timeDisplay}</h3>
+                <div class="segment-badge"></div>
+                    <h3>${segment.title} ${timeDisplay}</h3>
             ${contentHtml}
-        `;
+            `;
 
         timeline.appendChild(segmentEl);
     });
@@ -412,8 +437,8 @@ function setupDragAndDrop() {
 function createDroppedImage(src, x, y, container) {
     const wrapper = document.createElement('div');
     wrapper.className = 'dropped-image-wrapper';
-    wrapper.style.left = `${x}px`;
-    wrapper.style.top = `${y}px`;
+    wrapper.style.left = `${x} px`;
+    wrapper.style.top = `${y} px`;
 
     // Resizable Image
     const img = document.createElement('img');
@@ -450,8 +475,8 @@ function makeElementDraggable(el) {
             if (!isDragging) return;
             const dx = e.clientX - startX;
             const dy = e.clientY - startY;
-            el.style.left = `${initialLeft + dx}px`;
-            el.style.top = `${initialTop + dy}px`;
+            el.style.left = `${initialLeft + dx} px`;
+            el.style.top = `${initialTop + dy} px`;
         };
 
         document.onmouseup = () => {
@@ -493,7 +518,7 @@ function createModal(segmentId, filterCategory = null) {
     // Concept Dropdown options
     const concepts = state.content.concepts || [];
     const conceptOptions = concepts.map(c =>
-        `<option value="${c.title}" ${c.title === filterCategory ? 'selected' : ''}>${c.title}</option>`
+        `< option value = "${c.title}" ${c.title === filterCategory ? 'selected' : ''}> ${c.title}</option > `
     ).join('');
 
     // Filter Games
@@ -515,7 +540,7 @@ function createModal(segmentId, filterCategory = null) {
                 const catGames = state.content.games.filter(g => g.category === cat.title);
                 if (catGames.length > 0) {
                     contentHtml += `
-                        <details class="category-group" open>
+                <details class="category-group" open>
                             <summary class="category-header">
                                 <h3>${cat.title}</h3>
                             </summary>
@@ -523,7 +548,7 @@ function createModal(segmentId, filterCategory = null) {
                                 ${renderGameOptions(catGames, segmentId)}
                             </div>
                         </details>
-                    `;
+                `;
                 }
             });
         } else {
@@ -532,7 +557,7 @@ function createModal(segmentId, filterCategory = null) {
     }
 
     overlay.innerHTML = `
-        <div class="modal">
+                <div class="modal">
             <div class="modal-header">
                 <h3>Select Activity</h3>
                 <div class="modal-actions">
@@ -550,7 +575,7 @@ function createModal(segmentId, filterCategory = null) {
                 ${contentHtml}
             </div>
         </div>
-    `;
+                `;
 
     document.body.appendChild(overlay);
 }
@@ -561,14 +586,14 @@ window.filterPicker = (segmentId, category) => {
 
 function renderGameOptions(games, segmentId) {
     return games.map(game => `
-        <div class="game-option" onclick="selectGame('${game.id}', '${segmentId}')">
+                <div class="game-option" onclick="selectGame('${game.id}', '${segmentId}')">
             <h4>${game.title}</h4>
             <div style="font-size: 0.8rem; opacity: 0.7;">
                 ${game.duration ? `⏱ ${game.duration}` : ''}
             </div>
             <p>${game.purpose || ''}</p>
         </div>
-    `).join('');
+                `).join('');
 }
 
 window.selectGame = (gameId, segmentId) => {
@@ -619,7 +644,7 @@ window.openGameModal = (gameId = null, preselectedCategory = null) => {
     ).join('');
 
     overlay.innerHTML = `
-        <div class="modal">
+                <div class="modal">
             <div class="modal-header">
                 <h3>${isEdit ? 'Edit Game' : 'Create New Game'}</h3>
                 <button onclick="this.closest('.modal-overlay').remove()">×</button>
@@ -645,20 +670,33 @@ window.openGameModal = (gameId = null, preselectedCategory = null) => {
                                value="${game ? (game.players || 2) : 2}" min="1">
                     </div>
                     <div class="form-group" style="flex: 1;">
-                        <label>Duration (mins)</label>
-                        <select id="new-game-duration" class="editor-textarea" style="height: auto;">
-                            ${[3, 5, 7, 10, 15, 20].map(d => `<option value="${d}" ${game && game.duration == d ? 'selected' : (d === 5 ? 'selected' : '')}>${d}</option>`).join('')}
-                        </select>
+                        <label style="display: flex; align-items: center; gap: 5px;">
+                            Round Time (mins)
+                            <span class="info-icon" title="If Game Type is 'Round Switching', Total Time = Round Time × Players. Otherwise, Total Time = Round Time.">ⓘ</span>
+                        </label>
+                        <input type="number" id="new-game-duration" class="editor-textarea" style="height: auto;" 
+                               value="${game && game.duration ? parseInt(game.duration) : 5}" min="1" step="1">
                     </div>
+                </div>
+                <div class="form-row" style="display: flex; gap: 10px;">
                     <div class="form-group" style="flex: 1;">
                          <label>Game Type</label>
                          <select id="new-game-type" class="editor-textarea" style="height: auto;">
-                             ${['Continuous', 'Switching', 'Wall/Island', 'Positional', 'Constrained'].map(t =>
+                             ${['Continuous', 'Alternating', 'Round Switching'].map(t =>
         `<option value="${t}" ${game && (game.type === t || game.gameType === t) ? 'selected' : ''}>${t}</option>`
     ).join('')}
                          </select>
                     </div>
+                    <div class="form-group" style="flex: 1;">
+                         <label>Intensity</label>
+                         <select id="new-game-intensity" class="editor-textarea" style="height: auto;">
+                             ${['Flow', 'Cooperative', 'Adversarial'].map(t =>
+        `<option value="${t}" ${game && game.intensity === t ? 'selected' : ''}>${t}</option>`
+    ).join('')}
+                         </select>
+                    </div>
                 </div>
+                
                 <div class="form-group">
                     <label>Goals</label>
                     <input type="text" id="new-game-goals" class="editor-textarea" style="height: auto;" 
@@ -668,6 +706,11 @@ window.openGameModal = (gameId = null, preselectedCategory = null) => {
                     <label>Purpose</label>
                     <input type="text" id="new-game-purpose" class="editor-textarea" style="height: auto;" 
                            value="${game ? (game.purpose || '') : ''}" placeholder="e.g. Learn control">
+                </div>
+                 <div class="form-group">
+                    <label>Focus of Intention</label>
+                    <input type="text" id="new-game-focus" class="editor-textarea" style="height: auto;" 
+                           value="${game ? (game.focus || '') : ''}" placeholder="e.g. Constraint led drive or Outcome based">
                 </div>
                 <div class="form-group">
                     <label>Description</label>
@@ -682,7 +725,7 @@ window.openGameModal = (gameId = null, preselectedCategory = null) => {
                 </div>
             </div>
         </div>
-    `;
+                `;
 
     document.body.appendChild(overlay);
     if (!isEdit) setTimeout(() => document.getElementById('new-game-title').focus(), 100);
@@ -696,10 +739,12 @@ window.submitGameForm = async (isEdit) => {
     const name = document.getElementById('new-game-title').value;
     const goals = document.getElementById('new-game-goals').value;
     const purpose = document.getElementById('new-game-purpose').value;
+    const focus = document.getElementById('new-game-focus').value;
     const description = document.getElementById('new-game-desc').value;
     const players = document.getElementById('new-game-players').value;
     const duration = document.getElementById('new-game-duration').value;
     const gameType = document.getElementById('new-game-type').value;
+    const intensity = document.getElementById('new-game-intensity').value;
 
     if (!category || !name) {
         alert('Category and Title are required.');
@@ -713,10 +758,12 @@ window.submitGameForm = async (isEdit) => {
             category: category,
             goals: goals,
             purpose: purpose,
+            focus: focus,
             description: description,
             players: players,
             duration: duration,
             gameType: gameType,
+            intensity: intensity,
             overwrite: isEdit // Allow overwrite if editing
         };
 
@@ -738,9 +785,11 @@ window.submitGameForm = async (isEdit) => {
                 path: result.path, // May change if renamed, but simple overwrite keeps path usually
                 goals: goals,
                 purpose: purpose,
+                focus: focus,
                 players: players,
                 duration: duration,
-                type: gameType
+                type: gameType,
+                intensity: intensity
             };
 
             if (isEdit) {
@@ -830,7 +879,7 @@ window.openConceptModal = (conceptId = null) => {
     }
 
     overlay.innerHTML = `
-        <div class="modal">
+                <div class="modal">
             <div class="modal-header">
                 <h3>${isEdit ? 'Edit Concept' : 'Create New Concept'}</h3>
                 <button onclick="this.closest('.modal-overlay').remove()">×</button>
@@ -852,7 +901,7 @@ window.openConceptModal = (conceptId = null) => {
                 </div>
             </div>
         </div>
-    `;
+                `;
     document.body.appendChild(overlay);
     setTimeout(() => document.getElementById('new-concept-name').focus(), 100);
 }
@@ -905,7 +954,7 @@ window.openConceptModal = (conceptId = null) => {
     }
 
     overlay.innerHTML = `
-        <div class="modal">
+                <div class="modal">
             <div class="modal-header">
                 <h3>${isEdit ? 'Edit Concept' : 'Create New Concept'}</h3>
                 <button onclick="this.closest('.modal-overlay').remove()">×</button>
@@ -931,7 +980,7 @@ window.openConceptModal = (conceptId = null) => {
                 </div>
             </div>
         </div>
-    `;
+                `;
     document.body.appendChild(overlay);
     setTimeout(() => document.getElementById('new-concept-name').focus(), 100);
 }

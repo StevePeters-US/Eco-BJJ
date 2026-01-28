@@ -28,8 +28,49 @@ class EcoHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         if self.path == '/api/list_classes':
             self.handle_list_classes()
+        elif self.path.startswith('/Concepts/'):
+            # Serve files from the project root Concepts folder
+            self.serve_project_file(self.path)
         else:
             super().do_GET()
+
+    def serve_project_file(self, path):
+        """Serve files from the PROJECT_ROOT directory (for Concepts, Games, etc.)"""
+        try:
+            # Remove leading slash and decode URL encoding
+            from urllib.parse import unquote
+            relative_path = unquote(path.lstrip('/'))
+            file_path = os.path.join(PROJECT_ROOT, relative_path)
+            
+            # Security check - ensure we're still within project root
+            file_path = os.path.abspath(file_path)
+            if not file_path.startswith(PROJECT_ROOT):
+                self.send_error(403, "Forbidden")
+                return
+            
+            if not os.path.exists(file_path):
+                self.send_error(404, f"File not found: {relative_path}")
+                return
+                
+            # Determine content type
+            import mimetypes
+            content_type, _ = mimetypes.guess_type(file_path)
+            if content_type is None:
+                content_type = 'application/octet-stream'
+            
+            # Read and serve the file
+            with open(file_path, 'rb') as f:
+                content = f.read()
+            
+            self.send_response(200)
+            self.send_header('Content-type', content_type)
+            self.send_header('Content-Length', len(content))
+            self.end_headers()
+            self.wfile.write(content)
+            
+        except Exception as e:
+            print(f"Error serving project file: {e}")
+            self.send_error(500, str(e))
 
     def handle_save_class(self):
         try:
@@ -153,9 +194,11 @@ class EcoHandler(http.server.SimpleHTTPRequestHandler):
                 description = data.get('description', f'Description of {name}.')
                 goals = data.get('goals', '')
                 purpose = data.get('purpose', '')
+                focus = data.get('focus', '') # Focus of Intention
                 players = data.get('players', '2')
                 duration = data.get('duration', '5')
                 game_type = data.get('gameType', 'Continuous')
+                intensity = data.get('intensity', 'Flow')
                 
                 if not category:
                      self.send_error(400, "Missing category for game")
@@ -173,8 +216,10 @@ category: {category}
 players: {players}
 duration: {duration}
 type: {game_type}
+intensity: {intensity}
 goals: {goals}
 purpose: {purpose}
+focus: {focus}
 ---
 
 {description}
@@ -254,6 +299,58 @@ purpose: {purpose}
             
         except Exception as e:
             print(f"Error saving: {e}")
+            self.send_error(500, str(e))
+
+    def handle_delete(self):
+        try:
+            content_len = int(self.headers.get('Content-Length', 0))
+            post_body = self.rfile.read(content_len)
+            data = json.loads(post_body)
+            
+            relative_path = data.get('path')
+            if not relative_path:
+                self.send_error(400, "Missing path")
+                return
+
+            # Security: Ensure path is within Project Root
+            # The path coming from content.json is absolute.
+            # If it is absolute, we check it starts with PROJECT_ROOT.
+            
+            target_path = relative_path
+            if not os.path.isabs(target_path):
+                target_path = os.path.join(PROJECT_ROOT, relative_path)
+            
+            target_path = os.path.abspath(target_path)
+            
+            if not target_path.startswith(PROJECT_ROOT):
+                 print(f"Blocked delete of: {target_path}")
+                 self.send_error(403, "Forbidden path")
+                 return
+
+            if not os.path.exists(target_path):
+                self.send_error(404, "Path not found")
+                return
+                
+            # Delete logic
+            if os.path.isdir(target_path):
+                import shutil
+                shutil.rmtree(target_path)
+                print(f"Deleted directory: {target_path}")
+            else:
+                os.remove(target_path)
+                print(f"Deleted file: {target_path}")
+                
+            # Regenerate content
+            gen_script = os.path.join(BASE_DIR, 'scripts/generate_content.py')
+            subprocess.run(["python3", gen_script], check=True)
+
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({'status': 'success'}).encode())
+
+        except Exception as e:
+            print(f"Error deleting: {e}")
             self.send_error(500, str(e))
 
 if __name__ == "__main__":
