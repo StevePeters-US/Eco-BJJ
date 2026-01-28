@@ -518,7 +518,7 @@ function createModal(segmentId, filterCategory = null) {
     // Concept Dropdown options
     const concepts = state.content.concepts || [];
     const conceptOptions = concepts.map(c =>
-        `< option value = "${c.title}" ${c.title === filterCategory ? 'selected' : ''}> ${c.title}</option > `
+        `<option value="${c.title}" ${c.title === filterCategory ? 'selected' : ''}>${c.title}</option>`
     ).join('');
 
     // Filter Games
@@ -559,7 +559,7 @@ function createModal(segmentId, filterCategory = null) {
     overlay.innerHTML = `
                 <div class="modal">
             <div class="modal-header">
-                <h3>Select Activity</h3>
+                <h3>Select Game</h3>
                 <div class="modal-actions">
                     <button class="btn-small secondary" onclick="createGame('${filterCategory || ''}')">+ New Game</button>
                     <button class="icon-btn close-btn" onclick="this.closest('.modal-overlay').remove()">×</button>

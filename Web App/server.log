@@ -92,3 +92,25 @@ nohup: ignoring input
 127.0.0.1 - - [28/Jan/2026 12:26:31] "GET /data/content.json?v=1769631991888 HTTP/1.1" 200 -
 127.0.0.1 - - [28/Jan/2026 12:26:31] code 404, message File not found
 127.0.0.1 - - [28/Jan/2026 12:26:31] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [28/Jan/2026 12:30:11] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [28/Jan/2026 12:30:11] "GET /js/app.js?v=1769631991 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Jan/2026 12:30:11] "GET /data/content.json?v=1769632211261 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Jan/2026 12:30:11] code 404, message File not found
+127.0.0.1 - - [28/Jan/2026 12:30:11] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [28/Jan/2026 12:30:48] code 404, message File not found
+127.0.0.1 - - [28/Jan/2026 12:30:48] "GET /Concepts/BloodChokes/Carotid_artery_med_01-3834831394.jpg HTTP/1.1" 404 -
+127.0.0.1 - - [28/Jan/2026 12:30:48] code 404, message File not found
+127.0.0.1 - - [28/Jan/2026 12:30:48] "GET /Concepts/BloodChokes/Carotid_sheath_magnified.jpg HTTP/1.1" 404 -
+127.0.0.1 - - [28/Jan/2026 12:30:48] code 404, message File not found
+127.0.0.1 - - [28/Jan/2026 12:30:48] "GET /Concepts/BloodChokes/Neurovascularature_Neck.jpg HTTP/1.1" 404 -
+127.0.0.1 - - [28/Jan/2026 12:33:27] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [28/Jan/2026 12:33:27] "GET /js/app.js?v=1769632406 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Jan/2026 12:33:27] "GET /data/content.json?v=1769632407114 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Jan/2026 12:33:27] code 404, message File not found
+127.0.0.1 - - [28/Jan/2026 12:33:27] "GET /favicon.ico HTTP/1.1" 404 -
+Generating content...
+Found 8 concepts.
+Found 8 categories and 13 games.
+Content generated at /home/steve/Documents/BJJ/Eco-BJJ/Web App/scripts/../data/content.json
+Updated index.html with version 1769632678
+127.0.0.1 - - [28/Jan/2026 12:37:58] "POST /api/create HTTP/1.1" 200 -
