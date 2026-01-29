@@ -87,7 +87,9 @@
       "id": "pressure",
       "title": "Pressure",
       "description": "",
-      "games": []
+      "games": [
+        "pressure-4-corners"
+      ]
     },
     {
       "id": "mobility",
@@ -156,6 +158,20 @@
       "intensity": "Flow",
       "id": "grips-robot-arms",
       "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Grips/Games/Robotarms.md"
+    },
+    {
+      "title": "4 corners",
+      "description": "Starting in side control, the top player needs to keep their opponent flat on the mat.\n\nVariations involve not allowing the knees to touch the floor or top player not using their hands.\n\nBottom player cannot make attachments",
+      "category": "Pressure",
+      "goals": "Bottom player is to roll to their side",
+      "purpose": "Teaches the top player how to control by using the 4 corners of the torso",
+      "focus": "Top player should use their hands, elbows, hips, or knees to apply force to one of the 4 corners ot the torso. Be mindful of the direction force is being applied.",
+      "duration": "1",
+      "players": "2",
+      "type": "Round Switching",
+      "intensity": "Adversarial",
+      "id": "pressure-4-corners",
+      "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Pressure/Games/4corners.md"
     },
     {
       "title": "Test Game for Persistence",

@@ -1,116 +1,20 @@
 nohup: ignoring input
-127.0.0.1 - - [28/Jan/2026 10:18:44] "GET / HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 10:18:44] "GET /js/app.js?v=1769624323 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 10:18:44] "GET /data/content.json HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 10:18:44] code 404, message File not found
-127.0.0.1 - - [28/Jan/2026 10:18:44] "GET /favicon.ico HTTP/1.1" 404 -
-127.0.0.1 - - [28/Jan/2026 10:22:20] "GET / HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 10:22:20] "GET /js/app.js?v=1769624539 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 10:22:20] code 404, message File not found
-127.0.0.1 - - [28/Jan/2026 10:22:20] "GET /favicon.ico HTTP/1.1" 404 -
-127.0.0.1 - - [28/Jan/2026 10:23:03] "GET / HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 10:23:03] "GET /js/app.js?v=1769624582 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 10:23:03] code 404, message File not found
-127.0.0.1 - - [28/Jan/2026 10:23:03] "GET /favicon.ico HTTP/1.1" 404 -
-127.0.0.1 - - [28/Jan/2026 10:24:30] "GET / HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 10:24:30] "GET /js/app.js?v=1769624669 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 10:24:30] code 404, message File not found
-127.0.0.1 - - [28/Jan/2026 10:24:30] "GET /favicon.ico HTTP/1.1" 404 -
-127.0.0.1 - - [28/Jan/2026 10:25:18] "GET / HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 10:25:18] "GET /js/app.js?v=1769624718 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 10:25:18] code 404, message File not found
-127.0.0.1 - - [28/Jan/2026 10:25:18] "GET /favicon.ico HTTP/1.1" 404 -
-127.0.0.1 - - [28/Jan/2026 10:27:23] "GET / HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 10:27:23] "GET /js/app.js?v=1769624843 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 10:27:23] code 404, message File not found
-127.0.0.1 - - [28/Jan/2026 10:27:23] "GET /favicon.ico HTTP/1.1" 404 -
-127.0.0.1 - - [28/Jan/2026 10:30:51] "GET / HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 10:30:51] "GET /js/app.js?v=1769625051 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 10:30:51] code 404, message File not found
-127.0.0.1 - - [28/Jan/2026 10:30:51] "GET /favicon.ico HTTP/1.1" 404 -
-127.0.0.1 - - [28/Jan/2026 10:33:45] "HEAD /data/content.json HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:02:36] "GET / HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:02:36] "GET /js/app.js?v=1769630555 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:02:36] code 404, message File not found
-127.0.0.1 - - [28/Jan/2026 12:02:36] "GET /favicon.ico HTTP/1.1" 404 -
-127.0.0.1 - - [28/Jan/2026 12:04:50] "GET / HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:04:50] "GET /js/app.js?v=1769630555 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:04:50] code 404, message File not found
-127.0.0.1 - - [28/Jan/2026 12:04:50] "GET /favicon.ico HTTP/1.1" 404 -
-127.0.0.1 - - [28/Jan/2026 12:06:36] "GET / HTTP/1.1" 304 -
-127.0.0.1 - - [28/Jan/2026 12:07:19] "GET / HTTP/1.1" 304 -
-127.0.0.1 - - [28/Jan/2026 12:07:31] "GET /data/content.json HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:07:38] "GET /js/app.js HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:10:02] "GET /index.html HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:12:42] "GET / HTTP/1.1" 304 -
-127.0.0.1 - - [28/Jan/2026 12:12:56] "GET /?t=123456789 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:14:17] "GET / HTTP/1.1" 304 -
-127.0.0.1 - - [28/Jan/2026 12:14:31] "GET /js/app.js?t=999 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:14:40] "GET /index.html HTTP/1.1" 304 -
-127.0.0.1 - - [28/Jan/2026 12:14:40] "GET /js/app.js?v=1769630555 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:14:41] "GET /data/content.json?v=1769631281007 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:14:55] "GET /index.html?t=123456789 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:14:55] "GET /js/app.js?v=1769630555 HTTP/1.1" 304 -
-127.0.0.1 - - [28/Jan/2026 12:14:55] "GET /data/content.json?v=1769631295148 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:15:10] "GET /js/app.js?t=1769631310912 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:15:18] "GET /js/app.js?t=1769631318139 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:15:27] "GET /js/app.js?t=1769631327560 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:15:27] "GET /data/content.json?v=1769631327565 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:15:33] "GET /js/app.js?t=1769631333653 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:16:18] "GET /js/app.js?t=1769631378919 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:16:39] "GET /js/app.js?t=1769631399210 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:17:30] "GET / HTTP/1.1" 304 -
-127.0.0.1 - - [28/Jan/2026 12:17:30] "GET /js/app.js?v=1769630555 HTTP/1.1" 304 -
-127.0.0.1 - - [28/Jan/2026 12:17:30] "GET /data/content.json?v=1769631450637 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:18:29] "GET / HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:18:29] "GET /js/app.js?v=1769631509 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:18:29] "GET /data/content.json?v=1769631509956 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:18:29] code 404, message File not found
-127.0.0.1 - - [28/Jan/2026 12:18:29] "GET /favicon.ico HTTP/1.1" 404 -
-127.0.0.1 - - [28/Jan/2026 12:19:15] "GET / HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:19:15] "GET /js/app.js?v=1769631555 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:19:16] "GET /data/content.json?v=1769631556002 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:19:16] code 404, message File not found
-127.0.0.1 - - [28/Jan/2026 12:19:16] "GET /favicon.ico HTTP/1.1" 404 -
-127.0.0.1 - - [28/Jan/2026 12:22:26] "GET / HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:22:26] "GET /js/app.js?v=1769631555 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:22:26] "GET /data/content.json?v=1769631746223 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:22:26] code 404, message File not found
-127.0.0.1 - - [28/Jan/2026 12:22:26] "GET /favicon.ico HTTP/1.1" 404 -
-127.0.0.1 - - [28/Jan/2026 12:23:59] "GET / HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:23:59] "GET /js/app.js?v=1769631838 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:23:59] "GET /data/content.json?v=1769631839078 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:23:59] code 404, message File not found
-127.0.0.1 - - [28/Jan/2026 12:23:59] "GET /favicon.ico HTTP/1.1" 404 -
-127.0.0.1 - - [28/Jan/2026 12:25:17] "GET / HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:25:17] "GET /js/app.js?v=1769631917 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:25:17] "GET /data/content.json?v=1769631917820 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:25:17] code 404, message File not found
-127.0.0.1 - - [28/Jan/2026 12:25:17] "GET /favicon.ico HTTP/1.1" 404 -
-127.0.0.1 - - [28/Jan/2026 12:26:31] "GET / HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:26:31] "GET /js/app.js?v=1769631991 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:26:31] "GET /data/content.json?v=1769631991888 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:26:31] code 404, message File not found
-127.0.0.1 - - [28/Jan/2026 12:26:31] "GET /favicon.ico HTTP/1.1" 404 -
-127.0.0.1 - - [28/Jan/2026 12:30:11] "GET / HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:30:11] "GET /js/app.js?v=1769631991 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:30:11] "GET /data/content.json?v=1769632211261 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:30:11] code 404, message File not found
-127.0.0.1 - - [28/Jan/2026 12:30:11] "GET /favicon.ico HTTP/1.1" 404 -
-127.0.0.1 - - [28/Jan/2026 12:30:48] code 404, message File not found
-127.0.0.1 - - [28/Jan/2026 12:30:48] "GET /Concepts/BloodChokes/Carotid_artery_med_01-3834831394.jpg HTTP/1.1" 404 -
-127.0.0.1 - - [28/Jan/2026 12:30:48] code 404, message File not found
-127.0.0.1 - - [28/Jan/2026 12:30:48] "GET /Concepts/BloodChokes/Carotid_sheath_magnified.jpg HTTP/1.1" 404 -
-127.0.0.1 - - [28/Jan/2026 12:30:48] code 404, message File not found
-127.0.0.1 - - [28/Jan/2026 12:30:48] "GET /Concepts/BloodChokes/Neurovascularature_Neck.jpg HTTP/1.1" 404 -
-127.0.0.1 - - [28/Jan/2026 12:33:27] "GET / HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:33:27] "GET /js/app.js?v=1769632406 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:33:27] "GET /data/content.json?v=1769632407114 HTTP/1.1" 200 -
-127.0.0.1 - - [28/Jan/2026 12:33:27] code 404, message File not found
-127.0.0.1 - - [28/Jan/2026 12:33:27] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [28/Jan/2026 21:17:38] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [28/Jan/2026 21:18:08] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [28/Jan/2026 21:18:08] "GET /js/app.js?v=1769663888 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Jan/2026 21:18:08] "GET /data/content.json?v=1769663888935 HTTP/1.1" 200 -
+127.0.0.1 - - [28/Jan/2026 21:18:08] code 404, message File not found
+127.0.0.1 - - [28/Jan/2026 21:18:08] "GET /favicon.ico HTTP/1.1" 404 -
 Generating content...
 Found 8 concepts.
-Found 8 categories and 13 games.
+Found 8 categories and 14 games.
 Content generated at /home/steve/Documents/BJJ/Eco-BJJ/Web App/scripts/../data/content.json
-Updated index.html with version 1769632678
-127.0.0.1 - - [28/Jan/2026 12:37:58] "POST /api/create HTTP/1.1" 200 -
+Updated index.html with version 1769664223
+127.0.0.1 - - [28/Jan/2026 21:23:43] "POST /api/create HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 08:53:05] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 08:53:05] "GET /js/app.js?v=1769705584 HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 08:53:05] "GET /css/style.css HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 08:53:05] "GET /js/editor.js HTTP/1.1" 304 -
+127.0.0.1 - - [29/Jan/2026 08:53:05] "GET /data/content.json?v=1769705585158 HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 08:53:05] code 404, message File not found
+127.0.0.1 - - [29/Jan/2026 08:53:05] "GET /favicon.ico HTTP/1.1" 404 -

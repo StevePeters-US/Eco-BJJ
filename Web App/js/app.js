@@ -14,13 +14,13 @@ window.state = state; // Expose for Editor
 // Constants based on ClassStructure.md
 // Constants based on ClassStructure.md
 const CLASS_TEMPLATE = [
-    { id: 'standing', title: '1. Standing', targetDuration: 10, type: 'standing' },
-    { id: 'mobility', title: '2. Mobility', targetDuration: 15, type: 'game' },
-    { id: 'takedowns', title: '3. Takedowns', targetDuration: 15, type: 'takedown' },
-    { id: 'discussion', title: '4. Discussion', targetDuration: 5, type: 'discussion' },
-    { id: 'applications', title: '5. Concept Applications', targetDuration: 30, type: 'game' },
-    { id: 'review', title: '6. Review', targetDuration: 5, type: 'review' },
-    { id: 'rolling', title: '7. Free Roll', targetDuration: 15, type: 'rolling' }
+    { id: 'standing', title: 'Standing', targetDuration: 10, type: 'standing' },
+    { id: 'mobility', title: 'Mobility', targetDuration: 15, type: 'game' },
+    { id: 'takedowns', title: 'Takedowns', targetDuration: 15, type: 'takedown' },
+    { id: 'discussion', title: 'Discussion', targetDuration: 5, type: 'discussion' },
+    { id: 'applications', title: 'Concept Applications', targetDuration: 30, type: 'game' },
+    { id: 'review', title: 'Review', targetDuration: 5, type: 'review' },
+    { id: 'rolling', title: 'Free Roll', targetDuration: 15, type: 'rolling' }
 ];
 
 async function init() {
@@ -315,38 +315,55 @@ function generateClassStructure() {
                 const gameMeta = state.content.games.find(x => x.id === g.gameId);
                 const title = gameMeta ? gameMeta.title : 'Unknown Game';
                 const description = gameMeta ? (gameMeta.description || '') : '';
-                const goals = gameMeta ? (gameMeta.goals || 'N/A') : 'N/A';
+                const goals = gameMeta ? (gameMeta.goals || '') : '';
+                const purpose = gameMeta ? (gameMeta.purpose || '') : '';
+                const focus = gameMeta ? (gameMeta.focus || '') : '';
 
                 // Duration detail for display
                 let durationTxt = '';
+                let metaTags = '';
                 if (gameMeta) {
                     let rt = parseInt(gameMeta.duration) || 5;
                     let p = parseInt(gameMeta.players) || 2;
                     let t = gameMeta.type || 'Continuous';
+                    let intensity = gameMeta.intensity || '';
+
                     if (t === 'Round Switching') {
-                        durationTxt = `<span class="duration-badge">${rt}m x ${p}p = ${rt * p}m</span>`;
+                        durationTxt = `${rt}m x ${p}p = ${rt * p}m`;
                     } else {
-                        durationTxt = `<span class="duration-badge">${rt}m</span>`;
+                        durationTxt = `${rt}m`;
                     }
+
+                    metaTags = `
+                        <span class="meta-tag">⏱ ${durationTxt}</span>
+                        <span class="meta-tag">👥 ${p}</span>
+                        <span class="meta-tag">${t}</span>
+                        ${intensity ? `<span class="meta-tag intensity-${intensity.toLowerCase()}">${intensity}</span>` : ''}
+                    `;
                 }
 
+                // Build summary line for collapsed view
+                const summaryLine = goals ? goals : (purpose ? purpose : 'No description');
+
                 return `
-                <div class="selected-game">
-                        <div class="game-header">
-                            <h4 style="display: flex; align-items: center; gap: 10px;">
-                                ${title} 
-                                ${durationTxt}
-                            </h4>
-                            <div class="actions">
-                                <button class="icon-btn edit-btn" title="Edit Game" onclick="window.openGameModal('${g.gameId}')">✎</button>
-                                <button class="icon-btn remove-btn" title="Remove" onclick="removeGame('${segment.id}', ${index})">×</button>
-                            </div>
+                <details class="game-card" open>
+                    <summary class="game-card-summary">
+                        <div class="game-header-left">
+                            <span class="game-title">${title}</span>
+                            <span class="game-meta-inline">${metaTags}</span>
                         </div>
-                        <div class="game-details" id="game-content-${segment.id}-${index}">
-                            <p><strong>Goal:</strong> ${goals}</p>
-                            <div class="game-description">${markedParse(description)}</div>
+                        <div class="game-card-actions">
+                            <button class="icon-btn edit-btn" title="Edit Game" onclick="event.stopPropagation(); window.openGameModal('${g.gameId}')">✎</button>
+                            <button class="icon-btn remove-btn" title="Remove" onclick="event.stopPropagation(); removeGame('${segment.id}', ${index})">×</button>
                         </div>
+                    </summary>
+                    <div class="game-card-content">
+                        ${goals ? `<div class="game-info-row"><strong>Goals:</strong> ${goals}</div>` : ''}
+                        ${purpose ? `<div class="game-info-row"><strong>Purpose:</strong> ${purpose}</div>` : ''}
+                        ${focus ? `<div class="game-info-row"><strong>Focus:</strong> ${focus}</div>` : ''}
+                        ${description ? `<div class="game-info-row game-description">${markedParse(description)}</div>` : ''}
                     </div>
+                </details>
                 `;
             }).join('');
 
@@ -376,9 +393,15 @@ function generateClassStructure() {
             : `<span class="time-badge">${segment.targetDuration} min</span>`;
 
         segmentEl.innerHTML = `
-                <div class="segment-badge"></div>
-                    <h3>${segment.title} ${timeDisplay}</h3>
-            ${contentHtml}
+            <details class="section-collapsible" open>
+                <summary class="section-summary">
+                    <span class="section-title">${segment.title}</span>
+                    ${timeDisplay}
+                </summary>
+                <div class="section-content">
+                    ${contentHtml}
+                </div>
+            </details>
             `;
 
         timeline.appendChild(segmentEl);
@@ -586,14 +609,10 @@ window.filterPicker = (segmentId, category) => {
 
 function renderGameOptions(games, segmentId) {
     return games.map(game => `
-                <div class="game-option" onclick="selectGame('${game.id}', '${segmentId}')">
+        <div class="game-option" onclick="selectGame('${game.id}', '${segmentId}')">
             <h4>${game.title}</h4>
-            <div style="font-size: 0.8rem; opacity: 0.7;">
-                ${game.duration ? `⏱ ${game.duration}` : ''}
-            </div>
-            <p>${game.purpose || ''}</p>
         </div>
-                `).join('');
+    `).join('');
 }
 
 window.selectGame = (gameId, segmentId) => {
@@ -672,7 +691,7 @@ window.openGameModal = (gameId = null, preselectedCategory = null) => {
                     <div class="form-group" style="flex: 1;">
                         <label style="display: flex; align-items: center; gap: 5px;">
                             Round Time (mins)
-                            <span class="info-icon" title="If Game Type is 'Round Switching', Total Time = Round Time × Players. Otherwise, Total Time = Round Time.">ⓘ</span>
+                            <span class="info-icon info-popup-trigger" data-tooltip="Round length can impact the intensity and variability, with shorter rounds tending towards high intensity with little room for exploration.">ⓘ</span>
                         </label>
                         <input type="number" id="new-game-duration" class="editor-textarea" style="height: auto;" 
                                value="${game && game.duration ? parseInt(game.duration) : 5}" min="1" step="1">
@@ -696,21 +715,38 @@ window.openGameModal = (gameId = null, preselectedCategory = null) => {
                          </select>
                     </div>
                 </div>
+                <div class="form-group">
+                     <label style="display: flex; align-items: center; gap: 5px;">
+                         Game Initiation Conditions
+                         <span class="info-icon info-popup-trigger" data-tooltip="Static – Players start from a defined position with no movement.\nInertial – Players start after a defined movement is initiated.\nSeparated – Typically standing.">ⓘ</span>
+                     </label>
+                     <select id="new-game-initiation" class="editor-textarea" style="height: auto;">
+                         ${['Static', 'Inertial', 'Separated'].map(t =>
+        `<option value="${t}" ${game && game.initiation === t ? 'selected' : ''}>${t}</option>`
+    ).join('')}
+                     </select>
+                </div>
                 
                 <div class="form-group">
-                    <label>Goals</label>
-                    <input type="text" id="new-game-goals" class="editor-textarea" style="height: auto;" 
-                           value="${game ? (game.goals || '') : ''}" placeholder="e.g. Take the back">
+                    <label style="display: flex; align-items: center; gap: 5px;">
+                        Goals
+                        <span class="info-icon info-popup-trigger" data-tooltip="What are the win conditions for each player? What happens when a player wins?\n\nExample:\n• Top – Maintain position. No win condition.\n• Bottom – Recover a guard, sweep, stand up, or submit. Flip flop on win.">ⓘ</span>
+                    </label>
+                    <textarea id="new-game-goals" class="editor-textarea" rows="2" 
+                           placeholder="e.g. Take the back, maintain control">${game ? (game.goals || '') : ''}</textarea>
                 </div>
                 <div class="form-group">
-                    <label>Purpose</label>
-                    <input type="text" id="new-game-purpose" class="editor-textarea" style="height: auto;" 
-                           value="${game ? (game.purpose || '') : ''}" placeholder="e.g. Learn control">
+                    <label style="display: flex; align-items: center; gap: 5px;">
+                        Purpose
+                        <span class="info-icon info-popup-trigger" data-tooltip="What is the point in playing this game? What principles are we trying to teach?">ⓘ</span>
+                    </label>
+                    <textarea id="new-game-purpose" class="editor-textarea" rows="2" 
+                           placeholder="e.g. Learn pressure control and weight distribution">${game ? (game.purpose || '') : ''}</textarea>
                 </div>
                  <div class="form-group">
                     <label>Focus of Intention</label>
-                    <input type="text" id="new-game-focus" class="editor-textarea" style="height: auto;" 
-                           value="${game ? (game.focus || '') : ''}" placeholder="e.g. Constraint led drive or Outcome based">
+                    <textarea id="new-game-focus" class="editor-textarea" rows="2" 
+                           placeholder="e.g. Constraint led drive or Outcome based">${game ? (game.focus || '') : ''}</textarea>
                 </div>
                 <div class="form-group">
                     <label>Description</label>
@@ -745,6 +781,7 @@ window.submitGameForm = async (isEdit) => {
     const duration = document.getElementById('new-game-duration').value;
     const gameType = document.getElementById('new-game-type').value;
     const intensity = document.getElementById('new-game-intensity').value;
+    const initiation = document.getElementById('new-game-initiation').value;
 
     if (!category || !name) {
         alert('Category and Title are required.');
@@ -764,6 +801,7 @@ window.submitGameForm = async (isEdit) => {
             duration: duration,
             gameType: gameType,
             intensity: intensity,
+            initiation: initiation,
             overwrite: isEdit // Allow overwrite if editing
         };
 
@@ -789,7 +827,8 @@ window.submitGameForm = async (isEdit) => {
                 players: players,
                 duration: duration,
                 type: gameType,
-                intensity: intensity
+                intensity: intensity,
+                initiation: initiation
             };
 
             if (isEdit) {
