@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eco-BJJ Class Creator</title>
+    <title>BJJ Class Planner</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,7 +14,7 @@
 <body>
     <div id="app">
         <header class="app-header">
-            <div class="logo">Eco-BJJ</div>
+            <div class="logo">BJJ Class Planner</div>
             <nav>
                 <!-- Navigation can go here -->
             </nav>
@@ -24,14 +24,11 @@
             <section id="setup-panel" class="panel">
                 <div class="header-row"
                     style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <h1>Class Designer</h1>
                     <div class="header-params" style="display: flex; align-items: center; gap: 10px;"></div>
                 </div>
                 <input type="text" id="class-title-input" class="editor-textarea" placeholder="Class Title"
                     style="width: 100%; font-size: 1.2rem; margin-bottom: 20px; padding: 10px; box-sizing: border-box; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white;">
 
-                <p class="subtitle">Select a concept to generate a class structure.</p>
-                <!-- <div class="header-params" style="display: flex; align-items: center; margin-bottom: 20px;"></div> -->
 
                 <div class="form-group">
                     <label for="concept-select">Core Concept</label>
@@ -39,6 +36,9 @@
                         <option value="" disabled selected>Select a Concept...</option>
                     </select>
                 </div>
+
+                <p class="subtitle">Select a concept to generate a class structure.</p>
+                <!-- <div class="header-params" style="display: flex; align-items: center; margin-bottom: 20px;"></div> -->
 
                 <div id="class-meta" class="hidden">
                     <!-- Class details will appear here -->
@@ -62,7 +62,7 @@
         </main>
     </div>
 
-    <script type="module" src="js/app.js?v=1769705584"></script>
+    <script type="module" src="js/app.js?v=1769734285"></script>
 </body>
 
 </html>

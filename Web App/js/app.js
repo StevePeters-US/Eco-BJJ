@@ -76,7 +76,7 @@ function renderConceptSelect() {
     // Create Button
     const btn = document.createElement('button');
     btn.innerText = '+';
-    btn.className = 'btn-small new-concept-btn';
+    btn.className = 'btn secondary btn-small new-concept-btn';
     btn.title = "Create New Concept";
     // Inline styling for the button to match height or looks
     btn.style.height = '43px'; // Match standard input height roughly?
@@ -935,7 +935,7 @@ window.openConceptModal = (conceptId = null) => {
                      ${isEdit ? `<button class="btn remove-btn" onclick="window.deleteConcept('${concept.id}')" style="background: #d32f2f; color: white;">Delete Concept</button>` : '<div></div>'}
                     <div style="display: flex; gap: 10px;">
                         <button class="btn secondary" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
-                        <button class="btn primary" onclick="submitConceptForm(${isEdit})">${isEdit ? 'Save Name' : 'Create Concept'}</button>
+                        <button class="btn secondary" onclick="submitConceptForm(${isEdit})">${isEdit ? 'Save Name' : 'Create Concept'}</button>
                     </div>
                 </div>
             </div>
@@ -1014,7 +1014,7 @@ window.openConceptModal = (conceptId = null) => {
                      ${isEdit ? `<button class="btn remove-btn" onclick="window.deleteConcept('${concept.id}')" style="background: #d32f2f; color: white;">Delete Concept</button>` : '<div></div>'}
                     <div style="display: flex; gap: 10px;">
                         <button class="btn secondary" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
-                        <button class="btn primary" onclick="submitConceptForm(${isEdit})">${isEdit ? 'Save Changes' : 'Create Concept'}</button>
+                        <button class="btn secondary" onclick="submitConceptForm(${isEdit})">${isEdit ? 'Save Changes' : 'Create Concept'}</button>
                     </div>
                 </div>
             </div>
