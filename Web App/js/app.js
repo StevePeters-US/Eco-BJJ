@@ -343,6 +343,7 @@ function generateClassStructure() {
                     let p = parseInt(gameMeta.players) || 2;
                     let t = gameMeta.type || 'Continuous';
                     let intensity = gameMeta.intensity || '';
+                    let difficulty = gameMeta.difficulty || '';
 
                     if (t === 'Round Switching') {
                         durationTxt = `${rt}m x ${p}p = ${rt * p}m`;
@@ -354,7 +355,8 @@ function generateClassStructure() {
                         <span class="meta-tag">⏱ ${durationTxt}</span>
                         <span class="meta-tag">👥 ${p}</span>
                         <span class="meta-tag">${t}</span>
-                        ${intensity ? `<span class="meta-tag intensity-${intensity.toLowerCase()}">${intensity}</span>` : ''}
+                        ${intensity ? `<span class="meta-tag">${intensity}</span>` : ''}
+                        ${difficulty ? `<span class="meta-tag difficulty-${difficulty.toLowerCase()}">${difficulty}</span>` : ''}
                     `;
                 }
 
@@ -722,7 +724,17 @@ window.openGameModal = (gameId = null, preselectedCategory = null) => {
     ).join('')}
                          </select>
                     </div>
+                    <div class="form-group" style="flex: 1;">
+                         <label>Difficulty</label>
+                         <select id="new-game-difficulty" class="editor-textarea" style="height: auto;" onchange="window.updateDifficultyColor(this)">
+                             <option value="">None</option>
+                             ${['Beginner', 'Intermediate', 'Advanced'].map(t =>
+        `<option value="${t}" ${game && game.difficulty === t ? 'selected' : ''}>${t}</option>`
+    ).join('')}
+                         </select>
+                    </div>
                 </div>
+
                 <div class="form-group">
                      <label style="display: flex; align-items: center; gap: 5px;">
                          Game Initiation Conditions
@@ -772,8 +784,20 @@ window.openGameModal = (gameId = null, preselectedCategory = null) => {
                 `;
 
     document.body.appendChild(overlay);
+    // Init Difficulty Color
+    const diffSelect = document.getElementById('new-game-difficulty');
+    if (diffSelect) window.updateDifficultyColor(diffSelect);
+
     if (!isEdit) setTimeout(() => document.getElementById('new-game-title').focus(), 100);
 };
+
+window.updateDifficultyColor = (select) => {
+    select.classList.remove('difficulty-beginner', 'difficulty-intermediate', 'difficulty-advanced');
+    const val = select.value.toLowerCase();
+    if (val) {
+        select.classList.add(`difficulty-${val}`);
+    }
+}
 
 // Redirect old createGame calls
 window.createGame = (cat) => window.openGameModal(null, cat);
@@ -789,6 +813,7 @@ window.submitGameForm = async (isEdit) => {
     const duration = document.getElementById('new-game-duration').value;
     const gameType = document.getElementById('new-game-type').value;
     const intensity = document.getElementById('new-game-intensity').value;
+    const difficulty = document.getElementById('new-game-difficulty').value;
     const initiation = document.getElementById('new-game-initiation').value;
 
     if (!category || !name) {
@@ -809,6 +834,7 @@ window.submitGameForm = async (isEdit) => {
             duration: duration,
             gameType: gameType,
             intensity: intensity,
+            difficulty: difficulty,
             initiation: initiation,
             overwrite: isEdit // Allow overwrite if editing
         };

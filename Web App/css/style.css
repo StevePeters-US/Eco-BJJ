@@ -634,6 +634,31 @@ details[open] summary.concept-summary {
     color: #e57373;
 }
 
+.difficulty-beginner {
+    background: rgba(76, 175, 80, 0.2);
+    color: #81c784;
+    border-color: #81c784;
+}
+
+.difficulty-intermediate {
+    background: rgba(255, 193, 7, 0.2);
+    color: #ffd54f;
+    border-color: #ffd54f;
+}
+
+.difficulty-advanced {
+    background: rgba(244, 67, 54, 0.2);
+    color: #e57373;
+    border-color: #e57373;
+}
+
+select.difficulty-beginner,
+select.difficulty-intermediate,
+select.difficulty-advanced {
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
 .game-field {
     font-size: 0.85rem;
     color: var(--text-secondary);
