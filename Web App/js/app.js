@@ -2,6 +2,8 @@
  * Eco-BJJ Class Creator Logic
  */
 
+import { markedParse } from './utils.js';
+
 // Data State
 let state = {
     content: null,
@@ -32,6 +34,13 @@ async function init() {
         console.log('Content loaded:', state.content);
 
         renderConceptSelect(); // Renamed
+
+        // Init Date
+        const dateInput = document.getElementById('class-date-input');
+        if (dateInput) {
+            dateInput.valueAsDate = new Date();
+        }
+
         setupEventListeners();
     } catch (error) {
         console.error('Initialization error:', error);
@@ -123,16 +132,23 @@ function setupEventListeners() {
 }
 
 async function saveClass() {
-    // 1. Get Title
+    // 1. Get Title and Date
     const name = state.classTitle;
+    const dateInput = document.getElementById('class-date-input');
+    const dateStr = dateInput ? dateInput.value : '';
+
     if (!name || name.trim() === "") {
         alert("Please enter a Class Title before saving.");
         return;
     }
 
+    // Construct Filename: Title_Date
+    const fileName = dateStr ? `${name}_${dateStr}` : name;
+
     // 2. Build Data Payload from State
     const classData = {
         title: name,
+        date: dateStr,
         conceptId: state.selectedConceptId,
         segments: state.segments // Maps segmentId -> array of game objects
     };
@@ -144,7 +160,7 @@ async function saveClass() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                name: name,
+                name: fileName,
                 data: classData
             })
         });
@@ -511,14 +527,6 @@ function makeElementDraggable(el) {
 }
 
 // Simple markdown parser for description
-function markedParse(text) {
-    if (!text) return '';
-    return text
-        .replace(/^# (.*$)/gim, '<h4>$1</h4>')
-        .replace(/^## (.*$)/gim, '<h5>$1</h5>')
-        .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
-        .replace(/\n/gim, '<br>');
-}
 window.markedParse = markedParse;
 
 // Global Game Picker handler
@@ -902,48 +910,7 @@ window.deleteGame = async (gameId) => {
 };
 
 // Concept Creation/Edit Modal
-window.openConceptModal = (conceptId = null) => {
-    console.log("openConceptModal called with ID:", conceptId);
-    const existing = document.querySelector('.modal-overlay');
-    if (existing) existing.remove();
-
-    const overlay = document.createElement('div');
-    overlay.className = 'modal-overlay';
-
-    let concept = null;
-    let isEdit = false;
-    if (conceptId) {
-        concept = window.state.content.concepts.find(c => c.id === conceptId);
-        if (concept) isEdit = true;
-    }
-
-    overlay.innerHTML = `
-                <div class="modal">
-            <div class="modal-header">
-                <h3>${isEdit ? 'Edit Concept' : 'Create New Concept'}</h3>
-                <button onclick="this.closest('.modal-overlay').remove()">×</button>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" id="concept-edit-id" value="${concept ? concept.id : ''}">
-                <div class="form-group">
-                    <label>Concept Name</label>
-                    <input type="text" id="new-concept-name" class="editor-textarea" style="height: auto;" 
-                           value="${concept ? concept.title : ''}" placeholder="e.g. Guard Passing">
-                </div>
-                
-                <div class="editor-controls" style="justify-content: space-between;">
-                     ${isEdit ? `<button class="btn remove-btn" onclick="window.deleteConcept('${concept.id}')" style="background: #d32f2f; color: white;">Delete Concept</button>` : '<div></div>'}
-                    <div style="display: flex; gap: 10px;">
-                        <button class="btn secondary" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
-                        <button class="btn secondary" onclick="submitConceptForm(${isEdit})">${isEdit ? 'Save Name' : 'Create Concept'}</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-                `;
-    document.body.appendChild(overlay);
-    setTimeout(() => document.getElementById('new-concept-name').focus(), 100);
-}
+// Concept Creation/Edit Modal - MOVED TO BOTTOM (Unified)
 
 window.deleteConcept = async (conceptId) => {
     if (!confirm("Are you sure you want to delete this concept? ALL associated games and files will be deleted.")) return;

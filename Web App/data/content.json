@@ -112,6 +112,7 @@
         "standing-standing",
         "standing-russian-tie-defense",
         "standing-ape-hanger-single-leg",
+        "standing-sandwich-grips",
         "standing-testgame"
       ]
     },
@@ -298,6 +299,20 @@
       "intensity": "",
       "id": "standing-ape-hanger-single-leg",
       "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Standing/Games/ApeHangersingleleg.md"
+    },
+    {
+      "title": "Sandwich Grips",
+      "description": "Both players start standing and attacker grabs the defender by the knuckles \n(img a)\n\nIntenstiy variation\neasy - Start by flowing so that the attacker gets the feel for manipulating the elbow from the knuckles",
+      "category": "Standing",
+      "goals": "Attacker must make a looping connection around their opponent.",
+      "purpose": "Teaches attacker to open the elbows to gain access to the body by manipulating the knuckles.",
+      "focus": "Focus on keeping the gripping fingers flat and turning the  opponents elbows out away from their body",
+      "duration": "1",
+      "players": "2",
+      "type": "Round Switching",
+      "intensity": "Adversarial",
+      "id": "standing-sandwich-grips",
+      "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Standing/Games/SandwichGrips.md"
     },
     {
       "title": "TestGame",

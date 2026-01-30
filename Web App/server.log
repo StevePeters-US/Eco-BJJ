@@ -60,3 +60,32 @@ Updated index.html with version 1769664223
 127.0.0.1 - - [29/Jan/2026 16:51:26] "GET /data/content.json?v=1769734286119 HTTP/1.1" 200 -
 127.0.0.1 - - [29/Jan/2026 16:51:26] code 404, message File not found
 127.0.0.1 - - [29/Jan/2026 16:51:26] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [29/Jan/2026 16:54:27] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 16:54:27] "GET /js/app.js?v=1769734467 HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 16:54:27] "GET /js/utils.js HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 16:54:27] "GET /data/content.json?v=1769734467906 HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 16:54:27] code 404, message File not found
+127.0.0.1 - - [29/Jan/2026 16:54:27] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [29/Jan/2026 16:54:33] "GET /Concepts/BloodChokes/Carotid_artery_med_01-3834831394.jpg HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 16:54:33] "GET /Concepts/BloodChokes/Carotid_sheath_magnified.jpg HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 16:54:33] "GET /Concepts/BloodChokes/Neurovascularature_Neck.jpg HTTP/1.1" 200 -
+Generating content...
+Found 8 concepts.
+Found 8 categories and 15 games.
+Content generated at /home/steve/Documents/BJJ/Eco-BJJ/Web App/scripts/../data/content.json
+Updated index.html with version 1769735083
+127.0.0.1 - - [29/Jan/2026 17:04:43] "POST /api/create HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 17:05:27] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 17:05:27] "GET /js/app.js?v=1769735126 HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 17:05:27] "GET /js/utils.js HTTP/1.1" 304 -
+127.0.0.1 - - [29/Jan/2026 17:05:27] "GET /data/content.json?v=1769735127387 HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 17:05:27] code 404, message File not found
+127.0.0.1 - - [29/Jan/2026 17:05:27] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [29/Jan/2026 17:06:13] "POST /api/save_class HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 17:06:21] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 17:06:21] "GET /js/app.js?v=1769735181 HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 17:06:21] "GET /data/content.json?v=1769735181805 HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 17:06:21] code 404, message File not found
+127.0.0.1 - - [29/Jan/2026 17:06:21] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [29/Jan/2026 17:06:26] "GET /api/list_classes HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 17:06:31] "POST /api/load_class HTTP/1.1" 200 -
