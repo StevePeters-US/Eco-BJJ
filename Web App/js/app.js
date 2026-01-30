@@ -267,6 +267,28 @@ function generateClassStructure() {
     metaContainer.innerHTML = '';
     metaContainer.classList.add('hidden');
 
+    // Update Class Header (Title + Date + Concept)
+    const titleDisplay = document.getElementById('class-title-display');
+    if (titleDisplay) {
+        let dateStr = '';
+        const dateInput = document.getElementById('class-date-input');
+        if (dateInput && dateInput.value) {
+            // Format YYYY-MM-DD -> MM/DD/YY
+            const parts = dateInput.value.split('-');
+            if (parts.length === 3) {
+                // parts[0] is year (2026), parts[1] is month, parts[2] is day
+                const shortYear = parts[0].substring(2);
+                dateStr = `, ${parts[1]}/${parts[2]}/${shortYear}`;
+            }
+        }
+
+        let headerHtml = `${state.classTitle || 'My Class'}${dateStr}`;
+        if (concept) {
+            headerHtml += `<div class="concept-subtitle">${concept.title}</div>`;
+        }
+        titleDisplay.innerHTML = headerHtml;
+    }
+
     // Render Timeline
     const timeline = document.getElementById('class-timeline');
     timeline.innerHTML = '';
@@ -350,7 +372,7 @@ function generateClassStructure() {
                         <span class="meta-tag">👥 ${p}</span>
                         <span class="meta-tag">${t}</span>
                         ${intensity ? `<span class="meta-tag intensity-${intensity.toLowerCase()}">${intensity}</span>` : ''}
-                        ${difficulty ? `<span class="meta-tag difficulty-${difficulty.toLowerCase()}">${difficulty}</span>` : ''}
+                        <span class="meta-tag difficulty-${(difficulty || 'none').toLowerCase()}">${difficulty || 'None'}</span>
                     `;
 
                 }

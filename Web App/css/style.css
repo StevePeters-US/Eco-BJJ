@@ -383,6 +383,14 @@ select:focus {
     color: #e57373;
 }
 
+/* Concept Subtitle in Class Header */
+.concept-subtitle {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    font-weight: 400;
+    margin-top: 5px;
+}
+
 .game-card-content {
     padding: var(--spacing-sm);
     border-top: 1px solid var(--border-subtle);
