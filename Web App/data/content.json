@@ -79,7 +79,7 @@
       "title": "Grips",
       "description": "",
       "games": [
-        "grips-hjhg",
+        "grips-robot-arms-(variation)",
         "grips-robot-arms"
       ]
     },
@@ -133,18 +133,20 @@
   ],
   "games": [
     {
-      "title": "hjhg",
-      "description": "gh",
+      "title": "Robot arms (Variation)",
+      "description": "None",
       "category": "Grips",
-      "goals": "",
-      "purpose": "",
-      "focus": "",
-      "duration": "",
-      "players": "2",
-      "type": "",
-      "intensity": "",
-      "id": "grips-hjhg",
-      "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Grips/Games/hjhg.md"
+      "goals": "None",
+      "purpose": "None",
+      "focus": "None",
+      "duration": "None",
+      "players": "None",
+      "type": "Round Switching",
+      "intensity": "None",
+      "difficulty": "",
+      "parentId": "",
+      "id": "grips-robot-arms-(variation)",
+      "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Grips/Games/RobotarmsVariation.md"
     },
     {
       "title": "Robot arms",
@@ -157,6 +159,8 @@
       "players": "2",
       "type": "Alternating",
       "intensity": "Flow",
+      "difficulty": "Beginner",
+      "parentId": "",
       "id": "grips-robot-arms",
       "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Grips/Games/Robotarms.md"
     },
@@ -171,6 +175,8 @@
       "players": "2",
       "type": "Round Switching",
       "intensity": "Adversarial",
+      "difficulty": "",
+      "parentId": "",
       "id": "pressure-4-corners",
       "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Pressure/Games/4corners.md"
     },
@@ -185,6 +191,8 @@
       "players": "2",
       "type": "",
       "intensity": "",
+      "difficulty": "",
+      "parentId": "",
       "id": "mobility-test-game-for-persistence",
       "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Mobility/Games/TestGameforPersistence.md"
     },
@@ -195,10 +203,12 @@
       "goals": "",
       "purpose": "",
       "focus": "",
-      "duration": "",
+      "duration": "5",
       "players": "2",
-      "type": "",
-      "intensity": "",
+      "type": "Continuous",
+      "intensity": "Flow",
+      "difficulty": "",
+      "parentId": "",
       "id": "mobility-butt-scoot-to-tripod-sweep",
       "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Mobility/Games/Buttscoottotripodsweep.md"
     },
@@ -213,6 +223,8 @@
       "players": "2",
       "type": "",
       "intensity": "",
+      "difficulty": "",
+      "parentId": "",
       "id": "mobility-auto-select-test",
       "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Mobility/Games/AutoSelectTest.md"
     },
@@ -227,6 +239,8 @@
       "players": "2",
       "type": "",
       "intensity": "",
+      "difficulty": "",
+      "parentId": "",
       "id": "mobility-potato",
       "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Mobility/Games/potato.md"
     },
@@ -241,6 +255,8 @@
       "players": "2",
       "type": "",
       "intensity": "",
+      "difficulty": "",
+      "parentId": "",
       "id": "mobility-layouttest",
       "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Mobility/Games/LayoutTest.md"
     },
@@ -255,6 +271,8 @@
       "players": "2",
       "type": "",
       "intensity": "",
+      "difficulty": "",
+      "parentId": "",
       "id": "mobility-headergame",
       "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Mobility/Games/HeaderGame.md"
     },
@@ -269,6 +287,8 @@
       "players": "2",
       "type": "",
       "intensity": "",
+      "difficulty": "",
+      "parentId": "",
       "id": "standing-standing",
       "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Standing/Games/Standing.md"
     },
@@ -283,6 +303,8 @@
       "players": "2",
       "type": "",
       "intensity": "",
+      "difficulty": "",
+      "parentId": "",
       "id": "standing-russian-tie-defense",
       "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Standing/Games/RussianTieDefense.md"
     },
@@ -297,6 +319,8 @@
       "players": "2",
       "type": "",
       "intensity": "",
+      "difficulty": "",
+      "parentId": "",
       "id": "standing-ape-hanger-single-leg",
       "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Standing/Games/ApeHangersingleleg.md"
     },
@@ -311,6 +335,8 @@
       "players": "2",
       "type": "Round Switching",
       "intensity": "Adversarial",
+      "difficulty": "",
+      "parentId": "",
       "id": "standing-sandwich-grips",
       "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Standing/Games/SandwichGrips.md"
     },
@@ -325,6 +351,8 @@
       "players": "2",
       "type": "",
       "intensity": "",
+      "difficulty": "",
+      "parentId": "",
       "id": "standing-testgame",
       "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Standing/Games/TestGame.md"
     },
@@ -339,6 +367,8 @@
       "players": "2",
       "type": "",
       "intensity": "",
+      "difficulty": "",
+      "parentId": "",
       "id": "arm-bars-modalgame",
       "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Arm Bars/Games/ModalGame.md"
     }

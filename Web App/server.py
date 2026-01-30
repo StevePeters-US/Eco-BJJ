@@ -191,39 +191,82 @@ class EcoHandler(http.server.SimpleHTTPRequestHandler):
                 
             elif type_ == 'game':
                 category = data.get('category')
+                # Define fields
+                players = data.get('players')
+                duration = data.get('duration')
+                game_type = data.get('gameType')
+                intensity = data.get('intensity')
+                goals = data.get('goals')
+                purpose = data.get('purpose')
+                focus = data.get('focus')
                 description = data.get('description', f'Description of {name}.')
-                goals = data.get('goals', '')
-                purpose = data.get('purpose', '')
-                focus = data.get('focus', '') # Focus of Intention
-                players = data.get('players', '2')
-                duration = data.get('duration', '5')
-                game_type = data.get('gameType', 'Continuous')
-                intensity = data.get('intensity', 'Flow')
-                
-                if not category:
-                     self.send_error(400, "Missing category for game")
-                     return
-                     
-                # New Path: Concepts/Category/Games
-                folder = os.path.join(PROJECT_ROOT, 'Concepts', category, 'Games')
-                if not os.path.exists(folder):
-                    os.makedirs(folder)
-                    
-                filepath = os.path.join(folder, filename)
-                content = f"""---
-title: {name}
-category: {category}
-players: {players}
-duration: {duration}
-type: {game_type}
-intensity: {intensity}
-goals: {goals}
-purpose: {purpose}
-focus: {focus}
----
 
-{description}
-"""
+                # Prepare frontmatter fields
+                fm_fields = [
+                    ('title', name),
+                    ('category', category),
+                    ('players', players),
+                    ('duration', duration),
+                    ('type', game_type),
+                    ('intensity', intensity),
+                ]
+
+                # Optional fields
+                difficulty = data.get('difficulty')
+                if difficulty:
+                    fm_fields.append(('difficulty', difficulty))
+                
+                parent_id = data.get('parentId')
+                if parent_id:
+                    fm_fields.append(('parent_id', parent_id))
+                    
+                if goals:
+                    fm_fields.append(('goals', goals))
+                if purpose:
+                    fm_fields.append(('purpose', purpose))
+                if focus:
+                    fm_fields.append(('focus', focus))
+                    
+                # Build Content
+                lines = ["---"]
+                for k, v in fm_fields:
+                    # Write only if value is not None/Empty, OR if it's a critical field?
+                    # Actually, if we want inheritance, we want to omit fields.
+                    # But if we create a NEW game, we want defaults?
+                    # The frontend should send defaults for new games, and nulls/empty for overrides.
+                    # 'players' default is handled below inside `if v:`.
+                    # But wait, python default '2' was set in data.get call earlier?
+                    
+                    # Correction: I need to change how data is retrieved to avoid defaults if I want inheritance.
+                    # But `data.get('players', '2')` is already done above.
+                    # I should update those lines too.
+                    # Let's just blindly write what we have for now, BUT for parent_id we definitely write it.
+                    # For inheritance, 'players' should only be written if it was explicitly provided?
+                    # But handle_create doesn't know if it was explicit or default.
+                    
+                    # If I rely on Frontend sending nulls, I should change the .get() calls.
+                    # Let's fix the .get() calls in this same replace block or assume I'll fix them next.
+                    # Actually, I can't easily change lines 198-202 without a larger range.
+                    # I will expand the range of this replacement to cover lines 193-226.
+                    
+                    if v:
+                        lines.append(f"{k}: {v}")
+                        
+                lines.append("---\n")
+                lines.append(description)
+                
+                content = "\n".join(lines)
+                
+                # Construct path for game: Concepts/{Category}/Games/{filename}
+                # Sanitize category just in case, though it should match an existing concept folder
+                safe_category = category.replace(" ", "")
+                concept_dir = os.path.join(PROJECT_ROOT, 'Concepts', safe_category)
+                games_dir = os.path.join(concept_dir, 'Games')
+                
+                if not os.path.exists(games_dir):
+                    os.makedirs(games_dir)
+                    
+                filepath = os.path.join(games_dir, filename)
             else:
                  self.send_error(400, "Invalid type")
                  return

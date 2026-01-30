@@ -388,7 +388,7 @@ function generateClassStructure() {
                             <span class="game-meta-inline">${metaTags}</span>
                         </div>
                         <div class="game-card-actions">
-                            <button class="icon-btn edit-btn" title="Edit Game" onclick="event.stopPropagation(); window.openGameModal('${g.gameId}')">✎</button>
+                            <button class="icon-btn edit-btn" title="Edit Game" onclick="event.stopPropagation(); window.openGameModal('${g.gameId}', null, null, '${segment.id}')">✎</button>
                             <button class="icon-btn remove-btn" title="Remove" onclick="event.stopPropagation(); removeGame('${segment.id}', ${index})">×</button>
                         </div>
                     </summary>
@@ -611,7 +611,7 @@ function createModal(segmentId, filterCategory = null) {
             <div class="modal-header">
                 <h3>Select Game</h3>
                 <div class="modal-actions">
-                    <button class="btn-small secondary" onclick="createGame('${filterCategory || ''}')">+ New Game</button>
+                    <button class="btn-small secondary" onclick="createGame('${filterCategory || ''}', '${segmentId}')">+ New Game</button>
                     <button class="icon-btn close-btn" onclick="this.closest('.modal-overlay').remove()">×</button>
                 </div>
             </div>
@@ -668,7 +668,7 @@ import { Editor } from './editor.js';
 
 
 // Game Editor Modal
-window.openGameModal = (gameId = null, preselectedCategory = null) => {
+window.openGameModal = (gameId = null, preselectedCategory = null, templateGame = null, segmentId = null) => {
     // Remove existing modal
     const existing = document.querySelector('.modal-overlay');
     if (existing) existing.remove();
@@ -678,15 +678,98 @@ window.openGameModal = (gameId = null, preselectedCategory = null) => {
 
     let game = null;
     let isEdit = false;
+    let parentGame = null;
 
     if (gameId) {
         game = window.state.content.games.find(g => g.id === gameId);
-        if (game) isEdit = true;
+        if (game) {
+            isEdit = true;
+            if (game.parentId) {
+                parentGame = window.state.content.games.find(g => g.id === game.parentId);
+            }
+        }
+    } else if (templateGame) {
+        // Create Variation
+        parentGame = templateGame;
+        game = {
+            parentId: parentGame.id,
+            category: parentGame.category,
+            title: parentGame.title + ' (Variation)'
+        };
     }
+
+    // Helper to get value: Child -> Parent -> Default
+    const getVal = (field, def = '') => {
+        if (game && game[field] !== undefined && game[field] !== '') return game[field];
+        if (parentGame && parentGame[field]) return parentGame[field];
+        return def;
+    };
+
+    // Helper to check if overridden
+    const isOverridden = (field) => {
+        if (!parentGame) return true; // No parent = always editable
+        return (game && game[field] !== undefined && game[field] !== '');
+    };
+
+    // Helper to render fields with toggle
+    const renderField = (label, id, value, type = 'text', rows = 1, opts = [], isParent = false) => {
+        const override = isOverridden(id.replace('new-game-', '').replace('desc', 'description'));
+        const fieldName = id.replace('new-game-', '').replace('desc', 'description');
+
+        const toggleHtml = parentGame ? `
+            <label class="switch" style="margin-left: 10px; transform: scale(0.8);">
+                <input type="checkbox" id="toggle-${fieldName}" ${override ? 'checked' : ''} 
+                    onchange="toggleField('${id}', this.checked)">
+                <span class="slider round"></span>
+            </label>
+        ` : '';
+
+        let inputHtml = '';
+        const disabled = (parentGame && !override) ? 'disabled' : '';
+        const style = disabled ? 'opacity: 0.7; cursor: not-allowed;' : '';
+
+        if (type === 'textarea') {
+            inputHtml = `<textarea id="${id}" class="editor-textarea" rows="${rows}" ${disabled} style="${style}">${value}</textarea>`;
+        } else if (type === 'select') {
+            inputHtml = `<select id="${id}" class="editor-textarea" ${disabled} style="${style} height: auto;">
+                ${opts.map(o => `<option value="${o}" ${value === o ? 'selected' : ''}>${o}</option>`).join('')}
+             </select>`;
+        } else {
+            inputHtml = `<input type="${type}" id="${id}" class="editor-textarea" value="${value}" ${disabled} style="${style} height: auto;">`;
+        }
+
+        return `
+            <div class="form-group">
+                <label style="display: flex; align-items: center;">
+                    ${label}
+                    ${toggleHtml}
+                </label>
+                ${inputHtml}
+            </div>
+        `;
+    };
+
+    // Global toggle handler
+    window.toggleField = (elemId, checked) => {
+        const el = document.getElementById(elemId);
+        if (el) {
+            el.disabled = !checked;
+            el.style.opacity = checked ? '1' : '0.7';
+            el.style.cursor = checked ? 'text' : 'not-allowed';
+            if (!checked && parentGame) {
+                // Restore parent value
+                const fieldName = elemId.replace('new-game-', '').replace('desc', 'description');
+                let val = parentGame[fieldName] || '';
+                if (fieldName === 'difficulty') window.updateDifficultyColor(el);
+                if (fieldName === 'intensity') window.updateIntensityColor(el);
+                el.value = val;
+            }
+        }
+    };
 
     const categories = window.state.content.categories || [];
     const optionsHtml = categories.map(c =>
-        `< option value = "${c.title}" ${c.title === (game ? game.category : preselectedCategory) ? 'selected' : ''}> ${c.title}</option > `
+        `<option value="${c.title}" ${c.title === (game ? game.category : preselectedCategory) ? 'selected' : ''}>${c.title}</option>`
     ).join('');
 
     overlay.innerHTML = `
@@ -697,100 +780,75 @@ window.openGameModal = (gameId = null, preselectedCategory = null) => {
             </div>
             <div class="modal-body">
                 <input type="hidden" id="game-edit-id" value="${game ? game.id : ''}">
-                <div class="form-group">
+                <input type="hidden" id="game-parent-id" value="${parentGame ? parentGame.id : ''}">
+                <input type="hidden" id="game-segment-id" value="${segmentId || ''}">
+
+                ${renderField('Game Title', 'new-game-title', getVal('title'), 'text', 1, [], false)}
+
+                 <div class="form-group">
                     <label>Category</label>
-                    <select id="new-game-category" ${isEdit ? 'disabled' : ''}> <!-- Disable category change for now to avoid move logic -->
-                        <option value="" disabled ${!preselectedCategory && !game ? 'selected' : ''}>Select Category...</option>
-                        ${optionsHtml}
+                    <select id="new-game-category" disabled> <!-- Always disabled in this view for simplicity -->
+                        <option value="${game && game.category ? game.category : (preselectedCategory || '')}" selected>
+                            ${game && game.category ? game.category : (preselectedCategory || 'Select...')}
+                        </option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label>Game Title</label>
-                    <input type="text" id="new-game-title" class="editor-textarea" style="height: auto;" 
-                           value="${game ? game.title : ''}" placeholder="e.g. King of the Hill">
-                </div>
+
                 <div class="form-row" style="display: flex; gap: 10px;">
-                    <div class="form-group" style="flex: 1;">
-                        <label>Players</label>
-                        <input type="number" id="new-game-players" class="editor-textarea" style="height: auto;" 
-                               value="${game ? (game.players || 2) : 2}" min="1">
+                    <div style="flex: 1">
+                        ${renderField('Players', 'new-game-players', getVal('players', '2'), 'number')}
                     </div>
-                    <div class="form-group" style="flex: 1;">
-                        <label style="display: flex; align-items: center; gap: 5px;">
-                            Round Time (mins)
-                            <span class="info-icon info-popup-trigger" data-tooltip="Round length can impact the intensity and variability, with shorter rounds tending towards high intensity with little room for exploration.">ⓘ</span>
-                        </label>
-                        <input type="number" id="new-game-duration" class="editor-textarea" style="height: auto;" 
-                               value="${game && game.duration ? parseInt(game.duration) : 5}" min="1" step="1">
+                     <div style="flex: 1">
+                        ${renderField('Round Time (mins)', 'new-game-duration', getVal('duration', '5'), 'number')}
                     </div>
                 </div>
-                <div class="form-row" style="display: flex; gap: 10px;">
-                    <div class="form-group" style="flex: 1;">
-                         <label>Game Type</label>
-                         <select id="new-game-type" class="editor-textarea" style="height: auto;">
-                             ${['Continuous', 'Alternating', 'Round Switching'].map(t =>
-        `<option value="${t}" ${game && (game.type === t || game.gameType === t) ? 'selected' : ''}>${t}</option>`
+                
+                 <div class="form-row" style="display: flex; gap: 10px;">
+                     <div style="flex: 1">
+                         <div class="form-group">
+                             <label style="display: flex; align-items: center;">
+                                Difficulty
+                                ${parentGame ? `<label class="switch" style="margin-left:10px; transform:scale(0.8)"><input type="checkbox" ${isOverridden('difficulty') ? 'checked' : ''} onchange="toggleField('new-game-difficulty', this.checked)"><span class="slider round"></span></label>` : ''}
+                             </label>
+                             <select id="new-game-difficulty" class="editor-textarea" style="height: auto; ${parentGame && !isOverridden('difficulty') ? 'opacity:0.7;cursor:not-allowed' : ''}" 
+                                     onchange="window.updateDifficultyColor(this)" ${parentGame && !isOverridden('difficulty') ? 'disabled' : ''}>
+                                 <option value="">None</option>
+                                 ${['Beginner', 'Intermediate', 'Advanced'].map(t =>
+        `<option value="${t}" ${getVal('difficulty') === t ? 'selected' : ''}>${t}</option>`
     ).join('')}
-                         </select>
+                             </select>
+                        </div>
                     </div>
-                    <div class="form-group" style="flex: 1;">
-                         <label>Intensity</label>
-                         <select id="new-game-intensity" class="editor-textarea" style="height: auto;" onchange="window.updateIntensityColor(this)">
-                             ${['Flow', 'Cooperative', 'Adversarial'].map(t =>
-        `<option value="${t}" ${game && game.intensity === t ? 'selected' : ''}>${t}</option>`
+                     <div style="flex: 1">
+                          <div class="form-group">
+                             <label style="display: flex; align-items: center;">
+                                Intensity
+                                ${parentGame ? `<label class="switch" style="margin-left:10px; transform:scale(0.8)"><input type="checkbox" ${isOverridden('intensity') ? 'checked' : ''} onchange="toggleField('new-game-intensity', this.checked)"><span class="slider round"></span></label>` : ''}
+                             </label>
+                             <select id="new-game-intensity" class="editor-textarea" style="height: auto; ${parentGame && !isOverridden('intensity') ? 'opacity:0.7;cursor:not-allowed' : ''}" 
+                                     onchange="window.updateIntensityColor(this)" ${parentGame && !isOverridden('intensity') ? 'disabled' : ''}>
+                                 ${['Flow', 'Cooperative', 'Adversarial'].map(t =>
+        `<option value="${t}" ${getVal('intensity') === t ? 'selected' : ''}>${t}</option>`
     ).join('')}
-                         </select>
+                             </select>
+                        </div>
                     </div>
-                    <div class="form-group" style="flex: 1;">
-                         <label>Difficulty</label>
-                         <select id="new-game-difficulty" class="editor-textarea" style="height: auto;" onchange="window.updateDifficultyColor(this)">
-                             <option value="">None</option>
-                             ${['Beginner', 'Intermediate', 'Advanced'].map(t =>
-        `<option value="${t}" ${game && game.difficulty === t ? 'selected' : ''}>${t}</option>`
-    ).join('')}
-                         </select>
+                     <div style="flex: 1">
+                         ${renderField('Type', 'new-game-type', getVal('type', 'Continuous'), 'select', 1, ['Continuous', 'Alternating', 'Round Switching'])}
                     </div>
                 </div>
 
-                <div class="form-group">
-                     <label style="display: flex; align-items: center; gap: 5px;">
-                         Game Initiation Conditions
-                         <span class="info-icon info-popup-trigger" data-tooltip="Static – Players start from a defined position with no movement.\nInertial – Players start after a defined movement is initiated.\nSeparated – Typically standing.">ⓘ</span>
-                     </label>
-                     <select id="new-game-initiation" class="editor-textarea" style="height: auto;">
-                         ${['Static', 'Inertial', 'Separated'].map(t =>
-        `<option value="${t}" ${game && game.initiation === t ? 'selected' : ''}>${t}</option>`
-    ).join('')}
-                     </select>
-                </div>
+                ${renderField('Game Initiation Conditions', 'new-game-initiation', getVal('initiation'), 'select', 1, ['Static', 'Inertial', 'Separated'])}
                 
-                <div class="form-group">
-                    <label style="display: flex; align-items: center; gap: 5px;">
-                        Goals
-                        <span class="info-icon info-popup-trigger" data-tooltip="What are the win conditions for each player? What happens when a player wins?\n\nExample:\n• Top – Maintain position. No win condition.\n• Bottom – Recover a guard, sweep, stand up, or submit. Flip flop on win.">ⓘ</span>
-                    </label>
-                    <textarea id="new-game-goals" class="editor-textarea" rows="2" 
-                           placeholder="e.g. Take the back, maintain control">${game ? (game.goals || '') : ''}</textarea>
-                </div>
-                <div class="form-group">
-                    <label style="display: flex; align-items: center; gap: 5px;">
-                        Purpose
-                        <span class="info-icon info-popup-trigger" data-tooltip="What is the point in playing this game? What principles are we trying to teach?">ⓘ</span>
-                    </label>
-                    <textarea id="new-game-purpose" class="editor-textarea" rows="2" 
-                           placeholder="e.g. Learn pressure control and weight distribution">${game ? (game.purpose || '') : ''}</textarea>
-                </div>
-                 <div class="form-group">
-                    <label>Focus of Intention</label>
-                    <textarea id="new-game-focus" class="editor-textarea" rows="2" 
-                           placeholder="e.g. Constraint led drive or Outcome based">${game ? (game.focus || '') : ''}</textarea>
-                </div>
-                <div class="form-group">
-                    <label>Description</label>
-                    <textarea id="new-game-desc" class="editor-textarea" rows="4" placeholder="Describe the rules...">${game ? (game.description || '') : ''}</textarea>
-                </div>
+                ${renderField('Goals', 'new-game-goals', getVal('goals'), 'textarea', 2)}
+                ${renderField('Purpose', 'new-game-purpose', getVal('purpose'), 'textarea', 2)}
+                ${renderField('Focus of Intention', 'new-game-focus', getVal('focus'), 'textarea', 2)}
+                ${renderField('Description', 'new-game-desc', getVal('description'), 'textarea', 4)}
                 <div class="editor-controls" style="justify-content: space-between;">
-                    ${isEdit ? `<button class="btn remove-btn" onclick="window.deleteGame('${game.id}')" style="background: #d32f2f; color: white;">Delete Game</button>` : '<div></div>'}
+                    <div style="display: flex; gap: 5px;">
+                        ${isEdit ? `<button class="btn remove-btn" onclick="window.deleteGame('${game.id}')" style="background: #d32f2f; color: white;">Delete</button>` : ''}
+                        ${isEdit ? `<button class="btn secondary" onclick="window.createVariation('${game.id}', '${segmentId || ''}')" style="background: #1976d2; color: white;">Variation</button>` : ''}
+                    </div>
                     <div style="display: flex; gap: 10px;">
                         <button class="btn secondary" onclick="this.closest('.modal-overlay').remove()">Cancel</button>
                         <button class="btn primary" onclick="submitGameForm(${isEdit})">${isEdit ? 'Save Changes' : 'Create Game'}</button>
@@ -829,21 +887,56 @@ window.updateIntensityColor = (select) => {
 }
 
 // Redirect old createGame calls
-window.createGame = (cat) => window.openGameModal(null, cat);
+window.createGame = (cat, segmentId) => window.openGameModal(null, cat, null, segmentId);
+
+window.createVariation = (gameId, segmentId) => {
+    const game = window.state.content.games.find(g => g.id === gameId);
+    if (!game) return;
+    window.openGameModal(null, game.category, game, segmentId);
+};
 
 window.submitGameForm = async (isEdit) => {
-    const category = document.getElementById('new-game-category').value;
+    let category = document.getElementById('new-game-category').value;
+    const catSelect = document.getElementById('new-game-category');
+    if (!category && catSelect.disabled) {
+        // If disabled, it might not be yielding value, or simply ensure we grab the selected option
+        category = catSelect.options[catSelect.selectedIndex].value;
+    }
+    const gameParentId = document.getElementById('game-parent-id').value;
+
+    // Helper to get overridden values only
+    const getFieldVal = (id, fieldName) => {
+        const el = document.getElementById(id);
+        if (!el) return null;
+        if (gameParentId && el.disabled) return null; // If disabled/not overridden, don't send
+        return el.value;
+    }
+
+    // If no parent, we send all values. If parent, we send only active ones.
+    // BUT server.py now ignores nulls.
+    // So we just need to ensure 'disabled' inputs return null or empty?
+    // Actually, disabled inputs are not usually successful.
+    // I should check `el.disabled`.
+
+    // Note: getElementById('new-game-category').value logic I added before handles disabled.
+    // But for Other fields, if disabled (inherited), I want to send NULL/EMPTY so server omits it.
+    // AND server.py needs to omit it.
+    // I updated server.py to omit empty values.
+    // So if I send "", server writes nothing -> Inheritance works!
+
     const name = document.getElementById('new-game-title').value;
-    const goals = document.getElementById('new-game-goals').value;
-    const purpose = document.getElementById('new-game-purpose').value;
-    const focus = document.getElementById('new-game-focus').value;
-    const description = document.getElementById('new-game-desc').value;
-    const players = document.getElementById('new-game-players').value;
-    const duration = document.getElementById('new-game-duration').value;
-    const gameType = document.getElementById('new-game-type').value;
-    const intensity = document.getElementById('new-game-intensity').value;
-    const difficulty = document.getElementById('new-game-difficulty').value;
-    const initiation = document.getElementById('new-game-initiation').value;
+    // const category = ... already defined above
+
+    const goals = getFieldVal('new-game-goals', 'goals');
+    const purpose = getFieldVal('new-game-purpose', 'purpose');
+    const focus = getFieldVal('new-game-focus', 'focus');
+    const description = getFieldVal('new-game-desc', 'description');
+    const players = getFieldVal('new-game-players', 'players');
+    const duration = getFieldVal('new-game-duration', 'duration');
+    const gameType = getFieldVal('new-game-type', 'gameType');
+    const intensity = getFieldVal('new-game-intensity', 'intensity');
+    const difficulty = getFieldVal('new-game-difficulty', 'difficulty');
+    const initiation = getFieldVal('new-game-initiation', 'initiation');
 
     if (!category || !name) {
         alert('Category and Title are required.');
@@ -889,9 +982,9 @@ window.submitGameForm = async (isEdit) => {
                 focus: focus,
                 players: players,
                 duration: duration,
-                type: gameType,
-                intensity: intensity,
-                initiation: initiation
+                difficulty: difficulty,
+                initiation: initiation,
+                parentId: gameParentId || null
             };
 
             if (isEdit) {
@@ -948,7 +1041,7 @@ window.deleteGame = async (gameId) => {
 
     try {
         const response = await fetch('/api/delete', {
-            method: 'DELETE',
+            method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ path: game.path })
         });

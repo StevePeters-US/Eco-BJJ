@@ -5,8 +5,7 @@ players: 2
 duration: 2
 type: Alternating
 intensity: Flow
-goals: 
-purpose: 
+difficulty: Beginner
 focus: Defender, keep elbows attached to their hips. Attacker should keep their thumb wrapped around their opponent's forearm without using much force.
 ---
 

@@ -46,6 +46,8 @@ def parse_game_file(filepath):
                 'players': metadata.get('players', ''),
                 'type': metadata.get('type', ''),
                 'intensity': metadata.get('intensity', ''),
+                'difficulty': metadata.get('difficulty', ''),
+                'parentId': metadata.get('parent_id', ''),
             }
             
             # Fallback for old purpose format in body if not in frontmatter

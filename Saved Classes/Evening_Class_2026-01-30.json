@@ -1,0 +1,18 @@
+{
+  "title": "Evening Class",
+  "date": "2026-01-30",
+  "conceptId": "pressure",
+  "segments": {
+    "standing": [
+      {
+        "gameId": "grips-robot-arms"
+      }
+    ],
+    "mobility": [],
+    "takedowns": [],
+    "discussion": [],
+    "applications": [],
+    "review": [],
+    "rolling": []
+  }
+}
