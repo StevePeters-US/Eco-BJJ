@@ -370,6 +370,19 @@ select:focus {
     min-width: 0;
 }
 
+/* Intensity Text Colors */
+.text-flow {
+    color: #81c784;
+}
+
+.text-cooperative {
+    color: #ffd54f;
+}
+
+.text-adversarial {
+    color: #e57373;
+}
+
 .game-card-content {
     padding: var(--spacing-sm);
     border-top: 1px solid var(--border-subtle);
@@ -622,16 +635,26 @@ details[open] summary.concept-summary {
 .intensity-flow {
     background: rgba(76, 175, 80, 0.2);
     color: #81c784;
+    border-color: #81c784;
 }
 
 .intensity-cooperative {
     background: rgba(255, 193, 7, 0.2);
     color: #ffd54f;
+    border-color: #ffd54f;
 }
 
 .intensity-adversarial {
     background: rgba(244, 67, 54, 0.2);
     color: #e57373;
+    border-color: #e57373;
+}
+
+select.intensity-flow,
+select.intensity-cooperative,
+select.intensity-adversarial {
+    font-weight: 600;
+    transition: all 0.3s ease;
 }
 
 .difficulty-beginner {

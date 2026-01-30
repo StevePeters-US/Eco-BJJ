@@ -133,3 +133,35 @@ Found 8 categories and 15 games.
 Content generated at /home/steve/Documents/BJJ/Eco-BJJ/Web App/scripts/../data/content.json
 Updated index.html with version 1769735987
 127.0.0.1 - - [29/Jan/2026 17:19:47] "POST /api/create HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 17:26:17] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 17:26:17] "GET /js/app.js?v=1769736377 HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 17:26:17] "GET /js/utils.js HTTP/1.1" 304 -
+127.0.0.1 - - [29/Jan/2026 17:26:17] "GET /data/content.json?v=1769736377867 HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 17:26:17] code 404, message File not found
+127.0.0.1 - - [29/Jan/2026 17:26:17] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [29/Jan/2026 17:26:21] "GET /api/list_classes HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 17:26:22] "POST /api/load_class HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 17:39:07] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 17:39:07] "GET /js/app.js?v=1769737146 HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 17:39:07] "GET /js/utils.js HTTP/1.1" 304 -
+127.0.0.1 - - [29/Jan/2026 17:39:07] "GET /data/content.json?v=1769737147120 HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 17:39:07] code 404, message File not found
+127.0.0.1 - - [29/Jan/2026 17:39:07] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [29/Jan/2026 17:39:11] "GET /api/list_classes HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 17:39:12] "POST /api/load_class HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 19:20:00] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 19:20:00] "GET /css/style.css HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 19:20:00] "GET /js/app.js?v=1769743200 HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 19:20:00] "GET /js/utils.js HTTP/1.1" 304 -
+127.0.0.1 - - [29/Jan/2026 19:20:00] "GET /data/content.json?v=1769743200883 HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 19:20:00] code 404, message File not found
+127.0.0.1 - - [29/Jan/2026 19:20:00] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [29/Jan/2026 19:20:06] "GET /api/list_classes HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 19:20:07] "POST /api/load_class HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 19:22:11] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 19:22:11] "GET /js/app.js?v=1769743331 HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 19:22:11] "GET /data/content.json?v=1769743331929 HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 19:22:11] code 404, message File not found
+127.0.0.1 - - [29/Jan/2026 19:22:11] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [29/Jan/2026 19:22:17] "GET /api/list_classes HTTP/1.1" 200 -
+127.0.0.1 - - [29/Jan/2026 19:22:19] "POST /api/load_class HTTP/1.1" 200 -

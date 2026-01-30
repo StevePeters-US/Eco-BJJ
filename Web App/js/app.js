@@ -345,26 +345,21 @@ function generateClassStructure() {
                     let intensity = gameMeta.intensity || '';
                     let difficulty = gameMeta.difficulty || '';
 
-                    if (t === 'Round Switching') {
-                        durationTxt = `${rt}m x ${p}p = ${rt * p}m`;
-                    } else {
-                        durationTxt = `${rt}m`;
-                    }
-
                     metaTags = `
                         <span class="meta-tag">⏱ ${durationTxt}</span>
                         <span class="meta-tag">👥 ${p}</span>
                         <span class="meta-tag">${t}</span>
-                        ${intensity ? `<span class="meta-tag">${intensity}</span>` : ''}
+                        ${intensity ? `<span class="meta-tag intensity-${intensity.toLowerCase()}">${intensity}</span>` : ''}
                         ${difficulty ? `<span class="meta-tag difficulty-${difficulty.toLowerCase()}">${difficulty}</span>` : ''}
                     `;
+
                 }
 
                 // Build summary line for collapsed view
                 const summaryLine = goals ? goals : (purpose ? purpose : 'No description');
 
                 return `
-                <details class="game-card" open>
+                        <details class="game-card" open>
                     <summary class="game-card-summary">
                         <div class="game-header-left">
                             <span class="game-title">${title}</span>
@@ -391,7 +386,7 @@ function generateClassStructure() {
                     <button class="icon-btn add-btn" onclick="openGamePicker('${segment.id}')" title="Add Activity" style="width: 100%; border: 1px dashed #444; padding: 10px;">
                         +
                     </button>
-                </div>
+                </div >
                 `;
 
             contentHtml = gamesHtml;
@@ -407,11 +402,11 @@ function generateClassStructure() {
         }
 
         const timeDisplay = totalDuration > 0
-            ? `<span style="color: ${timeColor}; margin-left: 5px;">(${totalDuration}/${segment.targetDuration} min)</span>`
-            : `<span class="time-badge">${segment.targetDuration} min</span>`;
+            ? `<span style="color: ${timeColor}; margin-left: 5px;">(${totalDuration} / ${segment.targetDuration} min)</span>`
+            : `<span class="time-badge"> > ${segment.targetDuration} min</span>`;
 
         segmentEl.innerHTML = `
-            <details class="section-collapsible" open>
+                <details class="section-collapsible" open>
                 <summary class="section-summary">
                     <span class="section-title">${segment.title}</span>
                     ${timeDisplay}
@@ -419,8 +414,8 @@ function generateClassStructure() {
                 <div class="section-content">
                     ${contentHtml}
                 </div>
-            </details>
-            `;
+            </details >
+                `;
 
         timeline.appendChild(segmentEl);
     });
@@ -551,7 +546,7 @@ function createModal(segmentId, filterCategory = null) {
     // Concept Dropdown options
     const concepts = state.content.concepts || [];
     const conceptOptions = concepts.map(c =>
-        `<option value="${c.title}" ${c.title === filterCategory ? 'selected' : ''}>${c.title}</option>`
+        `< option value = "${c.title}" ${c.title === filterCategory ? 'selected' : ''}> ${c.title}</option > `
     ).join('');
 
     // Filter Games
@@ -607,7 +602,7 @@ function createModal(segmentId, filterCategory = null) {
             <div class="modal-body">
                 ${contentHtml}
             </div>
-        </div>
+        </div >
                 `;
 
     document.body.appendChild(overlay);
@@ -619,10 +614,10 @@ window.filterPicker = (segmentId, category) => {
 
 function renderGameOptions(games, segmentId) {
     return games.map(game => `
-        <div class="game-option" onclick="selectGame('${game.id}', '${segmentId}')">
-            <h4>${game.title}</h4>
-        </div>
-    `).join('');
+                <div class="game-option" onclick="selectGame('${game.id}', '${segmentId}')">
+                    <h4>${game.title}</h4>
+        </div >
+                `).join('');
 }
 
 window.selectGame = (gameId, segmentId) => {
@@ -669,7 +664,7 @@ window.openGameModal = (gameId = null, preselectedCategory = null) => {
 
     const categories = window.state.content.categories || [];
     const optionsHtml = categories.map(c =>
-        `<option value="${c.title}" ${c.title === (game ? game.category : preselectedCategory) ? 'selected' : ''}>${c.title}</option>`
+        `< option value = "${c.title}" ${c.title === (game ? game.category : preselectedCategory) ? 'selected' : ''}> ${c.title}</option > `
     ).join('');
 
     overlay.innerHTML = `
@@ -718,7 +713,7 @@ window.openGameModal = (gameId = null, preselectedCategory = null) => {
                     </div>
                     <div class="form-group" style="flex: 1;">
                          <label>Intensity</label>
-                         <select id="new-game-intensity" class="editor-textarea" style="height: auto;">
+                         <select id="new-game-intensity" class="editor-textarea" style="height: auto;" onchange="window.updateIntensityColor(this)">
                              ${['Flow', 'Cooperative', 'Adversarial'].map(t =>
         `<option value="${t}" ${game && game.intensity === t ? 'selected' : ''}>${t}</option>`
     ).join('')}
@@ -788,6 +783,10 @@ window.openGameModal = (gameId = null, preselectedCategory = null) => {
     const diffSelect = document.getElementById('new-game-difficulty');
     if (diffSelect) window.updateDifficultyColor(diffSelect);
 
+    // Init Intensity Color
+    const intSelect = document.getElementById('new-game-intensity');
+    if (intSelect) window.updateIntensityColor(intSelect);
+
     if (!isEdit) setTimeout(() => document.getElementById('new-game-title').focus(), 100);
 };
 
@@ -796,6 +795,14 @@ window.updateDifficultyColor = (select) => {
     const val = select.value.toLowerCase();
     if (val) {
         select.classList.add(`difficulty-${val}`);
+    }
+}
+
+window.updateIntensityColor = (select) => {
+    select.classList.remove('intensity-flow', 'intensity-cooperative', 'intensity-adversarial');
+    const val = select.value.toLowerCase();
+    if (val) {
+        select.classList.add(`intensity-${val}`);
     }
 }
 
@@ -1011,7 +1018,7 @@ window.openConceptModal = (conceptId = null) => {
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
                 `;
     document.body.appendChild(overlay);
     setTimeout(() => document.getElementById('new-concept-name').focus(), 100);
