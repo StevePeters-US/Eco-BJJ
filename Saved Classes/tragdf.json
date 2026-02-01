@@ -8,7 +8,19 @@
 		"mobility": [],
 		"review": [],
 		"rolling": [],
-		"standing": [],
+		"standing": [
+			{
+				"category": "Mobility",
+				"description": "Description of potato.",
+				"duration": "",
+				"id": "mobility-potato",
+				"intensity": "",
+				"path": "/home/steve/Documents/BJJ/Eco-BJJ/bjj-class-planner/../Concepts/Mobility/Games/potato.md",
+				"players": "2",
+				"title": "potato",
+				"type": ""
+			}
+		],
 		"takedowns": []
 	}
 }

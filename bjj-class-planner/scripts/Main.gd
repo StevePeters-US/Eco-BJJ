@@ -876,9 +876,24 @@ func _on_load_item_activated(idx):
 		class_name_input.text = data.get("name", data.get("title", "")) # Fallback to title
 		date_input.text = data.get("date", Time.get_date_string_from_system())
 		selected_concept_id = data.get("concept_id", data.get("conceptId", "")) # Fallback
+		
+		# Sync UI Dropdown
+		_select_concept_by_id(selected_concept_id)
+		
 		current_class_data = data.get("segments", {})
 		_refresh_timeline()
 		load_modal.hide()
+
+func _select_concept_by_id(id):
+	for i in range(concept_select.item_count):
+		# item_id in option button is index in DataManager.concepts list 
+		# (see _refresh_concepts_dropdown: add_item(c.title, i))
+		var concept_idx = concept_select.get_item_id(i)
+		if concept_idx >= 0 and concept_idx < DataManager.concepts.size():
+			if DataManager.concepts[concept_idx].id == id:
+				concept_select.select(i)
+				return
+	concept_select.select(-1)
 
 func _on_edit_game_pressed(game, sec_id, idx):
 	# Refresh categories to match current concepts
