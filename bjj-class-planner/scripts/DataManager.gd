@@ -238,3 +238,49 @@ func delete_class(name):
 		DirAccess.remove_absolute(path)
 		return true
 	return false
+
+func save_game(game_data):
+	var title = game_data.get("title", "Untitled")
+	var category = game_data.get("category", "Uncategorized")
+	
+	# Sanitization
+	var safe_title = title.strip_edges().replace(" ", "-").replace("/", "")
+	var safe_cat = category.strip_edges()
+	
+	var concepts_dir = PROJECT_ROOT.path_join("Concepts")
+	var cat_dir = concepts_dir.path_join(safe_cat)
+	var games_dir = cat_dir.path_join("Games")
+	
+	if not DirAccess.dir_exists_absolute(games_dir):
+		var err = DirAccess.make_dir_recursive_absolute(games_dir)
+		if err != OK:
+			print("Error creating directory: ", games_dir)
+			return false
+		
+	var filename = safe_title + ".md"
+	var path = games_dir.path_join(filename)
+	
+	var file = FileAccess.open(path, FileAccess.WRITE)
+	if file:
+		# Write Frontmatter
+		file.store_string("---\n")
+		file.store_string("title: %s\n" % title)
+		file.store_string("category: %s\n" % category)
+		if game_data.has("duration"): file.store_string("duration: %s\n" % str(game_data.duration))
+		if game_data.has("players"): file.store_string("players: %s\n" % str(game_data.players))
+		if game_data.has("type"): file.store_string("type: %s\n" % game_data.type)
+		if game_data.has("intensity"): file.store_string("intensity: %s\n" % game_data.intensity)
+		if game_data.has("difficulty"): file.store_string("difficulty: %s\n" % game_data.difficulty)
+		if game_data.has("initiation"): file.store_string("initiation: %s\n" % game_data.initiation)
+		if game_data.has("focus"): file.store_string("focus: %s\n" % game_data.focus)
+		file.store_string("---\n\n")
+		
+		# Write Description
+		file.store_string(game_data.get("description", ""))
+		file.close()
+		print("Saved game to: ", path)
+		return true
+		
+	print("Failed to write to: ", path)
+	return false
+

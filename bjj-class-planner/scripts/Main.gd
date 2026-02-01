@@ -16,6 +16,8 @@ var input_modal: Window
 var input_field: LineEdit
 var input_confirm_callback: Callable
 var picker_target_section = ""
+var picker_filter_select: OptionButton # New Filter
+
 
 # Load Modal
 var load_modal: Window
@@ -236,12 +238,35 @@ func _build_modals():
 	var vbox = VBoxContainer.new()
 	panel.add_child(vbox)
 	
-	var label = Label.new()
-	label.text = "Double click a game to add it"
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(label)
+	# Header Row: Filter | New Game
+	var header_row = HBoxContainer.new()
+	vbox.add_child(header_row)
+	
+	picker_filter_select = OptionButton.new()
+	picker_filter_select.custom_minimum_size.x = 200
+	picker_filter_select.item_selected.connect(func(idx): _populate_picker_tree())
+	header_row.add_child(picker_filter_select)
+	
+	var spacer = Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header_row.add_child(spacer)
+	
+	var new_game_btn = Button.new()
+	new_game_btn.text = "+ New Game"
+	new_game_btn.flat = true
+	new_game_btn.add_theme_color_override("font_color", Color("#94a3b8"))
+	new_game_btn.pressed.connect(_on_new_game_pressed)
+	header_row.add_child(new_game_btn)
+	
+	var close_btn = Button.new()
+	close_btn.text = "✕"
+	close_btn.flat = true
+	close_btn.add_theme_color_override("font_color", Color("#94a3b8"))
+	close_btn.pressed.connect(func(): game_picker_modal.hide())
+	header_row.add_child(close_btn)
 	
 	game_picker_tree = Tree.new()
+
 	game_picker_tree.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	game_picker_tree.hide_root = true
 	game_picker_tree.item_activated.connect(_on_picker_item_activated)
@@ -414,15 +439,37 @@ func _refresh_concepts_dropdown():
 		concept_select.add_item(c.title, i)
 
 func _populate_picker_tree():
+	# 1. Populate Filter if empty
+	if picker_filter_select.item_count == 0:
+		picker_filter_select.add_item("All Concepts")
+		picker_filter_select.set_item_metadata(0, "All")
+		for c in DataManager.concepts:
+			picker_filter_select.add_item(c.title)
+			picker_filter_select.set_item_metadata(picker_filter_select.item_count - 1, c.title)
+			
+	# 2. Determine Filter
+	var filter_txt = "All"
+	if picker_filter_select.selected >= 0:
+		filter_txt = picker_filter_select.get_item_metadata(picker_filter_select.selected)
+	
 	game_picker_tree.clear()
 	var root = game_picker_tree.create_item()
 	var cats = DataManager.categories
+	
 	for cat_id in cats:
 		var cat_data = cats[cat_id]
+		# Filter check: Check if category title matches concept title
+		if filter_txt != "All" and cat_data.title != filter_txt:
+			continue
+			
 		var cat_item = game_picker_tree.create_item(root)
 		cat_item.set_text(0, cat_data.title)
 		cat_item.set_selectable(0, false)
 		cat_item.set_custom_color(0, Color("#94a3b8"))
+		
+		# Sort games alphabetically?
+		# Currently array order from scan.
+		
 		for game_id in cat_data.games:
 			var game = _find_game_by_id(game_id)
 			if game:
@@ -677,6 +724,59 @@ func _remove_game(sec_id, idx):
 	current_class_data[sec_id].remove_at(idx)
 	_refresh_timeline()
 
+func _on_new_game_pressed():
+	# Clear/Default fields
+	edit_fields["title"].text = ""
+	edit_fields["players"].text = "2"
+	edit_fields["duration"].text = "5"
+	edit_fields["focus"].text = ""
+	
+	# Determine default category from filter if possible
+	var filter_txt = "All"
+	if picker_filter_select.selected >= 0:
+		filter_txt = picker_filter_select.get_item_metadata(picker_filter_select.selected)
+	
+	# Update Category list in Edit Modal (it might be stale or empty if we built it once)
+	# We should refresh the options.
+	var cat_opt = edit_fields["category"]
+	cat_opt.clear()
+	# We want to match existing concepts for categories.
+	for c in DataManager.concepts:
+		cat_opt.add_item(c.title)
+	
+	if filter_txt != "All":
+		_select_option(cat_opt, filter_txt)
+	
+	edit_modal.title = "Create New Game"
+	
+	edit_callback = func():
+		var new_game = {
+			"title": edit_fields["title"].text,
+			"category": _get_selected_text(edit_fields["category"]),
+			"difficulty": _get_selected_text(edit_fields["difficulty"]),
+			"intensity": _get_selected_text(edit_fields["intensity"]),
+			"type": _get_selected_text(edit_fields["type"]),
+			"initiation": _get_selected_text(edit_fields["initiation"]),
+			"players": edit_fields["players"].text,
+			"duration": edit_fields["duration"].text,
+			"focus": edit_fields["focus"].text
+		}
+		
+		# Validate
+		if new_game.title == "": 
+			print("Title required")
+			return
+			
+		if DataManager.save_game(new_game):
+			DataManager.scan_all()
+			# Re-populate picker (will happen via signal? No, we called scan_all which emits data_loaded)
+			# But we want to ensure we see the new game.
+			edit_modal.hide()
+			# picker is still open, it should update automatically if we connected data_loaded properly?
+			# Yes: DataManager.data_loaded.connect(_on_data_loaded) -> _populate_picker_tree
+	
+	edit_modal.popup_centered()
+
 func _open_game_picker(sec_id):
 	picker_target_section = sec_id
 	game_picker_modal.popup_centered()
@@ -740,6 +840,12 @@ func _on_load_item_activated(idx):
 		load_modal.hide()
 
 func _on_edit_game_pressed(game, sec_id, idx):
+	# Refresh categories to match current concepts
+	var cat_opt = edit_fields["category"]
+	cat_opt.clear()
+	for c in DataManager.concepts:
+		cat_opt.add_item(c.title)
+		
 	# Populate edit modal
 	edit_fields["title"].text = game.title
 	
