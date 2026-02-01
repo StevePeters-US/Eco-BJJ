@@ -7,7 +7,7 @@ extends Control
 var left_sidebar: VBoxContainer
 var timeline_container: VBoxContainer
 var class_name_input: LineEdit
-var date_input: LineEdit
+var date_input # Was LineEdit, now CalendarButton
 var concept_select: OptionButton
 var class_header_lbl: Label
 var game_picker_modal: Window
@@ -128,10 +128,62 @@ func _build_ui():
 	class_name_input.text_changed.connect(func(_new_text): _update_header_title())
 	left_sidebar.add_child(class_name_input)
 	
-	date_input = LineEdit.new()
+	# Load Calendar Button Script
+	var CalendarButtonPayload = preload("res://addons/calendar_button/assets/calendar_button.gd")
+	date_input = CalendarButtonPayload.new()
 	date_input.text = Time.get_date_string_from_system()
-	date_input.placeholder_text = "YYYY-MM-DD"
-	date_input.text_changed.connect(func(_new_text): _update_header_title())
+	# Apply styling to look like input/button
+	var date_style = _get_stylebox(COL_CARD, 6)
+	date_style.border_width_left = 1
+	date_style.border_width_top = 1
+	date_style.border_width_right = 1
+	date_style.border_width_bottom = 1
+	date_style.border_color = COL_BORDER
+	date_style.content_margin_left = 10
+	date_input.add_theme_stylebox_override("normal", date_style)
+	date_input.add_theme_color_override("font_color", COL_TEXT_SEC)
+	date_input.custom_minimum_size.y = 40
+	date_input.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	
+	# Set custom parent to Main Control (self) to avoid clipping in Sidebar
+	date_input.custom_parent = self
+	
+	# Connect signal
+	date_input.calendar_confirmed.connect(_on_date_selected)
+	
+	# Fix Positioning and Sizing
+	# Fix Positioning and Sizing
+	# Use button_down because _pressed is overridden and doesn't emit pressed
+	date_input.button_down.connect(func():
+		if date_input.calendar:
+			# 1. Fix Transparency: Apply opaque background to the internal PanelContainer
+			var panel = date_input.calendar.get_node_or_null("PanelContainer")
+			if panel:
+				var bg_style = _get_stylebox(COL_BG, 12)
+				bg_style.shadow_size = 8
+				bg_style.shadow_color = Color(0, 0, 0, 0.4)
+				bg_style.border_width_left = 1
+				bg_style.border_width_top = 1
+				bg_style.border_width_right = 1
+				bg_style.border_width_bottom = 1
+				bg_style.border_color = COL_BORDER
+				panel.add_theme_stylebox_override("panel", bg_style)
+
+			# 2. Fix Layout Stability
+			# Stop it from growing from center
+			date_input.calendar.set_anchors_preset(Control.PRESET_TOP_LEFT)
+			
+			# Force stable size (enough for 6 weeks)
+			var fixed_size = Vector2(320, 340)
+			date_input.calendar.custom_minimum_size = fixed_size
+			date_input.calendar.size = fixed_size
+			
+			# Position exactly under the button
+			var btn_global_pos = date_input.global_position
+			var btn_size = date_input.size
+			date_input.calendar.position = btn_global_pos + Vector2(0, btn_size.y + 5)
+	)
+	
 	left_sidebar.add_child(date_input)
 	
 	left_sidebar.add_child(HSeparator.new())
@@ -901,6 +953,21 @@ func _on_new_class_pressed():
 	)
 	add_child(dialog)
 	dialog.popup_centered()
+
+func _on_date_selected(date_dict, _time_dict):
+	var year = date_dict.year
+	var month = date_dict.month
+	var day = date_dict.day
+	
+	# Pad with zeros
+	var m_str = str(month)
+	if month < 10: m_str = "0" + m_str
+	var d_str = str(day)
+	if day < 10: d_str = "0" + d_str
+	
+	var date_str = "%s-%s-%s" % [year, m_str, d_str]
+	date_input.text = date_str
+	_update_header_title()
 
 func _clear_class():
 	class_name_input.text = ""
