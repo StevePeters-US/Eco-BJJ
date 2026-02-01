@@ -42,9 +42,14 @@ var CLASS_TEMPLATE = [
 	{ "id": "rolling", "title": "Free Roll", "duration": 15 }
 ]
 
-const COL_BG = Color("#0f172a")
-const COL_PANEL = Color("#1e293b")
-const COL_ACCENT = Color("#3b82f6")
+const COL_BG = Color("#0f1115")
+const COL_PANEL = Color("#161b22")
+const COL_CARD = Color("#21262d")
+const COL_ACCENT = Color("#58a6ff") # Kept as alias for Blue
+const COL_ACCENT_GREEN = Color("#238636")
+const COL_TEXT_PRIM = Color("#f0f6fc")
+const COL_TEXT_SEC = Color("#8b949e")
+const COL_BORDER = Color("#30363d")
 
 func _ready():
 	_apply_theme()
@@ -69,17 +74,23 @@ func _init_class_data():
 	if timeline_container:
 		_refresh_timeline()
 
-func _get_stylebox(color, radius=6):
+func _get_stylebox(color, radius=12):
 	var sb = StyleBoxFlat.new()
 	sb.bg_color = color
 	sb.set_corner_radius_all(radius)
+	
+	# Add Shadow
+	if color.a > 0:
+		sb.shadow_size = 4
+		sb.shadow_color = Color(0, 0, 0, 0.3)
+	
 	if color.a == 0:
 		sb.content_margin_left = 0
 	else:
-		sb.content_margin_left = 12
-		sb.content_margin_right = 12
-		sb.content_margin_top = 12
-		sb.content_margin_bottom = 12
+		sb.content_margin_left = 16
+		sb.content_margin_right = 16
+		sb.content_margin_top = 16
+		sb.content_margin_bottom = 16
 	return sb
 
 func _build_ui():
@@ -146,7 +157,7 @@ func _build_ui():
 	var instr_lbl = Label.new()
 	instr_lbl.text = "Select a concept to generate a class structure."
 	instr_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	instr_lbl.add_theme_color_override("font_color", Color("#94a3b8"))
+	instr_lbl.add_theme_color_override("font_color", COL_TEXT_SEC)
 	left_sidebar.add_child(instr_lbl)
 	
 	var spacer = Control.new()
@@ -157,17 +168,48 @@ func _build_ui():
 	save_btn.text = "Save Class"
 	save_btn.custom_minimum_size.y = 40
 	save_btn.pressed.connect(_on_save_pressed)
+	# Primary Button Style
+	var save_style = _get_stylebox(COL_ACCENT_GREEN, 6)
+	save_btn.add_theme_stylebox_override("normal", save_style)
+	save_btn.add_theme_color_override("font_color", Color.WHITE)
 	left_sidebar.add_child(save_btn)
+	
+	var new_btn = Button.new()
+	new_btn.text = "New Class"
+	new_btn.custom_minimum_size.y = 40
+	new_btn.pressed.connect(_on_new_class_pressed)
+	# Secondary Button Style (Same as Load)
+	var sec_style = _get_stylebox(COL_CARD, 6)
+	sec_style.border_width_left = 1
+	sec_style.border_width_top = 1
+	sec_style.border_width_right = 1
+	sec_style.border_width_bottom = 1
+	sec_style.border_color = COL_BORDER
+	new_btn.add_theme_stylebox_override("normal", sec_style)
+	new_btn.add_theme_color_override("font_color", COL_TEXT_SEC)
+	left_sidebar.add_child(new_btn)
 	
 	var load_btn = Button.new()
 	load_btn.text = "Load Class"
 	load_btn.custom_minimum_size.y = 40
 	load_btn.pressed.connect(_on_load_pressed)
+	# Secondary Button Style
+	var load_style = _get_stylebox(COL_CARD, 6)
+	load_style.border_width_left = 1
+	load_style.border_width_top = 1
+	load_style.border_width_right = 1
+	load_style.border_width_bottom = 1
+	load_style.border_color = COL_BORDER
+	load_btn.add_theme_stylebox_override("normal", load_style)
+	load_btn.add_theme_color_override("font_color", COL_TEXT_SEC)
 	left_sidebar.add_child(load_btn)
 	
 	var print_btn = Button.new()
 	print_btn.text = "Print / PDF"
 	print_btn.custom_minimum_size.y = 40
+	# Secondary Style
+	print_btn.add_theme_stylebox_override("normal", load_style)
+	print_btn.add_theme_color_override("font_color", COL_TEXT_SEC)
 	left_sidebar.add_child(print_btn)
 	
 	# === RIGHT MAIN AREA ===
@@ -520,23 +562,34 @@ func _refresh_timeline():
 		sec_box.add_child(header_hbox)
 		
 		var toggle_btn = Button.new()
-		toggle_btn.text = "v"
+		toggle_btn.text = "▼" # Initial state open
 		toggle_btn.flat = true
+		toggle_btn.add_theme_color_override("font_color", COL_TEXT_SEC)
 		header_hbox.add_child(toggle_btn)
 		
 		var title = Label.new()
 		title.text = sec.title
-		title.add_theme_font_size_override("font_size", 18)
+		title.add_theme_font_size_override("font_size", 20)
+		title.add_theme_color_override("font_color", COL_TEXT_PRIM)
 		header_hbox.add_child(title)
 		
 		var dur_lbl = Label.new()
 		dur_lbl.text = "(%d min)" % sec.duration
-		dur_lbl.add_theme_color_override("font_color", Color("#cbd5e1"))
+		dur_lbl.add_theme_color_override("font_color", COL_TEXT_SEC)
 		header_hbox.add_child(dur_lbl)
 		
 		var content_panel = PanelContainer.new()
-		content_panel.add_theme_stylebox_override("panel", _get_stylebox(COL_PANEL, 5))
+		content_panel.add_theme_stylebox_override("panel", _get_stylebox(COL_PANEL, 12))
 		sec_box.add_child(content_panel)
+		
+		# Connect Toggle
+		toggle_btn.pressed.connect(func():
+			content_panel.visible = !content_panel.visible
+			toggle_btn.text = "▼" if content_panel.visible else "▶"
+		)
+		
+		# Set initial state (verified)
+		toggle_btn.text = "▼" if content_panel.visible else "▶"
 		
 		var content_vbox = VBoxContainer.new()
 		content_panel.add_child(content_vbox)
@@ -549,6 +602,7 @@ func _refresh_timeline():
 				disc_lbl.text = "[b]" + concept_obj.title + "[/b]\n" + concept_obj.content
 			else:
 				disc_lbl.text = "[i]Select a concept to view discussion topics.[/i]"
+			disc_lbl.add_theme_color_override("default_color", COL_TEXT_PRIM)
 			content_vbox.add_child(disc_lbl)
 		else:
 			for i in range(sec_games.size()):
@@ -556,18 +610,12 @@ func _refresh_timeline():
 				
 				# === GAME CARD ===
 				var game_card = PanelContainer.new()
-				var card_style = StyleBoxFlat.new()
-				card_style.bg_color = Color("#1e293b")
-				card_style.set_corner_radius_all(6)
+				var card_style = _get_stylebox(COL_CARD, 12)
 				card_style.border_width_left = 1
 				card_style.border_width_top = 1
 				card_style.border_width_right = 1
 				card_style.border_width_bottom = 1
-				card_style.border_color = Color("#334155")
-				card_style.content_margin_left = 10
-				card_style.content_margin_right = 10
-				card_style.content_margin_top = 10
-				card_style.content_margin_bottom = 10
+				card_style.border_color = COL_BORDER
 				game_card.add_theme_stylebox_override("panel", card_style)
 				content_vbox.add_child(game_card)
 				
@@ -575,6 +623,7 @@ func _refresh_timeline():
 				game_card.add_child(card_vbox)
 				
 				# Row 1: Arrow | Title | Tags | Actions
+
 				# Use HBox for everything in one line or split behavior? 
 				# User wants: Arrow Title <Tags> ... Actions
 				
@@ -592,9 +641,9 @@ func _refresh_timeline():
 				
 				# 2. Title
 				var g_title = Label.new()
-				g_title.text = g.title
-				g_title.add_theme_color_override("font_color", Color("#60a5fa"))
-				g_title.add_theme_font_size_override("font_size", 16)
+				g_title.text = g.get("title", "Untitled Game")
+				g_title.add_theme_color_override("font_color", COL_ACCENT)
+				g_title.add_theme_font_size_override("font_size", 18)
 				row1.add_child(g_title)
 				
 				# Spacer before tags
@@ -610,26 +659,27 @@ func _refresh_timeline():
 				# --- Insert Tags here ---
 				# Duration
 				var dur = str(g.duration) if g.has("duration") else "5"
-				if dur != "None" and dur != "": _create_chip(tags_hbox, dur + "m", "⏱", Color("#334155"))
+				if dur != "None" and dur != "": _create_chip(tags_hbox, dur + "m", "⏱", COL_BORDER)
 				# Players
 				var players = str(g.players) if g.has("players") else "2"
-				if players != "None" and players != "": _create_chip(tags_hbox, players, "👥", Color("#334155"))
+				if players != "None" and players != "": _create_chip(tags_hbox, players, "👥", COL_BORDER)
 				# Difficulty
 				if g.has("difficulty") and g.difficulty != "" and g.difficulty != "None":
-					var col = Color("#22c55e")
+					var col = Color("#81c784")
 					var s = g.difficulty.to_lower()
-					if "intermediate" in s: col = Color("#eab308")
-					elif "advanced" in s: col = Color("#ef4444")
-					_create_chip(tags_hbox, g.difficulty, "", col)
+					if "intermediate" in s: col = Color("#ffd54f")
+					elif "advanced" in s: col = Color("#e57373")
+					_create_chip(tags_hbox, g.difficulty, "", col, 0.2)
 				# Intensity
 				if g.has("intensity") and g.intensity != "" and g.intensity != "None":
-					var col = Color("#ef4444") 
+					var col = Color("#81c784") # Flow
 					var s = g.intensity.to_lower()
-					if "low" in s: col = Color("#22c55e")
-					elif "medium" in s: col = Color("#eab308")
-					_create_chip(tags_hbox, g.intensity, "", col)
+					if "medium" in s: col = Color("#ffd54f") # Cooperative? Wait, CSS says coop=yellow, med=?
+					elif "high" in s: col = Color("#e57373") # Adversarial
+					elif "cooperative" in s: col = Color("#ffd54f")
+					_create_chip(tags_hbox, g.intensity, "", col, 0.2)
 				# Type
-				if g.has("type") and g.type != "" and g.type != "None": _create_chip(tags_hbox, g.type, "", Color("#334155"))
+				if g.has("type") and g.type != "" and g.type != "None": _create_chip(tags_hbox, g.type, "", COL_BORDER)
 				
 				# Spacer to push Actions to right
 				var push = Control.new()
@@ -685,10 +735,9 @@ func _refresh_timeline():
 			var add_btn = Button.new()
 			add_btn.text = "+ Add Game"
 			add_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-			var add_style = StyleBoxFlat.new()
-			add_style.bg_color = Color("#1e293b")
+			var add_style = _get_stylebox(COL_PANEL, 4)
 			add_style.border_width_bottom = 1
-			add_style.border_color = Color("#334155")
+			add_style.border_color = COL_BORDER
 			add_btn.add_theme_stylebox_override("normal", add_style)
 			add_btn.pressed.connect(func(): _open_game_picker(sec.id))
 			content_vbox.add_child(add_btn)
@@ -733,15 +782,25 @@ func _update_header_title():
 		var d = date_input.text
 		class_header_lbl.text = "%s %s" % [txt, d]
 
-func _create_chip(parent, text, icon, bg_color):
+func _create_chip(parent, text, icon, base_color, bg_alpha=1.0):
 	var p = PanelContainer.new()
 	var style = StyleBoxFlat.new()
-	style.bg_color = bg_color
+	var bg = base_color
+	bg.a = bg_alpha
+	style.bg_color = bg
 	style.set_corner_radius_all(4)
 	style.content_margin_left = 6
 	style.content_margin_right = 6
 	style.content_margin_top = 2
 	style.content_margin_bottom = 2
+	
+	if bg_alpha < 1.0:
+		style.border_width_left = 1
+		style.border_width_top = 1
+		style.border_width_right = 1
+		style.border_width_bottom = 1
+		style.border_color = base_color
+	
 	p.add_theme_stylebox_override("panel", style)
 	parent.add_child(p)
 	
@@ -753,11 +812,13 @@ func _create_chip(parent, text, icon, bg_color):
 		var l = Label.new()
 		l.text = icon
 		l.add_theme_font_size_override("font_size", 10)
+		l.add_theme_color_override("font_color", base_color if bg_alpha < 1.0 else Color.WHITE)
 		hbox.add_child(l)
 		
 	var l = Label.new()
 	l.text = text
 	l.add_theme_font_size_override("font_size", 11)
+	l.add_theme_color_override("font_color", base_color if bg_alpha < 1.0 else Color.WHITE)
 	hbox.add_child(l)
 
 func _remove_game(sec_id, idx):
@@ -789,6 +850,10 @@ func _on_new_game_pressed():
 	
 	edit_modal.title = "Create New Game"
 	
+	# Remove edit context if existing
+	if edit_modal.has_meta("edit_context"):
+		edit_modal.remove_meta("edit_context")
+	
 	edit_callback = func():
 		var new_game = {
 			"title": edit_fields["title"].text,
@@ -816,6 +881,34 @@ func _on_new_game_pressed():
 			# Yes: DataManager.data_loaded.connect(_on_data_loaded) -> _populate_picker_tree
 	
 	edit_modal.popup_centered()
+
+func _on_new_class_pressed():
+	var dialog = AcceptDialog.new()
+	dialog.title = "New Class"
+	dialog.dialog_text = "Save current class before starting a new one?"
+	dialog.add_button("Save & New", true, "save")
+	dialog.add_button("Discard & New", true, "discard")
+	dialog.add_cancel_button("Cancel")
+	
+	dialog.custom_action.connect(func(action):
+		if action == "save":
+			_on_save_pressed()
+			_clear_class()
+			dialog.queue_free()
+		elif action == "discard":
+			_clear_class()
+			dialog.queue_free()
+	)
+	add_child(dialog)
+	dialog.popup_centered()
+
+func _clear_class():
+	class_name_input.text = ""
+	date_input.text = ""
+	selected_concept_id = ""
+	concept_select.select(-1)
+	_init_class_data()
+	_refresh_timeline()
 
 func _open_game_picker(sec_id):
 	picker_target_section = sec_id
@@ -859,7 +952,22 @@ func _on_save_pressed():
 		"concept_id": selected_concept_id,
 		"date": date_input.text
 	}
-	DataManager.save_class(name, save_data)
+	if DataManager.save_class(name, save_data):
+		print("Class saved successfully!")
+		var confirm = AcceptDialog.new()
+		confirm.title = "Saved"
+		confirm.dialog_text = "Class saved successfully!"
+		add_child(confirm)
+		confirm.popup_centered()
+		confirm.confirmed.connect(func(): confirm.queue_free())
+	else:
+		print("Failed to save class.")
+		var err = AcceptDialog.new()
+		err.title = "Error"
+		err.dialog_text = "Failed to save class."
+		add_child(err)
+		err.popup_centered()
+		err.confirmed.connect(func(): err.queue_free())
 
 func _on_load_pressed():
 	load_list.clear()

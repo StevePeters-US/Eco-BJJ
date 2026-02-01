@@ -1,18 +1,29 @@
 {
-  "title": "Evening Class",
-  "date": "2026-01-30",
-  "conceptId": "pressure",
-  "segments": {
-    "standing": [
-      {
-        "gameId": "grips-robot-arms"
-      }
-    ],
-    "mobility": [],
-    "takedowns": [],
-    "discussion": [],
-    "applications": [],
-    "review": [],
-    "rolling": []
-  }
+	"concept_id": "pressure",
+	"date": "2026-01-30",
+	"name": "Evening Class",
+	"segments": {
+		"applications": [],
+		"discussion": [],
+		"mobility": [],
+		"review": [],
+		"rolling": [],
+		"standing": [
+			{
+				"category": "Grips",
+				"description": "Starting standing, the defending player attaches their elbows to their hip and moves their hands up and down. The attacking player is to maintain a grip on their opponent's arm, switching their grip as the angle on their oppoenent's forearm changes",
+				"difficulty": "Beginner",
+				"duration": "2",
+				"focus": "",
+				"id": "grips-robot-arms",
+				"initiation": "",
+				"intensity": "Flow",
+				"path": "/home/steve/Documents/BJJ/Eco-BJJ/bjj-class-planner/../Concepts/Grips/Games/Robotarms.md",
+				"players": "2",
+				"title": "Robot arms",
+				"type": "Alternating"
+			}
+		],
+		"takedowns": []
+	}
 }

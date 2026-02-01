@@ -190,6 +190,9 @@ func save_class(name, class_data):
 	var safe_name = name.strip_edges().replace(" ", "_").replace("/", "").replace("\\", "")
 	# Simple sanitization
 	
+	if class_data.has("date") and class_data.date != "":
+		safe_name += "_" + class_data.date
+	
 	var filename = safe_name + ".json"
 	var save_dir = PROJECT_ROOT.path_join("Saved Classes")
 	
