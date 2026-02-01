@@ -130,7 +130,7 @@ func _build_ui():
 	
 	# Load Calendar Button Script
 	var CalendarButtonPayload = preload("res://addons/calendar_button/assets/calendar_button.gd")
-	date_input = CalendarButtonPayload.new()
+	date_input = 	CalendarButtonPayload.new()
 	date_input.text = Time.get_date_string_from_system()
 	# Apply styling to look like input/button
 	var date_style = _get_stylebox(COL_CARD, 6)
@@ -147,6 +147,9 @@ func _build_ui():
 	
 	# Set custom parent to Main Control (self) to avoid clipping in Sidebar
 	date_input.custom_parent = self
+	
+	# Prevent Calendar from resetting to Center
+	date_input.anchor_and_offset = Control.PRESET_TOP_LEFT
 	
 	# Connect signal
 	date_input.calendar_confirmed.connect(_on_date_selected)
@@ -971,7 +974,7 @@ func _on_date_selected(date_dict, _time_dict):
 
 func _clear_class():
 	class_name_input.text = ""
-	date_input.text = ""
+	date_input.text = Time.get_date_string_from_system()
 	selected_concept_id = ""
 	concept_select.select(-1)
 	_init_class_data()

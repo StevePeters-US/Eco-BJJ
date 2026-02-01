@@ -26,6 +26,7 @@ var first_day_of_week: int = 0
 
 var buttons: Array = [Button]
 var selected_button: Button = null
+var label_year: Label = null
 
 var include_time: bool = false
 var use_letter_days: bool = false
@@ -35,6 +36,15 @@ var is_pm: bool = false
 signal confirmed(date: Dictionary, time: Dictionary)
 
 func _ready() -> void:
+	# Create Year Label
+	label_year = Label.new()
+	label_year.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var cal_container = $PanelContainer/CalendarContainer
+	cal_container.add_child(label_year)
+	cal_container.move_child(label_year, 0)
+	# Fix Vertical Alignment (Remove top gap)
+	cal_container.alignment = BoxContainer.ALIGNMENT_BEGIN
+	
 	_get_current_date()
 	btn_prev_month.pressed.connect(_on_prev_month)
 	btn_next_month.pressed.connect(_on_next_month)
@@ -139,6 +149,13 @@ func _generate_dates() -> void:
 			button.grab_focus()
 			selected_button = button
 			selected_button.add_theme_color_override("font_color", selected_button.get_theme_color("font_focus_color"))
+	
+	# Force 6 Rows (42 cells total) for Consistent Height
+	var total_cells = first_day_of_week + days_in_month
+	var remaining_cells = 42 - total_cells
+	for _i in range(remaining_cells):
+		var empty_label = Label.new()
+		grid_dates.add_child(empty_label)
 
 
 func _get_days_in_month(target_month: int, target_year: int) -> int:
@@ -207,7 +224,9 @@ func _on_ok() -> void:
 
 
 func _update_month_label() -> void:
-	label_month_year.set_text("%s %d" % [_get_month_name(month), year])
+	label_month_year.set_text(_get_month_name(month))
+	if label_year:
+		label_year.set_text(str(year))
 
 
 func _get_month_name(m: int) -> String:
