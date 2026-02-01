@@ -396,7 +396,13 @@ func _build_edit_modal():
 	
 	var btn_row = HBoxContainer.new()
 	btn_row.alignment = BoxContainer.ALIGNMENT_END
+	btn_row.add_theme_constant_override("separation", 10)
 	v.add_child(btn_row)
+	
+	var var_btn = Button.new()
+	var_btn.text = "Save as Variation"
+	var_btn.pressed.connect(_on_save_variation_pressed)
+	btn_row.add_child(var_btn)
 	
 	var save_btn = Button.new()
 	save_btn.text = "Save Changes"
@@ -405,6 +411,7 @@ func _build_edit_modal():
 
 func _add_edit_field(parent, label_text, type, options=[]):
 	var cont = VBoxContainer.new()
+	cont.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	parent.add_child(cont)
 	
 	var l = Label.new()
@@ -415,10 +422,12 @@ func _add_edit_field(parent, label_text, type, options=[]):
 	
 	if type == "LineEdit":
 		var le = LineEdit.new()
+		le.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		cont.add_child(le)
 		return le
 	elif type == "OptionButton":
 		var ob = OptionButton.new()
+		ob.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		for opt in options:
 			ob.add_item(opt)
 		cont.add_child(ob)
@@ -686,6 +695,37 @@ func _refresh_timeline():
 
 	_update_header_title()
 
+func _on_save_variation_pressed():
+	# Capture current fields
+	var new_game = {
+		"title": edit_fields["title"].text + " (Variation)",
+		"category": _get_selected_text(edit_fields["category"]),
+		"difficulty": _get_selected_text(edit_fields["difficulty"]),
+		"intensity": _get_selected_text(edit_fields["intensity"]),
+		"type": _get_selected_text(edit_fields["type"]),
+		"initiation": _get_selected_text(edit_fields["initiation"]),
+		"players": edit_fields["players"].text,
+		"duration": edit_fields["duration"].text,
+		"focus": edit_fields["focus"].text
+	}
+	
+	if DataManager.save_game(new_game):
+		print("Variation saved!")
+		DataManager.scan_all()
+		
+		# If we are in edit mode (context exists), replace/update the current slot with this new variation
+		if edit_modal.has_meta("edit_context"):
+			var ctx = edit_modal.get_meta("edit_context")
+			var sec_id = ctx.sec_id
+			var idx = ctx.idx
+			
+			# User request: "When we create a variation, it should be the one that is placed in the class planner window"
+			# So we replace the old game at this index with the NEW game data.
+			current_class_data[sec_id][idx] = new_game
+			_refresh_timeline()
+			
+		edit_modal.hide()
+
 func _update_header_title():
 	if class_header_lbl:
 		var txt = class_name_input.text
@@ -832,9 +872,10 @@ func _on_load_item_activated(idx):
 	var txt = load_list.get_item_text(idx)
 	var data = DataManager.load_class(txt)
 	if data:
-		class_name_input.text = data.get("name", "")
+		# Support both keys for legacy/debug reasons or migrate
+		class_name_input.text = data.get("name", data.get("title", "")) # Fallback to title
 		date_input.text = data.get("date", Time.get_date_string_from_system())
-		selected_concept_id = data.get("concept_id", "")
+		selected_concept_id = data.get("concept_id", data.get("conceptId", "")) # Fallback
 		current_class_data = data.get("segments", {})
 		_refresh_timeline()
 		load_modal.hide()
@@ -877,6 +918,9 @@ func _on_edit_game_pressed(game, sec_id, idx):
 		current_class_data[sec_id][idx] = game
 		_refresh_timeline()
 		edit_modal.hide()
+	
+	# Store context for variation
+	edit_modal.set_meta("edit_context", {"game": game, "sec_id": sec_id, "idx": idx})
 	
 	edit_modal.popup_centered()
 
