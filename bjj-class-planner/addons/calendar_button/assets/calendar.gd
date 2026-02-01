@@ -52,6 +52,11 @@ func _ready() -> void:
 	min_box.value_changed.connect(_on_min_changed)
 	am_pm_button.toggled.connect(_on_am_pm_toggled)
 	ok_button.pressed.connect(_on_ok)
+	
+	# Fix Arrow Consistency
+	# Set a fixed width for the month label so standard month lengths don't shift arrows
+	label_month_year.custom_minimum_size.x = 120 
+	label_month_year.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 
 
 func set_custom_theme(new_theme: Theme, new_font: Font, new_font_size: int) -> void:
