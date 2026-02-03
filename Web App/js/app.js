@@ -19,7 +19,7 @@ const CLASS_TEMPLATE = [
     { id: 'standing', title: 'Standing', targetDuration: 10, type: 'standing' },
     { id: 'mobility', title: 'Mobility', targetDuration: 15, type: 'game' },
     { id: 'takedowns', title: 'Takedowns', targetDuration: 15, type: 'takedown' },
-    { id: 'discussion', title: 'Discussion', targetDuration: 5, type: 'discussion' },
+    { id: 'discussion', title: 'Concept Discussion', targetDuration: 5, type: 'discussion' },
     { id: 'applications', title: 'Concept Applications', targetDuration: 30, type: 'game' },
     { id: 'review', title: 'Review', targetDuration: 5, type: 'review' },
     { id: 'rolling', title: 'Free Roll', targetDuration: 15, type: 'rolling' }
@@ -375,7 +375,7 @@ function generateClassStructure() {
                 <details class="game-card" open>
                     <summary class="game-card-summary">
                         <div class="game-header-left">
-                           <span class="game-title">Concept Discussion</span>
+                           <span class="game-title">${concept.title}</span>
                         </div>
                          <div class="game-card-actions">
                             <button class="icon-btn edit-btn" title="Edit Concept" onclick="window.openConceptModal(window.state.selectedConceptId)">✎</button>
@@ -458,18 +458,40 @@ function generateClassStructure() {
             contentHtml = gamesHtml;
         }
 
-        // Time Badge Logic
+        // Time Badge Logic (Manual Override or Auto-calc)
+        let displayDuration = totalDuration;
+        // Check for manual override
+        if (state.sectionDurations && state.sectionDurations[segment.id] !== undefined) {
+            displayDuration = state.sectionDurations[segment.id];
+        } else if (totalDuration === 0) {
+            displayDuration = segment.targetDuration;
+        }
+
+        // Color logic based on difference from target (optional, keeping simple for now)
         let timeColor = '#888';
-        if (totalDuration > 0) {
-            const diff = totalDuration - segment.targetDuration;
+        if (displayDuration > 0) {
+            const diff = displayDuration - segment.targetDuration;
             if (Math.abs(diff) <= 2) timeColor = '#4caf50'; // Green
             else if (diff > 2) timeColor = '#f44336'; // Red (Over)
             else timeColor = '#ff9800'; // Orange (Under)
         }
 
-        const timeDisplay = totalDuration > 0
-            ? `<span style="color: ${timeColor}; margin-left: 5px;">(${totalDuration} / ${segment.targetDuration} min)</span>`
-            : `<span class="time-badge"> > ${segment.targetDuration} min</span>`;
+        const formattedTime = formatDuration(displayDuration);
+
+        // Editable Time Slider
+        const timeDisplay = `
+            <span style="display: inline-flex; align-items: center; margin-left: 10px; gap: 8px;">
+                <input type="range" 
+                       min="0.25" max="30" step="0.25"
+                       value="${displayDuration}"
+                       style="width: 100px; accent-color: var(--accent-color);"
+                       oninput="document.getElementById('display-${segment.id}').innerText = window.formatDuration(this.value)"
+                       onchange="updateSectionDuration('${segment.id}', this.value)"
+                       onclick="event.stopPropagation()"
+                />
+                <span id="display-${segment.id}" style="color: ${timeColor}; font-family: monospace; font-size: 0.9rem; min-width: 45px;">${formattedTime}</span>
+            </span>
+        `;
 
         segmentEl.innerHTML = `
                 <details class="section-collapsible" open>
@@ -488,6 +510,33 @@ function generateClassStructure() {
 
     setupDragAndDrop();
 }
+
+// Helper to format minutes (float) to MM:SS
+window.formatDuration = (val) => {
+    let floatVal = parseFloat(val);
+    if (isNaN(floatVal)) return "0:00";
+    let minutes = Math.floor(floatVal);
+    let seconds = Math.round((floatVal - minutes) * 60);
+    if (seconds === 60) {
+        minutes += 1;
+        seconds = 0;
+    }
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+};
+
+// Handler for manual time update
+window.updateSectionDuration = (segmentId, value) => {
+    if (!state.sectionDurations) {
+        state.sectionDurations = {};
+    }
+    state.sectionDurations[segmentId] = parseInt(value) || 0;
+    // We don't necessarily need to re-render everything, but it preserves consistency
+    // However, re-rendering kills focus. Ideally, we just update the state.
+    // If we want color updates, we might need to re-render or update style manually.
+    // For now, let's just update state. Re-render might be jarring if typing.
+    // Actually, onchange triggers on blur/enter, so re-render is fine.
+    generateClassStructure();
+};
 
 window.removeGame = (segmentId, index) => {
     if (state.segments[segmentId]) {

@@ -742,12 +742,18 @@ select.difficulty-advanced {
 }
 
 /* Autofill Override */
+/* Autofill Override */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
-input:-webkit-autofill:active {
-    -webkit-box-shadow: 0 0 0 30px #0d1117 inset !important;
+input:-webkit-autofill:active,
+.editor-textarea:-webkit-autofill,
+.editor-textarea:-webkit-autofill:hover,
+.editor-textarea:-webkit-autofill:focus,
+.editor-textarea:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px #0d1117 inset !important;
     -webkit-text-fill-color: #c9d1d9 !important;
+    caret-color: #c9d1d9 !important;
     transition: background-color 5000s ease-in-out 0s;
 }
 
