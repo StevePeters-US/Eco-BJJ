@@ -48,6 +48,34 @@ async function init() {
     }
 }
 
+function getFormattedTitle() {
+    const dateInput = document.getElementById('class-date-input');
+    let dateStr = '';
+    if (dateInput && dateInput.value) {
+        const parts = dateInput.value.split('-');
+        if (parts.length === 3) {
+            dateStr = ` ${parts[1]}/${parts[2]}/${parts[0].substring(2)}`;
+        }
+    }
+    return `${state.classTitle || 'My Class'}${dateStr}`;
+}
+
+function updateAppTitle() {
+    const fullTitle = getFormattedTitle();
+    document.title = fullTitle;
+
+    // Also update on-page header if generated
+    const titleDisplay = document.getElementById('class-title');
+    if (titleDisplay) {
+        let content = fullTitle;
+        const concept = state.content && state.content.concepts ? state.content.concepts.find(t => t.id === state.selectedConceptId) : null;
+        if (concept) {
+            content += `<div class="concept-subtitle">${concept.title}</div>`;
+        }
+        titleDisplay.innerHTML = content;
+    }
+}
+
 function renderConceptSelect() {
     const select = document.getElementById('concept-select');
     if (!state.content.concepts) {
@@ -108,11 +136,17 @@ function setupEventListeners() {
 
     // Class Title Input
     const titleInput = document.getElementById('class-title-input');
-    if (titleInput) {
-        titleInput.addEventListener('input', (e) => {
-            state.classTitle = e.target.value;
-        });
-    }
+    titleInput.addEventListener('input', (e) => {
+        state.classTitle = e.target.value;
+        updateAppTitle();
+    });
+}
+
+const dateInput = document.getElementById('class-date-input');
+if (dateInput) {
+    dateInput.addEventListener('change', () => {
+        updateAppTitle();
+    });
 
     // User requested removal of extra + button, so we remove the dynamic injection.
 
@@ -143,7 +177,7 @@ async function saveClass() {
     }
 
     // Construct Filename: Title_Date
-    const fileName = dateStr ? `${name}_${dateStr}` : name;
+    const fileName = getFormattedTitle().replace(/[\/\\?%*:|"<>]/g, '-'); // Sanitize slightly
 
     // 2. Build Data Payload from State
     const classData = {
@@ -268,25 +302,26 @@ function generateClassStructure() {
     metaContainer.classList.add('hidden');
 
     // Update Class Header (Title + Date + Concept)
-    const titleDisplay = document.getElementById('class-title-display');
+    const titleDisplay = document.getElementById('class-title'); // Fixed ID from class-title-display
     if (titleDisplay) {
-        let dateStr = '';
-        const dateInput = document.getElementById('class-date-input');
-        if (dateInput && dateInput.value) {
-            // Format YYYY-MM-DD -> MM/DD/YY
-            const parts = dateInput.value.split('-');
-            if (parts.length === 3) {
-                // parts[0] is year (2026), parts[1] is month, parts[2] is day
-                const shortYear = parts[0].substring(2);
-                dateStr = `, ${parts[1]}/${parts[2]}/${shortYear}`;
-            }
-        }
+        updateAppTitle();
+        // let dateStr = '';
+        // const dateInput = document.getElementById('class-date-input');
+        // if (dateInput && dateInput.value) {
+        //     // Format YYYY-MM-DD -> MM/DD/YY
+        //     const parts = dateInput.value.split('-');
+        //     if (parts.length === 3) {
+        //         // parts[0] is year (2026), parts[1] is month, parts[2] is day
+        //         const shortYear = parts[0].substring(2);
+        //         dateStr = `, ${parts[1]}/${parts[2]}/${shortYear}`;
+        //     }
+        // }
 
-        let headerHtml = `${state.classTitle || 'My Class'}${dateStr}`;
-        if (concept) {
-            headerHtml += `<div class="concept-subtitle">${concept.title}</div>`;
-        }
-        titleDisplay.innerHTML = headerHtml;
+        // let headerHtml = `${state.classTitle || 'My Class'}${dateStr}`;
+        // if (concept) {
+        //     headerHtml += `<div class="concept-subtitle">${concept.title}</div>`;
+        // }
+        // titleDisplay.innerHTML = headerHtml;
     }
 
     // Render Timeline
@@ -337,13 +372,22 @@ function generateClassStructure() {
             }
 
             contentHtml = `
-                <div class="section-header-row">
-                    <button class="btn-small secondary edit-theory-btn" onclick="window.openConceptModal(window.state.selectedConceptId)">✎ Edit Concept</button>
-                </div>
-                <div class="theory-content" id="theory-content-display">
-                    ${markedParse(concept.content || concept.description || 'No content available.')}
-                    ${imagesHtml}
-                </div>
+                <details class="game-card" open>
+                    <summary class="game-card-summary">
+                        <div class="game-header-left">
+                           <span class="game-title">Concept Discussion</span>
+                        </div>
+                         <div class="game-card-actions">
+                            <button class="icon-btn edit-btn" title="Edit Concept" onclick="window.openConceptModal(window.state.selectedConceptId)">✎</button>
+                        </div>
+                    </summary>
+                    <div class="game-card-content">
+                        <div class="theory-content" id="theory-content-display" style="border: none; padding: 0; background: transparent;">
+                            ${markedParse(concept.content || concept.description || 'No content available.')}
+                            ${imagesHtml}
+                        </div>
+                    </div>
+                </details>
             `;
         } else if (segment.type === 'review') {
             contentHtml = `<p class="segment-note">Review concepts</p>`;
@@ -568,7 +612,7 @@ function createModal(segmentId, filterCategory = null) {
     // Concept Dropdown options
     const concepts = state.content.concepts || [];
     const conceptOptions = concepts.map(c =>
-        `< option value = "${c.title}" ${c.title === filterCategory ? 'selected' : ''}> ${c.title}</option > `
+        `<option value="${c.title}" ${c.title === filterCategory ? 'selected' : ''}> ${c.title}</option>`
     ).join('');
 
     // Filter Games
