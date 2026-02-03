@@ -287,3 +287,61 @@ func save_game(game_data):
 	print("Failed to write to: ", path)
 	return false
 
+func save_concept(concept_data):
+	var title = concept_data.get("title", "Untitled")
+	# Determine path: use existing if available, else standard structure
+	var path = concept_data.get("path", "")
+	
+	if path == "":
+		var safe_title = title.strip_edges().replace(" ", "-") # Simple safe name
+		# Path: Concepts/Name/Name.md
+		var folder = PROJECT_ROOT.path_join("Concepts").path_join(safe_title)
+		if not DirAccess.dir_exists_absolute(folder):
+			DirAccess.make_dir_recursive_absolute(folder)
+		path = folder.path_join(safe_title + ".md")
+		
+	var file = FileAccess.open(path, FileAccess.WRITE)
+	if file:
+		# Write as Markdown
+		var content = concept_data.get("content", "")
+		# If content doesn't start with heading, add it?
+		if not content.strip_edges().begins_with("#"):
+			# Optionally ensure title is there, but user might have edited it in content
+			pass 
+		
+		# Since we treat the whole text as "content", just write it.
+		# Ideally we parse title from first line if we want to sync them, 
+		# but simplification: just write content.
+		file.store_string(content)
+		file.close()
+		print("Saved concept to: ", path)
+		return true
+		
+	print("Failed to save concept: ", path)
+	return false
+
+func copy_image_to_project(source_path):
+	# Create Images dir if needed
+	var images_dir = PROJECT_ROOT.path_join("Images")
+	if not DirAccess.dir_exists_absolute(images_dir):
+		DirAccess.make_dir_absolute(images_dir)
+	return copy_image_to_target(source_path, images_dir)
+
+func copy_image_to_target(source_path, target_dir):
+	var ext = source_path.get_extension()
+	var file_name = source_path.get_file().get_basename()
+	
+	# Unique name to prevent collision
+	var timestamp = str(Time.get_unix_time_from_system()).replace(".", "")
+	var new_name = "%s_%s.%s" % [file_name, timestamp, ext]
+	var dest_path = target_dir.path_join(new_name)
+	
+	var err = DirAccess.copy_absolute(source_path, dest_path)
+	if err == OK:
+		print("Image copied to: ", dest_path)
+		return dest_path
+	else:
+		print("Error copying image: ", err)
+		return ""
+
+

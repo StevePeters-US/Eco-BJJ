@@ -1,3 +1,5 @@
+
+[img]/home/steve/Documents/BJJ/Eco-BJJ/bjj-class-planner/../Images/Carotid_artery_med_01-3834831394_17700920147782.jpg[/img]
 ### Blood Choke Mechanics
 
 #### Anatomical Overview of the Neck:

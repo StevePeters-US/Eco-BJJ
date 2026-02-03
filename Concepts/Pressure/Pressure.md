@@ -1,3 +1,5 @@
+
+[img]/home/steve/Documents/BJJ/Eco-BJJ/bjj-class-planner/../Images/Carotid_artery_med_01-3834831394_177009144990289.jpg[/img]
 # Pressure
 
 **Pressure** = force / area

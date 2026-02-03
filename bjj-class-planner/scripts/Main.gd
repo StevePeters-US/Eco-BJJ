@@ -28,6 +28,13 @@ var edit_modal: Window
 var edit_fields = {} # Dictionary to store references to input nodes
 var edit_callback: Callable
 
+var concept_edit_modal: Window
+var concept_edit_fields = {}
+
+var file_dialog: FileDialog
+var active_text_edit: TextEdit # Tracks which TextEdit is focused for image insertion
+
+
 # Data State
 var current_class_data = {} 
 var selected_concept_id = ""
@@ -407,6 +414,22 @@ func _build_modals():
 	
 	# Edit Modal (Complex)
 	_build_edit_modal()
+	_build_concept_edit_modal()
+	
+	# File Dialog
+	_build_file_dialog()
+
+func _build_file_dialog():
+	file_dialog = FileDialog.new()
+	file_dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
+	file_dialog.access = FileDialog.ACCESS_FILESYSTEM
+	file_dialog.filters = ["*.png, *.jpg, *.jpeg, *.webp ; Images"]
+	file_dialog.size = Vector2(800, 600)
+	file_dialog.initial_position = Window.WINDOW_INITIAL_POSITION_CENTER_MAIN_WINDOW_SCREEN
+	file_dialog.visible = false
+	file_dialog.file_selected.connect(_on_file_selected)
+	add_child(file_dialog)
+
 
 func _build_load_modal():
 	load_modal = Window.new()
@@ -487,9 +510,39 @@ func _build_edit_modal():
 	l.text = "Focus / Notes"
 	v.add_child(l)
 	var te = TextEdit.new()
-	te.custom_minimum_size.y = 100
+	te.custom_minimum_size.y = 80
+	te.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
+	te.focus_entered.connect(func(): active_text_edit = te)
 	v.add_child(te)
 	edit_fields["focus"] = te
+	
+	# Description (TextArea with Image Support)
+	var desc_row = HBoxContainer.new()
+	v.add_child(desc_row)
+	
+	var dl = Label.new()
+	dl.text = "Description"
+	dl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	dl.add_theme_color_override("font_color", Color("#94a3b8"))
+	dl.add_theme_font_size_override("font_size", 12)
+	desc_row.add_child(dl)
+	
+	var img_btn = Button.new()
+	img_btn.text = "+ Insert Image"
+	img_btn.custom_minimum_size = Vector2(100, 0)
+	img_btn.add_theme_font_size_override("font_size", 10)
+	img_btn.pressed.connect(func(): 
+		active_text_edit = edit_fields["description"]
+		file_dialog.popup_centered()
+	)
+	desc_row.add_child(img_btn)
+	
+	var d_te = TextEdit.new()
+	d_te.custom_minimum_size.y = 150
+	d_te.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
+	d_te.focus_entered.connect(func(): active_text_edit = d_te)
+	v.add_child(d_te)
+	edit_fields["description"] = d_te
 	
 	var btn_row = HBoxContainer.new()
 	btn_row.alignment = BoxContainer.ALIGNMENT_END
@@ -505,6 +558,103 @@ func _build_edit_modal():
 	save_btn.text = "Save Changes"
 	save_btn.pressed.connect(func(): if edit_callback.is_valid(): edit_callback.call())
 	btn_row.add_child(save_btn)
+
+var concept_preview_label: RichTextLabel
+
+func _build_concept_edit_modal():
+	concept_edit_modal = Window.new()
+	concept_edit_modal.title = "Edit Concept"
+	concept_edit_modal.size = Vector2(1000, 800)
+	concept_edit_modal.visible = false
+	concept_edit_modal.exclusive = true
+	concept_edit_modal.close_requested.connect(func(): concept_edit_modal.hide())
+	add_child(concept_edit_modal)
+	
+	var p = PanelContainer.new()
+	p.set_anchors_preset(Control.PRESET_FULL_RECT)
+	p.add_theme_stylebox_override("panel", _get_stylebox(COL_PANEL))
+	concept_edit_modal.add_child(p)
+	
+	var split = HSplitContainer.new()
+	split.split_offset = 500
+	p.add_child(split)
+	
+	# === LEFT SIDE (Editor) ===
+	var left_vbox = VBoxContainer.new()
+	left_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	left_vbox.add_theme_constant_override("separation", 10)
+	split.add_child(left_vbox)
+	
+	# Fields
+	concept_edit_fields["title"] = _add_edit_field(left_vbox, "Concept Title", "LineEdit")
+	concept_edit_fields["title"].text_changed.connect(func(_new_text): _update_concept_preview())
+	
+	# Content Header
+	var desc_row = HBoxContainer.new()
+	left_vbox.add_child(desc_row)
+	
+	var dl = Label.new()
+	dl.text = "Content"
+	dl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	dl.add_theme_color_override("font_color", Color("#94a3b8"))
+	dl.add_theme_font_size_override("font_size", 12)
+	desc_row.add_child(dl)
+	
+	var img_btn = Button.new()
+	img_btn.text = "+ Insert Image"
+	img_btn.custom_minimum_size = Vector2(100, 0)
+	img_btn.add_theme_font_size_override("font_size", 10)
+	img_btn.pressed.connect(func(): 
+		active_text_edit = concept_edit_fields["content"]
+		_open_smart_image_dialog()
+	)
+	desc_row.add_child(img_btn)
+	
+	var d_te = TextEdit.new()
+	d_te.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	d_te.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
+	d_te.focus_entered.connect(func(): active_text_edit = d_te)
+	# Connect for Live Preview
+	d_te.text_changed.connect(_update_concept_preview)
+	left_vbox.add_child(d_te)
+	concept_edit_fields["content"] = d_te
+	
+	var btn_row = HBoxContainer.new()
+	btn_row.alignment = BoxContainer.ALIGNMENT_END
+	btn_row.add_theme_constant_override("separation", 10)
+	left_vbox.add_child(btn_row)
+	
+	var save_btn = Button.new()
+	save_btn.text = "Save Changes"
+	save_btn.pressed.connect(_on_save_concept_pressed)
+	btn_row.add_child(save_btn)
+	
+	# === RIGHT SIDE (Preview) ===
+	var right_panel = PanelContainer.new()
+	right_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	right_panel.add_theme_stylebox_override("panel", _get_stylebox(Color(0,0,0,0.2)))
+	split.add_child(right_panel)
+	
+	var preview_scroll = ScrollContainer.new()
+	right_panel.add_child(preview_scroll)
+	
+	var pv = VBoxContainer.new()
+	pv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	preview_scroll.add_child(pv)
+	
+	var lbl = Label.new()
+	lbl.text = "PREVIEW"
+	lbl.add_theme_color_override("font_color", Color("#94a3b8"))
+	lbl.add_theme_font_size_override("font_size", 10)
+	pv.add_child(lbl)
+	
+	concept_preview_label = RichTextLabel.new()
+	concept_preview_label.fit_content = true
+	concept_preview_label.bbcode_enabled = true
+	concept_preview_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	# Default Color
+	concept_preview_label.add_theme_color_override("default_color", COL_TEXT_PRIM)
+	pv.add_child(concept_preview_label)
 
 func _add_edit_field(parent, label_text, type, options=[]):
 	var cont = VBoxContainer.new()
@@ -543,6 +693,9 @@ func _refresh_concepts_dropdown():
 	for i in range(DataManager.concepts.size()):
 		var c = DataManager.concepts[i]
 		concept_select.add_item(c.title, i)
+	
+	# Default to placeholder
+	concept_select.select(0)
 
 func _populate_picker_tree():
 	# 1. Populate Filter if empty
@@ -650,13 +803,27 @@ func _refresh_timeline():
 		content_panel.add_child(content_vbox)
 		
 		if sec.id == "discussion":
+			# Inject Concept Content here
+			var header_row = HBoxContainer.new()
+			content_vbox.add_child(header_row)
+			
+			if concept_obj:
+				var edit_c_btn = Button.new()
+				edit_c_btn.text = "✎ Edit Concept"
+				edit_c_btn.flat = true
+				edit_c_btn.add_theme_color_override("font_color", COL_ACCENT)
+				edit_c_btn.pressed.connect(func(): _open_concept_editor(concept_obj))
+				header_row.add_child(edit_c_btn)
+			
 			var disc_lbl = RichTextLabel.new()
 			disc_lbl.fit_content = true
 			disc_lbl.bbcode_enabled = true
+			
 			if concept_obj:
-				disc_lbl.text = "[b]" + concept_obj.title + "[/b]\n" + concept_obj.content
+				_set_concept_display(disc_lbl, concept_obj.title, concept_obj.content)
 			else:
 				disc_lbl.text = "[i]Select a concept to view discussion topics.[/i]"
+			
 			disc_lbl.add_theme_color_override("default_color", COL_TEXT_PRIM)
 			content_vbox.add_child(disc_lbl)
 		else:
@@ -810,7 +977,8 @@ func _on_save_variation_pressed():
 		"initiation": _get_selected_text(edit_fields["initiation"]),
 		"players": edit_fields["players"].text,
 		"duration": edit_fields["duration"].text,
-		"focus": edit_fields["focus"].text
+		"focus": edit_fields["focus"].text,
+		"description": edit_fields["description"].text
 	}
 	
 	if DataManager.save_game(new_game):
@@ -886,6 +1054,7 @@ func _on_new_game_pressed():
 	edit_fields["players"].text = "2"
 	edit_fields["duration"].text = "5"
 	edit_fields["focus"].text = ""
+	edit_fields["description"].text = ""
 	
 	# Determine default category from filter if possible
 	var filter_txt = "All"
@@ -919,7 +1088,8 @@ func _on_new_game_pressed():
 			"initiation": _get_selected_text(edit_fields["initiation"]),
 			"players": edit_fields["players"].text,
 			"duration": edit_fields["duration"].text,
-			"focus": edit_fields["focus"].text
+			"focus": edit_fields["focus"].text,
+			"description": edit_fields["description"].text
 		}
 		
 		# Validate
@@ -976,7 +1146,7 @@ func _clear_class():
 	class_name_input.text = ""
 	date_input.text = Time.get_date_string_from_system()
 	selected_concept_id = ""
-	concept_select.select(-1)
+	concept_select.select(0)
 	_init_class_data()
 	_refresh_timeline()
 
@@ -1094,6 +1264,7 @@ func _on_edit_game_pressed(game, sec_id, idx):
 	edit_fields["players"].text = str(game.get("players", ""))
 	edit_fields["duration"].text = str(game.get("duration", ""))
 	edit_fields["focus"].text = game.get("focus", "")
+	edit_fields["description"].text = game.get("description", "")
 	
 	edit_callback = func():
 		# Save back
@@ -1106,6 +1277,7 @@ func _on_edit_game_pressed(game, sec_id, idx):
 		game.players = edit_fields["players"].text
 		game.duration = edit_fields["duration"].text
 		game.focus = edit_fields["focus"].text
+		game.description = edit_fields["description"].text
 		
 		# Update
 		current_class_data[sec_id][idx] = game
@@ -1128,3 +1300,125 @@ func _get_selected_text(opt_btn):
 	var idx = opt_btn.selected
 	if idx >= 0: return opt_btn.get_item_text(idx)
 	return ""
+
+func _on_file_selected(path):
+	# Smart Handler
+	var dest = path
+	
+	# Check if path is already inside Project Root
+	if path.begins_with(DataManager.PROJECT_ROOT):
+		# It is inside. Use absolute path? Or Relative?
+		# Main.gd seems to use absolute paths currently for simplicity in _set_concept_display (Image.load_from_file)
+		# So we can just use the path as is, no copy needed.
+		dest = path
+	else:
+		# External image. Copy it.
+		# Where to? 
+		if concept_edit_modal.visible and concept_edit_modal.has_meta("concept_ref"):
+			var concept = concept_edit_modal.get_meta("concept_ref")
+			# Copy to concept folder
+			var target_dir = concept.folder.path_join("Images")
+			if not DirAccess.dir_exists_absolute(target_dir):
+				DirAccess.make_dir_absolute(target_dir)
+			
+			dest = DataManager.copy_image_to_target(path, target_dir)
+		else:
+			# Fallback to global images
+			dest = DataManager.copy_image_to_project(path)
+
+	if dest != "" and active_text_edit:
+		var bbcode = "\n[img]%s[/img]\n" % dest
+		active_text_edit.insert_text_at_caret(bbcode)
+		# Trigger update if in concept editor
+		if active_text_edit == concept_edit_fields["content"]:
+			_update_concept_preview()
+
+func _open_concept_editor(concept):
+	concept_edit_fields["title"].text = concept.title
+	concept_edit_fields["content"].text = concept.content
+	concept_edit_modal.set_meta("concept_ref", concept)
+	_update_concept_preview()
+	concept_edit_modal.popup_centered()
+
+func _update_concept_preview():
+	if concept_preview_label:
+		var t = concept_edit_fields["title"].text
+		var c = concept_edit_fields["content"].text
+		_set_concept_display(concept_preview_label, t, c)
+
+func _open_smart_image_dialog():
+	# Default to Project Root Images
+	var start_dir = DataManager.PROJECT_ROOT.path_join("Images")
+	
+	# Try usage of Concept specific folder if we have context
+	if concept_edit_modal.visible and concept_edit_modal.has_meta("concept_ref"):
+		var concept = concept_edit_modal.get_meta("concept_ref")
+		if concept.has("folder"):
+			# Check for Images subfolder
+			var img_sub = concept.folder.path_join("Images")
+			if DirAccess.dir_exists_absolute(img_sub):
+				start_dir = img_sub
+			else:
+				start_dir = concept.folder
+	
+	file_dialog.current_dir = start_dir
+	file_dialog.popup_centered()
+
+func _on_save_concept_pressed():
+	if not concept_edit_modal.has_meta("concept_ref"): return
+	var concept = concept_edit_modal.get_meta("concept_ref")
+	
+	# Update Data
+	concept.title = concept_edit_fields["title"].text
+	concept.content = concept_edit_fields["content"].text
+	
+	if DataManager.save_concept(concept):
+		DataManager.scan_all() # Refresh all data to catch title changes etc
+		# _on_data_loaded will refresh timeline
+		concept_edit_modal.hide()
+	else:
+		print("Error saving concept")
+
+func _set_concept_display(label: RichTextLabel, title: String, content: String):
+	label.clear()
+	
+	# Bold Title at top
+	label.append_text("[b]" + title + "[/b]\n")
+	
+	var regex = RegEx.new()
+	regex.compile("\\[img\\](.*?)\\[/img\\]")
+	
+	var search_start = 0
+	while true:
+		var result = regex.search(content, search_start)
+		if not result:
+			# Append remaining text
+			label.append_text(content.substr(search_start))
+			break
+			
+		# Text before image
+		var start = result.get_start()
+		var prefix = content.substr(search_start, start - search_start)
+		label.append_text(prefix)
+		label.append_text("\n") # Ensure newline before image
+		
+		# Image processing
+		var path = result.get_string(1).strip_edges()
+		var img = Image.load_from_file(path)
+		if img:
+			# Resize if too big? 
+			# For now, let's limit width to something reasonable if needed, 
+			# but RichTextLabel might just overflow. 
+			# Let's cap width at 600px for safety (approx timeline width)
+			if img.get_width() > 600:
+				var ratio = 600.0 / img.get_width()
+				var new_h = img.get_height() * ratio
+				img.resize(600, new_h)
+				
+			var tex = ImageTexture.create_from_image(img)
+			label.add_image(tex)
+			label.append_text("\n") # Ensure newline after image
+		else:
+			label.append_text("[Image not found: %s]" % path)
+		
+		search_start = result.get_end()
