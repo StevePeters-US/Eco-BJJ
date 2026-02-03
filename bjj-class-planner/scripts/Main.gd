@@ -620,6 +620,30 @@ func _build_concept_edit_modal():
 	concept_editor_canvas.add_theme_constant_override("separation", 15)
 	canvas_margin.add_child(concept_editor_canvas)
 	
+	# Toolbar Footer
+	var toolbar = HBoxContainer.new()
+	toolbar.alignment = BoxContainer.ALIGNMENT_CENTER
+	toolbar.add_theme_constant_override("separation", 20)
+	v_main.add_child(toolbar)
+	
+	var btn_text = Button.new()
+	btn_text.text = "+ Text"
+	btn_text.pressed.connect(func(): _add_block_text(""))
+	toolbar.add_child(btn_text)
+	
+	var btn_img = Button.new()
+	btn_img.text = "+ Image"
+	btn_img.pressed.connect(func(): _open_smart_image_dialog())
+	toolbar.add_child(btn_img)
+	
+	var btn_split = Button.new()
+	btn_split.text = "+ Side-by-Side"
+	btn_split.pressed.connect(func():
+		file_dialog.set_meta("insert_mode", "split")
+		_open_smart_image_dialog()
+	)
+	toolbar.add_child(btn_split)
+	
 	# --- Editor Logic is now Block Based ---
 	# We rely on _populate_editor_blocks() to fill this canvas
 	pass
@@ -710,6 +734,125 @@ func _add_block_image(path: String, width: int = 400):
 	del_btn.add_theme_color_override("font_color", Color("#e57373"))
 	del_btn.pressed.connect(func(): panel.queue_free())
 	tools.add_child(del_btn)
+	
+	concept_editor_canvas.add_child(panel)
+	return panel
+
+func _add_block_split(text: String, path: String, width: int = 300, side: String = "right"):
+	var panel = PanelContainer.new()
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var style = _get_stylebox(Color(0,0,0,0.2), 8)
+	panel.add_theme_stylebox_override("panel", style)
+	
+	panel.set_meta("block_type", "split")
+	panel.set_meta("image_path", path)
+	panel.set_meta("image_width", width)
+	panel.set_meta("side", side)
+	
+	var vbox = VBoxContainer.new()
+	panel.add_child(vbox)
+	
+	# Top Toolbar
+	var tools = HBoxContainer.new()
+	tools.alignment = BoxContainer.ALIGNMENT_END
+	vbox.add_child(tools)
+	
+	var swap_btn = Button.new()
+	swap_btn.text = "Swap Side ↔"
+	swap_btn.add_theme_font_size_override("font_size", 10)
+	# Logic added below after content rows created
+	tools.add_child(swap_btn)
+	
+	var up_btn = Button.new()
+	up_btn.text = "▲"
+	up_btn.flat = true
+	up_btn.pressed.connect(func(): _move_block(panel, -1))
+	tools.add_child(up_btn)
+	
+	var down_btn = Button.new()
+	down_btn.text = "▼"
+	down_btn.flat = true
+	down_btn.pressed.connect(func(): _move_block(panel, 1))
+	tools.add_child(down_btn)
+	
+	var del_btn = Button.new()
+	del_btn.text = "✕"
+	del_btn.flat = true
+	del_btn.add_theme_color_override("font_color", Color("#e57373"))
+	del_btn.pressed.connect(func(): panel.queue_free())
+	tools.add_child(del_btn)
+	
+	# Content Row
+	var content = HBoxContainer.new()
+	content.add_theme_constant_override("separation", 15)
+	vbox.add_child(content)
+	
+	# Text (Always create but parent differently based on side)
+	var text_area = TextEdit.new()
+	text_area.text = text
+	text_area.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
+	text_area.scroll_fit_content_height = true
+	text_area.custom_minimum_size.y = 150
+	text_area.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	# Styling
+	var style_empty = StyleBoxEmpty.new()
+	text_area.add_theme_stylebox_override("normal", style_empty)
+	text_area.add_theme_stylebox_override("focus", style_empty)
+	text_area.add_theme_color_override("font_color", COL_TEXT_PRIM)
+	
+	# Image Container
+	var img_col = VBoxContainer.new()
+	# Fixed width for image column? Or flexible? 
+	# Let's start with setting min width to match current width
+	img_col.custom_minimum_size.x = width
+	
+	var tex_rect = TextureRect.new()
+	var img_tex = _load_image_texture(path)
+	tex_rect.texture = img_tex
+	tex_rect.ignore_texture_size = true
+	tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	tex_rect.custom_minimum_size.y = 200
+	tex_rect.custom_minimum_size.x = width
+	img_col.add_child(tex_rect)
+	
+	var slider_row = HBoxContainer.new()
+	img_col.add_child(slider_row)
+	var slider = HSlider.new()
+	slider.min_value = 100
+	slider.max_value = 600
+	slider.value = width
+	slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	slider.value_changed.connect(func(v): 
+		panel.set_meta("image_width", v)
+		tex_rect.custom_minimum_size.x = v
+		img_col.custom_minimum_size.x = v
+	)
+	slider_row.add_child(slider)
+	
+	# Placement
+	if side == "left":
+		content.add_child(img_col)
+		content.add_child(text_area)
+	else:
+		content.add_child(text_area)
+		content.add_child(img_col)
+		
+	# Swap Logic
+	swap_btn.pressed.connect(func():
+		var current = panel.get_meta("side")
+		var new_side = "left" if current == "right" else "right"
+		panel.set_meta("side", new_side)
+		
+		content.remove_child(img_col)
+		content.remove_child(text_area)
+		
+		if new_side == "left":
+			content.add_child(img_col)
+			content.add_child(text_area)
+		else:
+			content.add_child(text_area)
+			content.add_child(img_col)
+	)
 	
 	concept_editor_canvas.add_child(panel)
 	return panel
@@ -1385,57 +1528,70 @@ func _populate_editor_blocks(content):
 	for c in concept_editor_canvas.get_children():
 		c.queue_free()
 	
-	# Add Title Field logic here? Or keep it separate?
-	# In _build_concept_edit_modal we didn't add the Title Field to the canvas, 
-	# but we removed the concept_edit_fields["title"] from the previous implementation.
-	# Wait, we removed it. We need to restore the Title Input inside the Modal (above canvas).
-	# Ah, I added "Header with Save" but forgot the Title Input in the replacement of _build_concept_edit_modal?
-	# Let's check the previous tool call...
-	# I saw: Header... Title Label... Save Btn...
-	# I did NOT add a LineEdit for the Concept Title! 
-	# I will handle title separately or add it now. 
-	# User wants "One window with text and images". Title is metadata.
-	# Let's assume for now we just edit content, but we need Title editing.
-	# I'll Fix title input in a separate step or assume I can add it to the header now using get_node/children logic, 
-	# but better to rely on `concept_edit_fields` if I can.
-	# NOTE: The previous replacement REMOVED `concept_edit_fields["title"]` initialization.
-	# I need to fix that. But let's focus on content first.
+	# Logic:
+	# 1. Split by [split_block] first?
+	# 2. Inside non-split parts, split by [img]
 	
-	# Parse Markdown for Image Tags
-	var regex = RegEx.new()
-	# Match [img( width=D)?]Path[/img]
-	regex.compile("\\[img(?:\\s+width=(\\d+))?\\](.*?)\\[/img\\]")
+	var split_regex = RegEx.new()
+	split_regex.compile("\\[split_block\\s+image=\"(.*?)\"\\s+width=\"(\\d+)\"\\s+side=\"(.*?)\"\\](.*?)\\[/split_block\\]")
+	
+	# We process iteratively
+	var cursor = 0
+	while true:
+		var split_match = split_regex.search(content, cursor)
+		
+		# Process standard content before the split match (or all if no match)
+		var end_standard = content.length()
+		if split_match:
+			end_standard = split_match.get_start()
+			
+		var standard_chunk = content.substr(cursor, end_standard - cursor)
+		if standard_chunk != "":
+			_parse_standard_blocks(standard_chunk)
+			
+		if not split_match:
+			break
+			
+		# Add Split Block
+		var img_path = split_match.get_string(1)
+		var width = split_match.get_string(2).to_int()
+		var side = split_match.get_string(3)
+		var text = split_match.get_string(4)
+		
+		_add_block_split(text, img_path, width, side)
+		
+		cursor = split_match.get_end()
+
+	# If empty
+	if concept_editor_canvas.get_child_count() == 0:
+		_add_block_text("")
+
+func _parse_standard_blocks(chunk):
+	var img_regex = RegEx.new()
+	img_regex.compile("\\[img(?:\\s+width=(\\d+))?\\](.*?)\\[/img\\]")
 	
 	var search_start = 0
 	while true:
-		var result = regex.search(content, search_start)
+		var result = img_regex.search(chunk, search_start)
 		if not result:
-			# Remaining text
-			var rem = content.substr(search_start)
+			var rem = chunk.substr(search_start)
 			if rem.strip_edges() != "":
-				_add_block_text(rem)
+				_add_block_text(rem.strip_edges())
 			break
 			
 		var start = result.get_start()
-		# Text before image
 		if start > search_start:
-			var prefix = content.substr(search_start, start - search_start)
+			var prefix = chunk.substr(search_start, start - search_start)
 			if prefix.strip_edges() != "":
-				_add_block_text(prefix.strip_edges()) # Strip edges to avoid massive gaps? Or keep? keeps formatted.
+				_add_block_text(prefix.strip_edges())
 		
-		# Image Block
 		var width = 400
 		if result.get_string(1) != "":
 			width = result.get_string(1).to_int()
-			
 		var path = result.get_string(2)
 		_add_block_image(path, width)
 		
 		search_start = result.get_end()
-	
-	# If empty, add one text block
-	if concept_editor_canvas.get_child_count() == 0:
-		_add_block_text("")
 
 func _on_save_concept_pressed():
 	if not concept_edit_modal.has_meta("concept_ref"): return
@@ -1447,17 +1603,32 @@ func _on_save_concept_pressed():
 		var type = child.get_meta("block_type")
 		if type == "text":
 			var text = child.text
-			# Only append if not empty? Or keep formatting?
-			# Markdown needs newlines.
 			new_content += text + "\n\n"
 		elif type == "image":
 			var path = child.get_meta("image_path")
 			var width = child.get_meta("image_width")
 			new_content += "[img width=%d]%s[/img]\n\n" % [width, path]
+		elif type == "split":
+			var path = child.get_meta("image_path")
+			var width = child.get_meta("image_width")
+			var side = child.get_meta("side")
+			# Find text child? Accessing internal children is brittle but we know structure.
+			# Or easier: get the TextEdit from the child structure.
+			# Structure: Panel -> VBox -> [Tools, Content[Child1, Child2]]
+			var vbox = child.get_child(0)
+			var content_box = vbox.get_child(1) # Index 1 is content row
+			# Iterate children of content box to find TextEdit
+			var text_val = ""
+			for sub in content_box.get_children():
+				if sub is TextEdit:
+					text_val = sub.text
+					break
+			
+			new_content += "[split_block image=\"%s\" width=\"%d\" side=\"%s\"]%s[/split_block]\n\n" % [path, width, side, text_val]
 	
 	concept.content = new_content
-	# Concept Title? We need to accept input for it. 
-	# I will add a rename button or field later.
+	# Concept Title
+	concept.title = concept_edit_fields["title"].text
 	
 	if DataManager.save_concept(concept):
 		DataManager.scan_all()
@@ -1466,9 +1637,8 @@ func _on_save_concept_pressed():
 		print("Error saving concept")
 
 func _on_file_selected(path):
-	# Smart Handler (existing logic for copy)
+	# ... (Copy Logic same as before, abbreviated for simplicity) ...
 	var dest = path
-	# ... (Image copy logic from previous step, simplified here for brevity of replace) ...
 	if path.begins_with(DataManager.PROJECT_ROOT):
 		dest = path
 	else:
@@ -1481,10 +1651,13 @@ func _on_file_selected(path):
 		else:
 			dest = DataManager.copy_image_to_project(path)
 
-	# Block Insertion
 	if dest != "":
-		_add_block_image(dest)
-		# Trigger something? Scroll to bottom?
+		# Check insert mode
+		if file_dialog.has_meta("insert_mode") and file_dialog.get_meta("insert_mode") == "split":
+			_add_block_split("", dest)
+			file_dialog.set_meta("insert_mode", "") # Reset
+		else:
+			_add_block_image(dest)
 		
 # REMOVE Helpers no longer needed: _update_concept_preview, _set_concept_display (actually set_concept_display is used for Timeline view, so KEEP IT)
 # But _update_concept_preview is dead.
@@ -1509,52 +1682,109 @@ func _set_concept_display(label: RichTextLabel, title: String, content: String):
 	# Bold Title at top
 	label.append_text("[b]" + title + "[/b]\n")
 	
-	var regex = RegEx.new()
-	# Match [img( width=D)?]Path[/img]
-	regex.compile("\\[img(?:\\s+width=(\\d+))?\\](.*?)\\[/img\\]")
+	# Split blocks need manual loading and add_image() because [img] tags
+	# often fail with absolute system paths in exported projects or non-res:// locations.
 	
-	var search_start = 0
+	var split_regex = RegEx.new()
+	split_regex.compile("\\[split_block\\s+image=\"(.*?)\"\\s+width=\"(\\d+)\"\\s+side=\"(.*?)\"\\](.*?)\\[/split_block\\]")
+	
+	var cursor = 0
 	while true:
-		var result = regex.search(content, search_start)
-		if not result:
-			# Append remaining text
-			label.append_text(content.substr(search_start))
+		var split_match = split_regex.search(content, cursor)
+		
+		# If no split match, process the rest
+		if not split_match:
+			var rest = content.substr(cursor)
+			_append_standard_content(label, rest)
 			break
 			
-		# Text before image
-		var start = result.get_start()
-		var prefix = content.substr(search_start, start - search_start)
-		label.append_text(prefix)
-		label.append_text("\n") # Ensure newline before image
-		
-		# Image processing
-		var width_str = result.get_string(1)
-		var path = result.get_string(2).strip_edges()
-		
-		var img = Image.load_from_file(path)
-		if img:
-			# Resize logic
-			var target_width = 600
+		# Text/Standalones before split block
+		if split_match.get_start() > cursor:
+			var pre_text = content.substr(cursor, split_match.get_start() - cursor)
+			_append_standard_content(label, pre_text)
 			
-			if width_str != "":
-				target_width = width_str.to_int()
-			else:
-				# Default max behavior
-				if img.get_width() > 600:
-					target_width = 600
-				else:
-					target_width = img.get_width()
-			
-			# Apply Resize
-			if img.get_width() != target_width:
-				var ratio = float(target_width) / img.get_width()
-				var new_h = img.get_height() * ratio
-				img.resize(target_width, int(new_h))
-				
-			var tex = ImageTexture.create_from_image(img)
-			label.add_image(tex)
-			label.append_text("\n") # Ensure newline after image
+		# PROCESS SPLIT BLOCK
+		var img_path = split_match.get_string(1)
+		var img_width = split_match.get_string(2).to_int()
+		var side = split_match.get_string(3)
+		var inner_text = split_match.get_string(4)
+		
+		# Generate Table
+		label.append_text("[table=2]")
+		
+		var img_tex = _load_resized_texture(img_path, img_width)
+		
+		if side == "left":
+			label.append_text("[cell]")
+			if img_tex: label.add_image(img_tex)
+			else: label.append_text("[Img Error]")
+			label.append_text("[/cell][cell]%s[/cell]" % inner_text)
 		else:
-			label.append_text("[Image not found: %s]" % path)
+			label.append_text("[cell]%s[/cell][cell]" % inner_text)
+			if img_tex: label.add_image(img_tex)
+			else: label.append_text("[Img Error]")
+			label.append_text("[/cell]")
+			
+		label.append_text("[/table]\n")
 		
-		search_start = result.get_end()
+		cursor = split_match.get_end()
+
+func _append_standard_content(label: RichTextLabel, text: String):
+	# Handle Standalone Images (Wrapper in Center)
+	var img_regex = RegEx.new()
+	img_regex.compile("\\[img(?:\\s+width=(\\d+))?\\](.*?)\\[/img\\]")
+	
+	var cursor = 0
+	while true:
+		var match_res = img_regex.search(text, cursor)
+		if not match_res:
+			label.append_text(text.substr(cursor))
+			break
+			
+		if match_res.get_start() > cursor:
+			label.append_text(text.substr(cursor, match_res.get_start() - cursor))
+			
+		# Centered Image
+		label.append_text("\n[center]")
+		
+		var w_str = match_res.get_string(1)
+		var path = match_res.get_string(2)
+		var target_w = 600 # Default max
+		if w_str != "": target_w = w_str.to_int()
+		
+		# Allow dynamic max check if default? 
+		# For now, if no width specified, assume max 600 or load natural.
+		# The old code checked if img > 600.
+		
+		var img_tex: Texture2D
+		if w_str != "":
+			img_tex = _load_resized_texture(path, target_w)
+		else:
+			# Auto logic
+			var temp_img = Image.load_from_file(path)
+			if temp_img:
+				if temp_img.get_width() > 600:
+					var ratio = 600.0 / temp_img.get_width()
+					var new_h = temp_img.get_height() * ratio
+					temp_img.resize(600, int(new_h))
+				img_tex = ImageTexture.create_from_image(temp_img)
+				
+		if img_tex:
+			label.add_image(img_tex)
+		else:
+			label.append_text("[Image Error: %s]" % path)
+			
+		label.append_text("[/center]\n")
+		
+		cursor = match_res.get_end()
+
+func _load_resized_texture(path: String, target_w: int):
+	# Helper to load and resize
+	var img = Image.load_from_file(path)
+	if img:
+		if img.get_width() != target_w:
+			var ratio = float(target_w) / img.get_width()
+			var new_h = img.get_height() * ratio
+			img.resize(target_w, int(new_h))
+		return ImageTexture.create_from_image(img)
+	return null

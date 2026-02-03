@@ -1,5 +1,5 @@
+[img width=561]/home/steve/Documents/BJJ/Eco-BJJ/bjj-class-planner/../Concepts/Pressure/Images/Carotid_artery_med_01-3834831394_177009417596492.jpg[/img]
 
-[img]/home/steve/Documents/BJJ/Eco-BJJ/bjj-class-planner/../Images/Carotid_artery_med_01-3834831394_177009144990289.jpg[/img]
 # Pressure
 
 **Pressure** = force / area
@@ -20,3 +20,4 @@ Like roots crack rocks we apply force strategically to weak points in our oppone
 ## Targets of Pressure
 - **Diaphragm** - primary muscle that inflates the lungs. Responsible for deep breathing. Apply downward and lateral pressure to constrict. Curling the defender's spine into a concave shape compresses the lower abdominal organs against the diaphragm, further restricting it’s ability to pull air into the lungs. This is the correct time to tell dad jokes.
 - **Elbows and knees** - apply downward and lateral force to the elbows and knees to rotate or topple frames.
+
