@@ -700,7 +700,7 @@ function createModal(segmentId, filterCategory = null) {
     }
 
     overlay.innerHTML = `
-                <div class="modal">
+                <div class="modal modal-lg">
             <div class="modal-header">
                 <h3>Select Game</h3>
                 <div class="modal-actions">
@@ -866,7 +866,7 @@ window.openGameModal = (gameId = null, preselectedCategory = null, templateGame 
     ).join('');
 
     overlay.innerHTML = `
-                <div class="modal">
+                <div class="modal modal-lg">
             <div class="modal-header">
                 <h3>${isEdit ? 'Edit Game' : 'Create New Game'}</h3>
                 <button onclick="this.closest('.modal-overlay').remove()">×</button>
@@ -880,10 +880,9 @@ window.openGameModal = (gameId = null, preselectedCategory = null, templateGame 
 
                  <div class="form-group">
                     <label>Category</label>
-                    <select id="new-game-category" disabled> <!-- Always disabled in this view for simplicity -->
-                        <option value="${game && game.category ? game.category : (preselectedCategory || '')}" selected>
-                            ${game && game.category ? game.category : (preselectedCategory || 'Select...')}
-                        </option>
+                    <select id="new-game-category" ${isEdit ? 'disabled' : ''}>
+                        <option value="" disabled ${!game && !preselectedCategory ? 'selected' : ''}>Select Category...</option>
+                        ${optionsHtml}
                     </select>
                 </div>
 

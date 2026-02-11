@@ -1,18 +1,23 @@
 **Blood Choke Mechanics**
 
+Blood is transported to the brain via the carotid arteries and two arteries running along the spine. These arteries are unaccesible for our needs, but we need to understand that the carotids carry about 1/3 of the blood to the brain, with the remaining third being delivered by the vertebral arteries. 
+
 #### Anatomical Overview of the Neck:
 - **Carotid Sheath**:
   - A protective fascial layer that encases key structures: carotid artery, vagus nerve, and jugular vein.
 
 1. **Neurovascular Components**:
-   - Carotid Arteries: 
-     - Essential for providing oxygenated blood to the brain.
-     - Both common carotids split into external and internal branches above the thyroid gland.
-       - External Carotid Artery: Supplies blood to facial and neck regions.
-       - Internal Carotid Artery: Directly provides oxygenated blood to the brain.
+
+
+    - Carotid Arteries: deliver oxygenated blood to the brain.
+    Each carotid divides into external and internal branches near the level of the Adam’s apple, just below the front of the ear.
+        External Carotid Artery – supplies the face and neck.
+        Internal Carotid Artery – carries oxygen‑rich blood directly to the brain.
 
    - Jugular Vein:
-     - Returns deoxygenated blood from the head toward the heart, operating at lower pressure. Constriction can cause discomfort but rarely leads to submission.
+     - Returns deoxygenated blood from the head toward the heart, operating at lower pressure. 
+     - Located on the outside of the carotid.
+     - Constriction can cause discomfort but rarely leads to submission.
 
    - Vagus Nerve:
      - Important for autonomic control.
