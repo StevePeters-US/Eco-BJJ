@@ -1,4 +1,4 @@
-### Blood Choke Mechanics
+**Blood Choke Mechanics**
 
 #### Anatomical Overview of the Neck:
 - **Carotid Sheath**:

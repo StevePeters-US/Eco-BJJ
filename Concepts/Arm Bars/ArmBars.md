@@ -6,7 +6,7 @@
 * The elbow moves in a single plane.
 * The arm in most people does not extend more than about 180 degrees although there are some exceptions.
 
-### Breaking the Elbow Joint
+**Breaking the Elbow Joint**
 
 1. **Extension Past Full Range of Motion**: 
 * This can be done by locking the arm to full extension via the shoulder and wrist, and applying force to the backside of the elbow
@@ -20,18 +20,18 @@ To effectively break the arm, you must control both sides of the elbow (the shou
 
 ## Arm Bars Using Legs, Hips, and Arms
 
-### Stabilizing the Shoulder
+**Stabilizing the Shoulder**
 
 * Break the defender's posture by bringing them down towards the floor
 * Turn their head to further affect their posture
 
-### Controlling the Elbow
+**Controlling the Elbow**
 
 * Hook the defender's arm with your inside elbow (either head or hip side)
 * Hooking with the head side arm allows the attacker to control the defender's legs
 * If the elbow is below the pelvic bone, the breaking force will travel through the defender's forearm instead of their elbow
 
-### Gaining Control Over the Hand
+**Gaining Control Over the Hand**
 Most defenders will use one of a few variations of grips to prevent the extension of thier arm. Think of attacking these grips as similar to picking a lock. Keep tension on the tumbler to keep the pins in place while you pick it. You could always try smashing the lock if that doesn't work.
 
 ## Types of Grips

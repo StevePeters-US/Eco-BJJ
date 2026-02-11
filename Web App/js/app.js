@@ -992,34 +992,20 @@ window.submitGameForm = async (isEdit) => {
     let category = document.getElementById('new-game-category').value;
     const catSelect = document.getElementById('new-game-category');
     if (!category && catSelect.disabled) {
-        // If disabled, it might not be yielding value, or simply ensure we grab the selected option
         category = catSelect.options[catSelect.selectedIndex].value;
     }
     const gameParentId = document.getElementById('game-parent-id').value;
 
-    // Helper to get overridden values only
     const getFieldVal = (id, fieldName) => {
         const el = document.getElementById(id);
         if (!el) return null;
-        if (gameParentId && el.disabled) return null; // If disabled/not overridden, don't send
+        if (gameParentId && el.disabled) return null;
         return el.value;
     }
 
-    // If no parent, we send all values. If parent, we send only active ones.
-    // BUT server.py now ignores nulls.
-    // So we just need to ensure 'disabled' inputs return null or empty?
-    // Actually, disabled inputs are not usually successful.
-    // I should check `el.disabled`.
-
-    // Note: getElementById('new-game-category').value logic I added before handles disabled.
-    // But for Other fields, if disabled (inherited), I want to send NULL/EMPTY so server omits it.
-    // AND server.py needs to omit it.
-    // I updated server.py to omit empty values.
-    // So if I send "", server writes nothing -> Inheritance works!
-
     const name = document.getElementById('new-game-title').value;
-    // const category = ... already defined above
 
+    // Explicitly grab all fields
     const goals = getFieldVal('new-game-goals', 'goals');
     const purpose = getFieldVal('new-game-purpose', 'purpose');
     const focus = getFieldVal('new-game-focus', 'focus');
@@ -1036,92 +1022,102 @@ window.submitGameForm = async (isEdit) => {
         return;
     }
 
-    try {
-        const payload = {
-            type: 'game',
-            name: name,
-            category: category,
-            goals: goals,
-            purpose: purpose,
-            focus: focus,
-            description: description,
-            players: players,
-            duration: duration,
-            gameType: gameType,
-            intensity: intensity,
-            difficulty: difficulty,
-            initiation: initiation,
-            overwrite: isEdit // Allow overwrite if editing
-        };
-
-        const response = await fetch('/api/create', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        if (response.ok) {
-            const result = await response.json();
-            const newId = (category + '-' + name).toLowerCase().replace(/[\s\/]/g, '-');
-
-            const gameData = {
-                id: newId,
-                title: name,
+    const performSave = async (allowOverwrite) => {
+        try {
+            const payload = {
+                type: 'game',
+                name: name,
                 category: category,
-                description: description,
-                path: result.path, // May change if renamed, but simple overwrite keeps path usually
                 goals: goals,
                 purpose: purpose,
                 focus: focus,
+                description: description,
                 players: players,
                 duration: duration,
+                gameType: gameType,
+                intensity: intensity,
                 difficulty: difficulty,
                 initiation: initiation,
-                parentId: gameParentId || null
+                overwrite: allowOverwrite // Use passed flag
             };
 
-            if (isEdit) {
-                // Update existing game object in state
-                const editId = document.getElementById('game-edit-id').value;
-                const idx = window.state.content.games.findIndex(g => g.id === editId);
-                if (idx !== -1) {
-                    window.state.content.games[idx] = { ...window.state.content.games[idx], ...gameData };
-                }
-                alert('Game updated!');
-            } else {
-                // Create New
-                window.state.content.games.push(gameData);
-                // Update Category State
-                let catObj = window.state.content.categories.find(c => c.title === category);
-                if (!catObj) {
-                    catObj = {
-                        id: category.toLowerCase().replace(/ /g, "-"),
-                        title: category,
-                        description: "",
-                        games: []
-                    };
-                    window.state.content.categories.push(catObj);
-                }
-                catObj.games.push(newId);
+            const response = await fetch('/api/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
 
-                if (window.lastModalArgs) {
-                    const { segmentId, slotIndex } = window.lastModalArgs;
-                    selectGame(newId, segmentId, slotIndex);
+            if (response.status === 409) {
+                if (confirm("A game with this name already exists. Overwrite it?")) {
+                    await performSave(true); // Retry with overwrite
+                    return;
                 } else {
-                    alert('Game created!');
+                    return; // Cancelled
                 }
             }
 
-            document.querySelector('.modal-overlay').remove();
-            // Re-render class structure to reflect changes if the game is used
-            generateClassStructure();
+            if (response.ok) {
+                const result = await response.json();
+                const newId = (category + '-' + name).toLowerCase().replace(/[\s\/]/g, '-');
 
-        } else {
-            alert('Error saving: ' + await response.text());
+                const gameData = {
+                    id: newId,
+                    title: name,
+                    category: category,
+                    description: description,
+                    path: result.path,
+                    goals: goals,
+                    purpose: purpose,
+                    focus: focus,
+                    players: players,
+                    duration: duration,
+                    difficulty: difficulty,
+                    initiation: initiation,
+                    parentId: gameParentId || null
+                };
+
+                if (isEdit) {
+                    const editId = document.getElementById('game-edit-id').value;
+                    const idx = window.state.content.games.findIndex(g => g.id === editId);
+                    if (idx !== -1) {
+                        window.state.content.games[idx] = { ...window.state.content.games[idx], ...gameData };
+                    }
+                    alert('Game updated!');
+                } else {
+                    window.state.content.games.push(gameData);
+                    let catObj = window.state.content.categories.find(c => c.title === category);
+                    if (!catObj) {
+                        catObj = {
+                            id: category.toLowerCase().replace(/ /g, "-"),
+                            title: category,
+                            description: "",
+                            games: []
+                        };
+                        window.state.content.categories.push(catObj);
+                    }
+                    catObj.games.push(newId);
+
+                    if (window.lastModalArgs) {
+                        const { segmentId, slotIndex } = window.lastModalArgs;
+                        selectGame(newId, segmentId, slotIndex);
+                    } else {
+                        alert('Game created!');
+                    }
+                }
+
+                document.querySelector('.modal-overlay').remove();
+                generateClassStructure();
+
+            } else {
+                alert('Error saving: ' + await response.text());
+            }
+        } catch (e) {
+            alert('Error: ' + e.message);
         }
-    } catch (e) {
-        alert('Error: ' + e.message);
-    }
+    };
+
+    // Initial call: Allow overwrite if it's an EDIT mode (implicit), otherwise false
+    await performSave(isEdit);
 };
 
 // Concept Creation Modal
@@ -1201,7 +1197,7 @@ window.openConceptModal = (conceptId = null) => {
     }
 
     overlay.innerHTML = `
-                <div class="modal">
+                <div class="modal modal-lg">
             <div class="modal-header">
                 <h3>${isEdit ? 'Edit Concept' : 'Create New Concept'}</h3>
                 <button onclick="this.closest('.modal-overlay').remove()">×</button>
@@ -1215,7 +1211,7 @@ window.openConceptModal = (conceptId = null) => {
                 </div>
                 <div class="form-group">
                     <label>Description (Template Content)</label>
-                    <textarea id="new-concept-desc" class="editor-textarea" rows="6" placeholder="Describe the concept...">${contentBody}</textarea>
+                    <textarea id="new-concept-desc" class="editor-textarea" rows="20" placeholder="Describe the concept...">${contentBody}</textarea>
                 </div>
                 
                 <div class="editor-controls" style="justify-content: space-between;">
@@ -1265,26 +1261,40 @@ window.submitConceptForm = async (isEdit) => {
 
     if (!name) return;
 
-    try {
-        const response = await fetch('/api/create', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                type: 'concept',
-                name: name,
-                description: description
-            })
-        });
+    const performSave = async (allowOverwrite) => {
+        try {
+            const response = await fetch('/api/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: 'concept',
+                    name: name,
+                    description: description,
+                    overwrite: allowOverwrite
+                })
+            });
 
-        if (response.ok) {
-            alert(isEdit ? 'Concept updated!' : 'Concept created!');
-            window.location.reload();
-        } else {
-            alert('Error creating: ' + await response.text());
+            if (response.status === 409) {
+                if (confirm("A concept with this name already exists. Overwrite it?")) {
+                    await performSave(true);
+                    return;
+                } else {
+                    return;
+                }
+            }
+
+            if (response.ok) {
+                alert(isEdit ? 'Concept updated!' : 'Concept created!');
+                window.location.reload();
+            } else {
+                alert('Error creating: ' + await response.text());
+            }
+        } catch (e) {
+            alert('Error: ' + e.message);
         }
-    } catch (e) {
-        alert('Error: ' + e.message);
-    }
+    };
+
+    await performSave(isEdit);
 }
 
 // Redirect createConcept

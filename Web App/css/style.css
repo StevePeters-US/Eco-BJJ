@@ -573,6 +573,10 @@ details[open] summary.concept-summary {
     box-shadow: var(--shadow-md);
 }
 
+.modal.modal-lg {
+    max-width: 900px;
+}
+
 .modal-header {
     padding: var(--spacing-md);
     border-bottom: 1px solid var(--border-subtle);
