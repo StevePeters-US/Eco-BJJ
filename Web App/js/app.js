@@ -19,7 +19,7 @@ const CLASS_TEMPLATE = [
     { id: 'standing', title: 'Standing', targetDuration: 10, type: 'standing' },
     { id: 'mobility', title: 'Mobility', targetDuration: 15, type: 'game' },
     { id: 'takedowns', title: 'Takedowns', targetDuration: 15, type: 'takedown' },
-    { id: 'discussion', title: 'Discussion', targetDuration: 5, type: 'discussion' },
+    { id: 'discussion', title: 'Concept Discussion', targetDuration: 5, type: 'discussion' },
     { id: 'applications', title: 'Concept Applications', targetDuration: 30, type: 'game' },
     { id: 'review', title: 'Review', targetDuration: 5, type: 'review' },
     { id: 'rolling', title: 'Free Roll', targetDuration: 15, type: 'rolling' }
@@ -45,6 +45,34 @@ async function init() {
     } catch (error) {
         console.error('Initialization error:', error);
         alert('Error loading content. Please ensure python http server is running.');
+    }
+}
+
+function getFormattedTitle() {
+    const dateInput = document.getElementById('class-date-input');
+    let dateStr = '';
+    if (dateInput && dateInput.value) {
+        const parts = dateInput.value.split('-');
+        if (parts.length === 3) {
+            dateStr = ` ${parts[1]}/${parts[2]}/${parts[0].substring(2)}`;
+        }
+    }
+    return `${state.classTitle || 'My Class'}${dateStr}`;
+}
+
+function updateAppTitle() {
+    const fullTitle = getFormattedTitle();
+    document.title = fullTitle;
+
+    // Also update on-page header if generated
+    const titleDisplay = document.getElementById('class-title');
+    if (titleDisplay) {
+        let content = fullTitle;
+        const concept = state.content && state.content.concepts ? state.content.concepts.find(t => t.id === state.selectedConceptId) : null;
+        if (concept) {
+            content += `<div class="concept-subtitle">${concept.title}</div>`;
+        }
+        titleDisplay.innerHTML = content;
     }
 }
 
@@ -108,11 +136,17 @@ function setupEventListeners() {
 
     // Class Title Input
     const titleInput = document.getElementById('class-title-input');
-    if (titleInput) {
-        titleInput.addEventListener('input', (e) => {
-            state.classTitle = e.target.value;
-        });
-    }
+    titleInput.addEventListener('input', (e) => {
+        state.classTitle = e.target.value;
+        updateAppTitle();
+    });
+}
+
+const dateInput = document.getElementById('class-date-input');
+if (dateInput) {
+    dateInput.addEventListener('change', () => {
+        updateAppTitle();
+    });
 
     // User requested removal of extra + button, so we remove the dynamic injection.
 
@@ -143,7 +177,7 @@ async function saveClass() {
     }
 
     // Construct Filename: Title_Date
-    const fileName = dateStr ? `${name}_${dateStr}` : name;
+    const fileName = getFormattedTitle().replace(/[\/\\?%*:|"<>]/g, '-'); // Sanitize slightly
 
     // 2. Build Data Payload from State
     const classData = {
@@ -268,25 +302,26 @@ function generateClassStructure() {
     metaContainer.classList.add('hidden');
 
     // Update Class Header (Title + Date + Concept)
-    const titleDisplay = document.getElementById('class-title-display');
+    const titleDisplay = document.getElementById('class-title'); // Fixed ID from class-title-display
     if (titleDisplay) {
-        let dateStr = '';
-        const dateInput = document.getElementById('class-date-input');
-        if (dateInput && dateInput.value) {
-            // Format YYYY-MM-DD -> MM/DD/YY
-            const parts = dateInput.value.split('-');
-            if (parts.length === 3) {
-                // parts[0] is year (2026), parts[1] is month, parts[2] is day
-                const shortYear = parts[0].substring(2);
-                dateStr = `, ${parts[1]}/${parts[2]}/${shortYear}`;
-            }
-        }
+        updateAppTitle();
+        // let dateStr = '';
+        // const dateInput = document.getElementById('class-date-input');
+        // if (dateInput && dateInput.value) {
+        //     // Format YYYY-MM-DD -> MM/DD/YY
+        //     const parts = dateInput.value.split('-');
+        //     if (parts.length === 3) {
+        //         // parts[0] is year (2026), parts[1] is month, parts[2] is day
+        //         const shortYear = parts[0].substring(2);
+        //         dateStr = `, ${parts[1]}/${parts[2]}/${shortYear}`;
+        //     }
+        // }
 
-        let headerHtml = `${state.classTitle || 'My Class'}${dateStr}`;
-        if (concept) {
-            headerHtml += `<div class="concept-subtitle">${concept.title}</div>`;
-        }
-        titleDisplay.innerHTML = headerHtml;
+        // let headerHtml = `${state.classTitle || 'My Class'}${dateStr}`;
+        // if (concept) {
+        //     headerHtml += `<div class="concept-subtitle">${concept.title}</div>`;
+        // }
+        // titleDisplay.innerHTML = headerHtml;
     }
 
     // Render Timeline
@@ -337,13 +372,22 @@ function generateClassStructure() {
             }
 
             contentHtml = `
-                <div class="section-header-row">
-                    <button class="btn-small secondary edit-theory-btn" onclick="window.openConceptModal(window.state.selectedConceptId)">✎ Edit Concept</button>
-                </div>
-                <div class="theory-content" id="theory-content-display">
-                    ${markedParse(concept.content || concept.description || 'No content available.')}
-                    ${imagesHtml}
-                </div>
+                <details class="game-card" open>
+                    <summary class="game-card-summary">
+                        <div class="game-header-left">
+                           <span class="game-title">${concept.title}</span>
+                        </div>
+                         <div class="game-card-actions">
+                            <button class="icon-btn edit-btn" title="Edit Concept" onclick="window.openConceptModal(window.state.selectedConceptId)">✎</button>
+                        </div>
+                    </summary>
+                    <div class="game-card-content">
+                        <div class="theory-content" id="theory-content-display" style="border: none; padding: 0; background: transparent;">
+                            ${markedParse(concept.content || concept.description || 'No content available.')}
+                            ${imagesHtml}
+                        </div>
+                    </div>
+                </details>
             `;
         } else if (segment.type === 'review') {
             contentHtml = `<p class="segment-note">Review concepts</p>`;
@@ -414,18 +458,40 @@ function generateClassStructure() {
             contentHtml = gamesHtml;
         }
 
-        // Time Badge Logic
+        // Time Badge Logic (Manual Override or Auto-calc)
+        let displayDuration = totalDuration;
+        // Check for manual override
+        if (state.sectionDurations && state.sectionDurations[segment.id] !== undefined) {
+            displayDuration = state.sectionDurations[segment.id];
+        } else if (totalDuration === 0) {
+            displayDuration = segment.targetDuration;
+        }
+
+        // Color logic based on difference from target (optional, keeping simple for now)
         let timeColor = '#888';
-        if (totalDuration > 0) {
-            const diff = totalDuration - segment.targetDuration;
+        if (displayDuration > 0) {
+            const diff = displayDuration - segment.targetDuration;
             if (Math.abs(diff) <= 2) timeColor = '#4caf50'; // Green
             else if (diff > 2) timeColor = '#f44336'; // Red (Over)
             else timeColor = '#ff9800'; // Orange (Under)
         }
 
-        const timeDisplay = totalDuration > 0
-            ? `<span style="color: ${timeColor}; margin-left: 5px;">(${totalDuration} / ${segment.targetDuration} min)</span>`
-            : `<span class="time-badge"> > ${segment.targetDuration} min</span>`;
+        const formattedTime = formatDuration(displayDuration);
+
+        // Editable Time Slider
+        const timeDisplay = `
+            <span style="display: inline-flex; align-items: center; margin-left: 10px; gap: 8px;">
+                <input type="range" 
+                       min="0.25" max="30" step="0.25"
+                       value="${displayDuration}"
+                       style="width: 100px; accent-color: var(--accent-color);"
+                       oninput="document.getElementById('display-${segment.id}').innerText = window.formatDuration(this.value)"
+                       onchange="updateSectionDuration('${segment.id}', this.value)"
+                       onclick="event.stopPropagation()"
+                />
+                <span id="display-${segment.id}" style="color: ${timeColor}; font-family: monospace; font-size: 0.9rem; min-width: 45px;">${formattedTime}</span>
+            </span>
+        `;
 
         segmentEl.innerHTML = `
                 <details class="section-collapsible" open>
@@ -444,6 +510,33 @@ function generateClassStructure() {
 
     setupDragAndDrop();
 }
+
+// Helper to format minutes (float) to MM:SS
+window.formatDuration = (val) => {
+    let floatVal = parseFloat(val);
+    if (isNaN(floatVal)) return "0:00";
+    let minutes = Math.floor(floatVal);
+    let seconds = Math.round((floatVal - minutes) * 60);
+    if (seconds === 60) {
+        minutes += 1;
+        seconds = 0;
+    }
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+};
+
+// Handler for manual time update
+window.updateSectionDuration = (segmentId, value) => {
+    if (!state.sectionDurations) {
+        state.sectionDurations = {};
+    }
+    state.sectionDurations[segmentId] = parseInt(value) || 0;
+    // We don't necessarily need to re-render everything, but it preserves consistency
+    // However, re-rendering kills focus. Ideally, we just update the state.
+    // If we want color updates, we might need to re-render or update style manually.
+    // For now, let's just update state. Re-render might be jarring if typing.
+    // Actually, onchange triggers on blur/enter, so re-render is fine.
+    generateClassStructure();
+};
 
 window.removeGame = (segmentId, index) => {
     if (state.segments[segmentId]) {
@@ -568,7 +661,7 @@ function createModal(segmentId, filterCategory = null) {
     // Concept Dropdown options
     const concepts = state.content.concepts || [];
     const conceptOptions = concepts.map(c =>
-        `< option value = "${c.title}" ${c.title === filterCategory ? 'selected' : ''}> ${c.title}</option > `
+        `<option value="${c.title}" ${c.title === filterCategory ? 'selected' : ''}> ${c.title}</option>`
     ).join('');
 
     // Filter Games
@@ -607,7 +700,7 @@ function createModal(segmentId, filterCategory = null) {
     }
 
     overlay.innerHTML = `
-                <div class="modal">
+                <div class="modal modal-lg">
             <div class="modal-header">
                 <h3>Select Game</h3>
                 <div class="modal-actions">
@@ -773,7 +866,7 @@ window.openGameModal = (gameId = null, preselectedCategory = null, templateGame 
     ).join('');
 
     overlay.innerHTML = `
-                <div class="modal">
+                <div class="modal modal-lg">
             <div class="modal-header">
                 <h3>${isEdit ? 'Edit Game' : 'Create New Game'}</h3>
                 <button onclick="this.closest('.modal-overlay').remove()">×</button>
@@ -787,10 +880,9 @@ window.openGameModal = (gameId = null, preselectedCategory = null, templateGame 
 
                  <div class="form-group">
                     <label>Category</label>
-                    <select id="new-game-category" disabled> <!-- Always disabled in this view for simplicity -->
-                        <option value="${game && game.category ? game.category : (preselectedCategory || '')}" selected>
-                            ${game && game.category ? game.category : (preselectedCategory || 'Select...')}
-                        </option>
+                    <select id="new-game-category" ${isEdit ? 'disabled' : ''}>
+                        <option value="" disabled ${!game && !preselectedCategory ? 'selected' : ''}>Select Category...</option>
+                        ${optionsHtml}
                     </select>
                 </div>
 
@@ -899,34 +991,20 @@ window.submitGameForm = async (isEdit) => {
     let category = document.getElementById('new-game-category').value;
     const catSelect = document.getElementById('new-game-category');
     if (!category && catSelect.disabled) {
-        // If disabled, it might not be yielding value, or simply ensure we grab the selected option
         category = catSelect.options[catSelect.selectedIndex].value;
     }
     const gameParentId = document.getElementById('game-parent-id').value;
 
-    // Helper to get overridden values only
     const getFieldVal = (id, fieldName) => {
         const el = document.getElementById(id);
         if (!el) return null;
-        if (gameParentId && el.disabled) return null; // If disabled/not overridden, don't send
+        if (gameParentId && el.disabled) return null;
         return el.value;
     }
 
-    // If no parent, we send all values. If parent, we send only active ones.
-    // BUT server.py now ignores nulls.
-    // So we just need to ensure 'disabled' inputs return null or empty?
-    // Actually, disabled inputs are not usually successful.
-    // I should check `el.disabled`.
-
-    // Note: getElementById('new-game-category').value logic I added before handles disabled.
-    // But for Other fields, if disabled (inherited), I want to send NULL/EMPTY so server omits it.
-    // AND server.py needs to omit it.
-    // I updated server.py to omit empty values.
-    // So if I send "", server writes nothing -> Inheritance works!
-
     const name = document.getElementById('new-game-title').value;
-    // const category = ... already defined above
 
+    // Explicitly grab all fields
     const goals = getFieldVal('new-game-goals', 'goals');
     const purpose = getFieldVal('new-game-purpose', 'purpose');
     const focus = getFieldVal('new-game-focus', 'focus');
@@ -943,92 +1021,103 @@ window.submitGameForm = async (isEdit) => {
         return;
     }
 
-    try {
-        const payload = {
-            type: 'game',
-            name: name,
-            category: category,
-            goals: goals,
-            purpose: purpose,
-            focus: focus,
-            description: description,
-            players: players,
-            duration: duration,
-            gameType: gameType,
-            intensity: intensity,
-            difficulty: difficulty,
-            initiation: initiation,
-            overwrite: isEdit // Allow overwrite if editing
-        };
-
-        const response = await fetch('/api/create', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        if (response.ok) {
-            const result = await response.json();
-            const newId = (category + '-' + name).toLowerCase().replace(/[\s\/]/g, '-');
-
-            const gameData = {
-                id: newId,
-                title: name,
+    const performSave = async (allowOverwrite) => {
+        try {
+            const payload = {
+                type: 'game',
+                name: name,
                 category: category,
-                description: description,
-                path: result.path, // May change if renamed, but simple overwrite keeps path usually
                 goals: goals,
                 purpose: purpose,
                 focus: focus,
+                description: description,
                 players: players,
                 duration: duration,
+                gameType: gameType,
+                intensity: intensity,
                 difficulty: difficulty,
                 initiation: initiation,
-                parentId: gameParentId || null
+                overwrite: allowOverwrite // Use passed flag
             };
 
-            if (isEdit) {
-                // Update existing game object in state
-                const editId = document.getElementById('game-edit-id').value;
-                const idx = window.state.content.games.findIndex(g => g.id === editId);
-                if (idx !== -1) {
-                    window.state.content.games[idx] = { ...window.state.content.games[idx], ...gameData };
-                }
-                alert('Game updated!');
-            } else {
-                // Create New
-                window.state.content.games.push(gameData);
-                // Update Category State
-                let catObj = window.state.content.categories.find(c => c.title === category);
-                if (!catObj) {
-                    catObj = {
-                        id: category.toLowerCase().replace(/ /g, "-"),
-                        title: category,
-                        description: "",
-                        games: []
-                    };
-                    window.state.content.categories.push(catObj);
-                }
-                catObj.games.push(newId);
+            const response = await fetch('/api/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
 
-                if (window.lastModalArgs) {
-                    const { segmentId, slotIndex } = window.lastModalArgs;
-                    selectGame(newId, segmentId, slotIndex);
+            if (response.status === 409) {
+                if (confirm("A game with this name already exists. Overwrite it?")) {
+                    await performSave(true); // Retry with overwrite
+                    return;
                 } else {
-                    alert('Game created!');
+                    return; // Cancelled
                 }
             }
 
-            document.querySelector('.modal-overlay').remove();
-            // Re-render class structure to reflect changes if the game is used
-            generateClassStructure();
+            if (response.ok) {
+                const result = await response.json();
+                const newId = (category + '-' + name).toLowerCase().replace(/[\s\/]/g, '-');
 
-        } else {
-            alert('Error saving: ' + await response.text());
+                const gameData = {
+                    id: newId,
+                    title: name,
+                    category: category,
+                    description: description,
+                    path: result.path,
+                    goals: goals,
+                    purpose: purpose,
+                    focus: focus,
+                    players: players,
+                    duration: duration,
+                    difficulty: difficulty,
+                    initiation: initiation,
+                    parentId: gameParentId || null
+                };
+
+                if (isEdit) {
+                    const editId = document.getElementById('game-edit-id').value;
+                    const idx = window.state.content.games.findIndex(g => g.id === editId);
+                    if (idx !== -1) {
+                        window.state.content.games[idx] = { ...window.state.content.games[idx], ...gameData };
+                    }
+                    alert('Game updated!');
+                } else {
+                    window.state.content.games.push(gameData);
+                    let catObj = window.state.content.categories.find(c => c.title === category);
+                    if (!catObj) {
+                        catObj = {
+                            id: category.toLowerCase().replace(/ /g, "-"),
+                            title: category,
+                            description: "",
+                            games: []
+                        };
+                        window.state.content.categories.push(catObj);
+                    }
+                    catObj.games.push(newId);
+
+                    if (window.lastModalArgs) {
+                        const { segmentId, slotIndex } = window.lastModalArgs;
+                        selectGame(newId, segmentId, slotIndex);
+                    } else {
+                        alert('Game created!');
+                    }
+                }
+
+                const overlay = document.querySelector('.modal-overlay');
+                if (overlay) overlay.remove();
+                generateClassStructure();
+
+            } else {
+                alert('Error saving: ' + await response.text());
+            }
+        } catch (e) {
+            alert('Error: ' + e.message);
         }
-    } catch (e) {
-        alert('Error: ' + e.message);
-    }
+    };
+
+    // Initial call: Allow overwrite if it's an EDIT mode (implicit), otherwise false
+    await performSave(isEdit);
 };
 
 // Concept Creation Modal
@@ -1108,7 +1197,7 @@ window.openConceptModal = (conceptId = null) => {
     }
 
     overlay.innerHTML = `
-                <div class="modal">
+                <div class="modal modal-lg">
             <div class="modal-header">
                 <h3>${isEdit ? 'Edit Concept' : 'Create New Concept'}</h3>
                 <button onclick="this.closest('.modal-overlay').remove()">×</button>
@@ -1122,7 +1211,7 @@ window.openConceptModal = (conceptId = null) => {
                 </div>
                 <div class="form-group">
                     <label>Description (Template Content)</label>
-                    <textarea id="new-concept-desc" class="editor-textarea" rows="6" placeholder="Describe the concept...">${contentBody}</textarea>
+                    <textarea id="new-concept-desc" class="editor-textarea" rows="20" placeholder="Describe the concept...">${contentBody}</textarea>
                 </div>
                 
                 <div class="editor-controls" style="justify-content: space-between;">
@@ -1172,26 +1261,40 @@ window.submitConceptForm = async (isEdit) => {
 
     if (!name) return;
 
-    try {
-        const response = await fetch('/api/create', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                type: 'concept',
-                name: name,
-                description: description
-            })
-        });
+    const performSave = async (allowOverwrite) => {
+        try {
+            const response = await fetch('/api/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: 'concept',
+                    name: name,
+                    description: description,
+                    overwrite: allowOverwrite
+                })
+            });
 
-        if (response.ok) {
-            alert(isEdit ? 'Concept updated!' : 'Concept created!');
-            window.location.reload();
-        } else {
-            alert('Error creating: ' + await response.text());
+            if (response.status === 409) {
+                if (confirm("A concept with this name already exists. Overwrite it?")) {
+                    await performSave(true);
+                    return;
+                } else {
+                    return;
+                }
+            }
+
+            if (response.ok) {
+                alert(isEdit ? 'Concept updated!' : 'Concept created!');
+                window.location.reload();
+            } else {
+                alert('Error creating: ' + await response.text());
+            }
+        } catch (e) {
+            alert('Error: ' + e.message);
         }
-    } catch (e) {
-        alert('Error: ' + e.message);
-    }
+    };
+
+    await performSave(isEdit);
 }
 
 // Redirect createConcept

@@ -20,7 +20,7 @@ What is the point in playing this game? What principles are we trying to teach?
 - **Inertial** – Players start after a defined movement is initiated. Example: Players start with one taking the other down with a single leg with no resistance. Game is live as soon as the takedown is initiated.
 - **Separated** – Typically standing.
 
-### Static. Side Control.
+**Static. Side Control.**
 Top has strong chest to chest connection with control of all inside spaces and connected hands.
 
 **Duration**

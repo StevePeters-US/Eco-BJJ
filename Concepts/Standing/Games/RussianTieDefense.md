@@ -12,7 +12,7 @@ players: 2
 
 **Game Initiation Conditions**
 
-### Static. Russian Tie.
+**Static. Russian Tie.**
 Attacker is controlling the defender from the back side of one arm while using both arms for control.
 
 **Duration**

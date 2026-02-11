@@ -14,7 +14,7 @@ What is the point in playing this game? What principles are we trying to teach?
 
 **Game Initiation Conditions**
 
-### Static. Seated Shin Guard
+**Static. Seated Shin Guard**
 Bottom player is seated, top player is standing. Bottom player is using a butterfly hook against the top player's shin on one side along with  a tight same side arm grip around the knee.
 
 **Duration**
