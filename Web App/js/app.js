@@ -1104,7 +1104,8 @@ window.submitGameForm = async (isEdit) => {
                     }
                 }
 
-                document.querySelector('.modal-overlay').remove();
+                const overlay = document.querySelector('.modal-overlay');
+                if (overlay) overlay.remove();
                 generateClassStructure();
 
             } else {

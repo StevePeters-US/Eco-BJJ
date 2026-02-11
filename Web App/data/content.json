@@ -66,13 +66,18 @@
       "id": "twistingshoulderlocks",
       "title": "TwistingShoulderLocks",
       "description": "",
-      "games": []
+      "games": [
+        "twistingshoulderlocks-verification-game"
+      ]
     },
     {
       "id": "bloodchokes",
       "title": "BloodChokes",
       "description": "",
-      "games": []
+      "games": [
+        "bloodchokes-qerv",
+        "bloodchokes-aefb"
+      ]
     },
     {
       "id": "grips",
@@ -133,6 +138,54 @@
     }
   ],
   "games": [
+    {
+      "title": "Verification Game",
+      "description": "Verification Description",
+      "category": "TwistingShoulderLocks",
+      "goals": "",
+      "purpose": "Verification Purpose",
+      "focus": "Verification Focus",
+      "duration": "5",
+      "players": "2",
+      "type": "Continuous",
+      "intensity": "Flow",
+      "difficulty": "",
+      "parentId": "",
+      "id": "twistingshoulderlocks-verification-game",
+      "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/TwistingShoulderLocks/Games/VerificationGame.md"
+    },
+    {
+      "title": "qerv",
+      "description": "",
+      "category": "BloodChokes",
+      "goals": "",
+      "purpose": "",
+      "focus": "",
+      "duration": "5",
+      "players": "2",
+      "type": "Continuous",
+      "intensity": "Flow",
+      "difficulty": "",
+      "parentId": "",
+      "id": "bloodchokes-qerv",
+      "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/BloodChokes/Games/qerv.md"
+    },
+    {
+      "title": "aefb",
+      "description": "",
+      "category": "BloodChokes",
+      "goals": "",
+      "purpose": "",
+      "focus": "",
+      "duration": "5",
+      "players": "2",
+      "type": "Continuous",
+      "intensity": "Flow",
+      "difficulty": "",
+      "parentId": "",
+      "id": "bloodchokes-aefb",
+      "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/BloodChokes/Games/aefb.md"
+    },
     {
       "title": "Robot arms (Variation)",
       "description": "None",
