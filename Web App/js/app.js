@@ -4,26 +4,29 @@
 
 import { markedParse } from './utils.js';
 
-// Data State
-let state = {
-    content: null,
-    selectedConceptId: null,
-    classTitle: "",
-    segments: {} // { segmentId: [ { gameId: '...', ... } ] }
-};
-window.state = state; // Expose for Editor
-
-// Constants based on ClassStructure.md
-// Constants based on ClassStructure.md
-const CLASS_TEMPLATE = [
-    { id: 'standing', title: 'Standing', targetDuration: 10, type: 'standing' },
-    { id: 'mobility', title: 'Mobility', targetDuration: 15, type: 'game' },
+// Default Structure
+const DEFAULT_STRUCTURE = [
+    { id: 'warmups', title: 'Warm Ups', targetDuration: 10, type: 'standing' },
+    { id: 'recap', title: 'Recap', targetDuration: 15, type: 'game' },
     { id: 'takedowns', title: 'Takedowns', targetDuration: 15, type: 'takedown' },
     { id: 'discussion', title: 'Concept Discussion', targetDuration: 5, type: 'discussion' },
     { id: 'applications', title: 'Concept Applications', targetDuration: 30, type: 'game' },
     { id: 'review', title: 'Review', targetDuration: 5, type: 'review' },
     { id: 'rolling', title: 'Free Roll', targetDuration: 15, type: 'rolling' }
 ];
+
+// Data State
+let state = {
+    content: null,
+    selectedConceptId: null,
+    classTitle: "",
+    segments: {}, // { segmentId: [ { gameId: '...', ... } ] }
+    structure: JSON.parse(JSON.stringify(DEFAULT_STRUCTURE)), // Clone default
+    expandedCards: new Set() // Track expanded state: "segmentId-index"
+};
+
+// Expose state globally for event handlers
+window.state = state;
 
 async function init() {
     try {
@@ -184,7 +187,8 @@ async function saveClass() {
         title: name,
         date: dateStr,
         conceptId: state.selectedConceptId,
-        segments: state.segments // Maps segmentId -> array of game objects
+        segments: state.segments, // Maps segmentId -> array of game objects
+        structure: state.structure // Save dynamic structure
     };
 
     console.log("Saving class:", classData);
@@ -262,6 +266,7 @@ async function loadClass() {
                     state.classTitle = loadedData.title || selectedName;
                     state.selectedConceptId = loadedData.conceptId;
                     state.segments = loadedData.segments || {};
+                    state.structure = loadedData.structure || JSON.parse(JSON.stringify(DEFAULT_STRUCTURE));
 
                     // Update UI
                     const titleInput = document.getElementById('class-title-input');
@@ -333,7 +338,15 @@ function generateClassStructure() {
     const timeline = document.getElementById('class-timeline');
     timeline.innerHTML = '';
 
-    CLASS_TEMPLATE.forEach((segment) => {
+    // Render Timeline Controls
+    const controlsHtml = `
+        <div class="timeline-controls" style="margin-bottom: 20px; display: flex; justify-content: flex-end;">
+            <button class="btn secondary" onclick="window.addSection()">+ Add Section</button>
+        </div>
+    `;
+    // We can append controls at bottom, but let's iterate first
+
+    state.structure.forEach((segment, index) => {
         // Init state for segment if needed
         if (!state.segments[segment.id]) {
             state.segments[segment.id] = [];
@@ -433,16 +446,41 @@ function generateClassStructure() {
                 // Build summary line for collapsed view
                 const summaryLine = goals ? goals : (purpose ? purpose : 'No description');
 
+                // Escape IDs for onclick handlers (Legacy/Fallback, now using indices)
+                const safeGameId = g.gameId.replace(/'/g, "\\'");
+                const safeSegmentId = segment.id.replace(/'/g, "\\'");
+
+                // Unique key for expansion state
+                const cardKey = `${segment.id}-${index}`;
+                const isExpanded = state.expandedCards.has(cardKey);
+
+                // DYNAMIC VARIANT NAMING LOGIC
+                // If it's a variation, construct title: "ParentName (VariationName)"
+                let displayTitle = title;
+                if (gameMeta && gameMeta.parentId) {
+                    const parent = state.content.games.find(p => p.id === gameMeta.parentId);
+                    if (parent) {
+                        let varName = gameMeta.variationName;
+                        if (!varName) {
+                            // Fallback: Parse from stored title "Parent (Variation)"
+                            const match = title.match(/\(([^)]+)\)$/);
+                            if (match) varName = match[1];
+                            else varName = 'Variation';
+                        }
+                        displayTitle = `${parent.title} (${varName})`;
+                    }
+                }
+
                 return `
-                        <details class="game-card" open>
+                        <details class="game-card" ${isExpanded ? 'open' : ''} ontoggle="window.toggleCard('${cardKey}', this.open)">
                     <summary class="game-card-summary">
                         <div class="game-header-left">
-                            <span class="game-title">${title}</span>
+                            <span class="game-title">${displayTitle}</span>
                             <span class="game-meta-inline">${metaTags}</span>
                         </div>
                         <div class="game-card-actions">
-                            <button class="icon-btn edit-btn" title="Edit Game" onclick="event.stopPropagation(); window.openGameModal('${g.gameId}', null, null, '${segment.id}')">✎</button>
-                            <button class="icon-btn remove-btn" title="Remove" onclick="event.stopPropagation(); removeGame('${segment.id}', ${index})">×</button>
+                            <button class="icon-btn edit-btn" title="Edit Game" onclick="window.handleEditGame(event, '${segment.id}', ${index})">✎</button>
+                            <button class="icon-btn remove-btn" title="Remove" onclick="window.handleRemoveGame(event, '${segment.id}', ${index})">×</button>
                         </div>
                     </summary>
                     <div class="game-card-content">
@@ -502,11 +540,30 @@ function generateClassStructure() {
             </span>
         `;
 
+        // Section Controls
+        const isFirst = index === 0;
+        const isLast = index === state.structure.length - 1;
+
+        const controls = `
+            <div class="section-controls" style="display: inline-flex; gap: 5px; margin-left: 10px;" onclick="event.preventDefault(); event.stopPropagation();">
+                 <button class="icon-btn" ${isFirst ? 'disabled style="opacity:0.3"' : ''} onclick="window.moveSection(${index}, -1)" title="Move Up">↑</button>
+                 <button class="icon-btn" ${isLast ? 'disabled style="opacity:0.3"' : ''} onclick="window.moveSection(${index}, 1)" title="Move Down">↓</button>
+                 <button class="icon-btn" onclick="window.deleteSection(${index})" title="Delete Section" style="color: #f44336;">×</button>
+            </div>
+        `;
+
         segmentEl.innerHTML = `
                 <details class="section-collapsible" open>
                 <summary class="section-summary">
-                    <span class="section-title">${segment.title}</span>
-                    ${timeDisplay}
+                    <span class="section-header-content">
+                        <span class="section-title" contenteditable="true" 
+                            onblur="window.updateSectionTitle(${index}, this.innerText)"
+                            onkeydown="if(event.key==='Enter'){this.blur(); event.preventDefault();}"
+                            onclick="event.stopPropagation(); event.preventDefault();"
+                            style="cursor: text; border-bottom: 1px dashed #666; min-width: 100px; display: inline-block;">${segment.title}</span>
+                        ${timeDisplay}
+                    </span>
+                    ${controls}
                 </summary>
                 <div class="section-content">
                     ${contentHtml}
@@ -517,8 +574,97 @@ function generateClassStructure() {
         timeline.appendChild(segmentEl);
     });
 
+    // Append Add Section Button at the bottom
+    const addBtnDiv = document.createElement('div');
+    addBtnDiv.className = 'add-section-container';
+    addBtnDiv.style.textAlign = 'center';
+    addBtnDiv.style.marginTop = '20px';
+    addBtnDiv.innerHTML = `<button class="btn secondary" onclick="window.addSection()" style="width: 100%; border: 2px dashed #444; padding: 15px;">+ Add New Section</button>`;
+    timeline.appendChild(addBtnDiv);
+
     setupDragAndDrop();
 }
+
+// Section Management Helpers
+window.addSection = () => {
+    const title = prompt("Enter new section title:", "New Section");
+    if (title) {
+        const newId = 'section-' + Date.now();
+        state.structure.push({
+            id: newId,
+            title: title,
+            targetDuration: 10,
+            type: 'game' // Default to game for flexibility
+        });
+        generateClassStructure();
+    }
+};
+
+window.deleteSection = (index) => {
+    if (confirm("Are you sure you want to delete this section? Games within it will be removed from the plan.")) {
+        const section = state.structure[index];
+        // Clean up segments data
+        delete state.segments[section.id];
+        // Remove from structure
+        state.structure.splice(index, 1);
+        generateClassStructure();
+    }
+};
+
+window.moveSection = (index, direction) => {
+    const newIndex = index + direction;
+    if (newIndex >= 0 && newIndex < state.structure.length) {
+        const temp = state.structure[index];
+        state.structure[index] = state.structure[newIndex];
+        state.structure[newIndex] = temp;
+        generateClassStructure();
+    }
+};
+
+window.updateSectionTitle = (index, newTitle) => {
+    if (newTitle && newTitle.trim() !== "") {
+        state.structure[index].title = newTitle;
+        // No need to re-render entire structure if we just update title, 
+        // but re-rendering ensures state consistency and is safest.
+        // We'll rely on onblur or Enter key to trigger this.
+    }
+};
+
+// Card State Management
+window.toggleCard = (key, isOpen) => {
+    if (isOpen) {
+        state.expandedCards.add(key);
+    } else {
+        state.expandedCards.delete(key);
+    }
+};
+
+window.handleEditGame = (event, segmentId, index) => {
+    event.preventDefault();
+    event.stopPropagation();
+    // Debug logging
+    console.log('handleEditGame called', { segmentId, index });
+
+    if (!state.segments[segmentId]) {
+        console.error(`Segment ${segmentId} not found in state`);
+        return;
+    }
+
+    const gameData = state.segments[segmentId][index];
+    console.log('Game Data found:', gameData);
+
+    if (gameData) {
+        window.openGameModal(gameData.gameId, null, null, segmentId);
+    } else {
+        console.error(`Game data at index ${index} in segment ${segmentId} is undefined`);
+    }
+};
+
+window.handleRemoveGame = (event, segmentId, index) => {
+    event.preventDefault();
+    event.stopPropagation();
+    window.removeGame(segmentId, index);
+};
 
 // Helper to format minutes (float) to MM:SS
 window.formatDuration = (val) => {
@@ -771,6 +917,8 @@ import { Editor } from './editor.js';
 
 // Game Editor Modal
 window.openGameModal = (gameId = null, preselectedCategory = null, templateGame = null, segmentId = null) => {
+    console.log('openGameModal called', { gameId, preselectedCategory, segmentId });
+
     // Remove existing modal
     const existing = document.querySelector('.modal-overlay');
     if (existing) existing.remove();
@@ -789,6 +937,10 @@ window.openGameModal = (gameId = null, preselectedCategory = null, templateGame 
             if (game.parentId) {
                 parentGame = window.state.content.games.find(g => g.id === game.parentId);
             }
+        } else {
+            console.error(`Game with ID ${gameId} not found in state.content.games`, window.state.content.games.map(g => g.id));
+            alert(`Error: Game data for ID "${gameId}" not found. It might have been deleted from the source content.`);
+            return;
         }
     } else if (templateGame) {
         // Create Variation
@@ -802,6 +954,20 @@ window.openGameModal = (gameId = null, preselectedCategory = null, templateGame 
 
     // Helper to get value: Child -> Parent -> Default
     const getVal = (field, def = '') => {
+        // DYNAMIC TITLE LOGIC FOR VARIATIONS
+        if (field === 'title' && parentGame) {
+            let varName = 'Variation';
+
+            if (game && game.variationName) {
+                varName = game.variationName;
+            } else if (game && game.title) {
+                // Fallback parse
+                const match = game.title.match(/\(([^)]+)\)$/);
+                if (match) varName = match[1];
+            }
+            return `${parentGame.title} (${varName})`;
+        }
+
         if (game && game[field] !== undefined && game[field] !== '') return game[field];
         if (parentGame && parentGame[field]) return parentGame[field];
         return def;
@@ -837,7 +1003,9 @@ window.openGameModal = (gameId = null, preselectedCategory = null, templateGame 
                 ${opts.map(o => `<option value="${o}" ${value === o ? 'selected' : ''}>${o}</option>`).join('')}
              </select>`;
         } else {
-            inputHtml = `<input type="${type}" id="${id}" class="editor-textarea" value="${value}" ${disabled} style="${style} height: auto;" spellcheck="true">`;
+            // Escape double quotes for input value attribute
+            const safeValue = String(value).replace(/"/g, '&quot;');
+            inputHtml = `<input type="${type}" id="${id}" class="editor-textarea" value="${safeValue}" ${disabled} style="${style} height: auto;" spellcheck="true">`;
         }
 
         return `
@@ -1059,6 +1227,19 @@ window.submitGameForm = async (isEdit) => {
 
     const name = document.getElementById('new-game-title').value;
 
+    // VARIATION NAME LOGIC
+    let variationName = null;
+    if (gameParentId) {
+        const varNameInput = document.getElementById('new-game-variation-name');
+        if (varNameInput) {
+            variationName = varNameInput.value;
+        } else {
+            // Fallback parse if input missing (shouldn't happen in new UI)
+            const match = name.match(/\(([^)]+)\)$/);
+            if (match) variationName = match[1];
+        }
+    }
+
     // Explicitly grab all fields
     const goals = getFieldVal('new-game-goals', 'goals');
     const purpose = getFieldVal('new-game-purpose', 'purpose');
@@ -1127,7 +1308,8 @@ window.submitGameForm = async (isEdit) => {
                     duration: duration,
                     difficulty: difficulty,
                     initiation: initiation,
-                    parentId: gameParentId || null
+                    parentId: gameParentId || null,
+                    variationName: variationName
                 };
 
                 if (isEdit) {

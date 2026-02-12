@@ -19,6 +19,62 @@
     "discussion": [],
     "applications": [],
     "review": [],
-    "rolling": []
-  }
+    "rolling": [],
+    "warmups": [
+      {
+        "gameId": "grips-robot-arms"
+      },
+      {
+        "gameId": "grips-robot-arms---flow"
+      },
+      {
+        "gameId": "grips-robot-arms---flow--with-trips"
+      }
+    ],
+    "recap": []
+  },
+  "structure": [
+    {
+      "id": "warmups",
+      "title": "Warm Ups",
+      "targetDuration": 10,
+      "type": "standing"
+    },
+    {
+      "id": "recap",
+      "title": "Recap",
+      "targetDuration": 15,
+      "type": "game"
+    },
+    {
+      "id": "takedowns",
+      "title": "Takedowns",
+      "targetDuration": 15,
+      "type": "takedown"
+    },
+    {
+      "id": "discussion",
+      "title": "Concept Discussion",
+      "targetDuration": 5,
+      "type": "discussion"
+    },
+    {
+      "id": "applications",
+      "title": "Concept Applications",
+      "targetDuration": 30,
+      "type": "game"
+    },
+    {
+      "id": "review",
+      "title": "Review",
+      "targetDuration": 5,
+      "type": "review"
+    },
+    {
+      "id": "rolling",
+      "title": "Free Roll",
+      "targetDuration": 15,
+      "type": "rolling"
+    }
+  ]
 }
