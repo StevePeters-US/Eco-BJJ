@@ -454,6 +454,10 @@ function generateClassStructure() {
                 const cardKey = `${segment.id}-${index}`;
                 const isExpanded = state.expandedCards.has(cardKey);
 
+                // Reordering Helpers
+                const isFirst = index === 0;
+                const isLast = index === currentGames.length - 1;
+
                 // DYNAMIC VARIANT NAMING LOGIC
                 // If it's a variation, construct title: "ParentName (VariationName)"
                 let displayTitle = title;
@@ -479,6 +483,8 @@ function generateClassStructure() {
                             <span class="game-meta-inline">${metaTags}</span>
                         </div>
                         <div class="game-card-actions">
+                            <button class="icon-btn xs-btn" ${isFirst ? 'disabled style="opacity:0.3"' : ''} onclick="window.handleMoveGame(event, '${segment.id}', ${index}, -1)" title="Move Up">↑</button>
+                            <button class="icon-btn xs-btn" ${isLast ? 'disabled style="opacity:0.3"' : ''} onclick="window.handleMoveGame(event, '${segment.id}', ${index}, 1)" title="Move Down">↓</button>
                             <button class="icon-btn edit-btn" title="Edit Game" onclick="window.handleEditGame(event, '${segment.id}', ${index})">✎</button>
                             <button class="icon-btn remove-btn" title="Remove" onclick="window.handleRemoveGame(event, '${segment.id}', ${index})">×</button>
                         </div>
@@ -657,6 +663,38 @@ window.handleEditGame = (event, segmentId, index) => {
         window.openGameModal(gameData.gameId, null, null, segmentId);
     } else {
         console.error(`Game data at index ${index} in segment ${segmentId} is undefined`);
+    }
+};
+
+window.handleMoveGame = (event, segmentId, index, direction) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const games = state.segments[segmentId];
+    if (!games) return;
+
+    const newIndex = index + direction;
+    if (newIndex >= 0 && newIndex < games.length) {
+        // Swap
+        const temp = games[index];
+        games[index] = games[newIndex];
+        games[newIndex] = temp;
+
+        // Also swap expansion states if we want to be fancy, but simple re-render is fine.
+        // Actually, if we swap, the indices change, so the "expandedCards" set (which uses index) might get desynced visually vs content.
+        // Let's try to swap the keys in expandedCards too for a perfect experience.
+        const key1 = `${segmentId}-${index}`;
+        const key2 = `${segmentId}-${newIndex}`;
+        const has1 = state.expandedCards.has(key1);
+        const has2 = state.expandedCards.has(key2);
+
+        if (has1) state.expandedCards.delete(key1);
+        if (has2) state.expandedCards.delete(key2);
+
+        if (has1) state.expandedCards.add(key2);
+        if (has2) state.expandedCards.add(key1);
+
+        generateClassStructure();
     }
 };
 
