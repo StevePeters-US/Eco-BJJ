@@ -1,8 +1,8 @@
 ---
-title: Robot arms (Variation)
+title: Robot arms - Flow
 category: Grips
 players: 2
-duration: 2
+duration: 1
 type: Round Switching
 intensity: Flow
 difficulty: Beginner

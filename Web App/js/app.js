@@ -270,6 +270,11 @@ async function loadClass() {
                     const conceptSelect = document.getElementById('concept-select');
                     if (conceptSelect) conceptSelect.value = state.selectedConceptId;
 
+                    const dateInput = document.getElementById('class-date-input');
+                    if (dateInput && loadedData.date) {
+                        dateInput.value = loadedData.date;
+                    }
+
                     // Re-render
                     generateClassStructure();
 
@@ -438,7 +443,7 @@ function generateClassStructure() {
                     </summary>
                     <div class="game-card-content">
                         ${goals ? `<div class="game-info-row"><strong>Goals:</strong> ${goals}</div>` : ''}
-                        ${purpose ? `<div class="game-info-row"><strong>Purpose:</strong> ${purpose}</div>` : ''}
+                        ${purpose ? `<div class="game-info-row"><strong>Intention:</strong> ${purpose}</div>` : ''}
                         ${focus ? `<div class="game-info-row"><strong>Focus:</strong> ${focus}</div>` : ''}
                         ${description ? `<div class="game-info-row game-description">${markedParse(description)}</div>` : ''}
                     </div>
@@ -822,13 +827,13 @@ window.openGameModal = (gameId = null, preselectedCategory = null, templateGame 
         const style = disabled ? 'opacity: 0.7; cursor: not-allowed;' : '';
 
         if (type === 'textarea') {
-            inputHtml = `<textarea id="${id}" class="editor-textarea" rows="${rows}" ${disabled} style="${style}">${value}</textarea>`;
+            inputHtml = `<textarea id="${id}" class="editor-textarea" rows="${rows}" ${disabled} style="${style}" spellcheck="true">${value}</textarea>`;
         } else if (type === 'select') {
             inputHtml = `<select id="${id}" class="editor-textarea" ${disabled} style="${style} height: auto;">
                 ${opts.map(o => `<option value="${o}" ${value === o ? 'selected' : ''}>${o}</option>`).join('')}
              </select>`;
         } else {
-            inputHtml = `<input type="${type}" id="${id}" class="editor-textarea" value="${value}" ${disabled} style="${style} height: auto;">`;
+            inputHtml = `<input type="${type}" id="${id}" class="editor-textarea" value="${value}" ${disabled} style="${style} height: auto;" spellcheck="true">`;
         }
 
         return `
@@ -878,6 +883,26 @@ window.openGameModal = (gameId = null, preselectedCategory = null, templateGame 
 
                 ${renderField('Game Title', 'new-game-title', getVal('title'), 'text', 1, [], false)}
 
+                ${parentGame ? (() => {
+            // Extract variation name from title: "Parent Title (Variation)" -> "Variation"
+            let varName = 'Variation';
+            const currentTitle = getVal('title');
+            const parentTitle = parentGame.title;
+            if (currentTitle && currentTitle.startsWith(parentTitle) && currentTitle.includes('(')) {
+                const match = currentTitle.match(/\(([^)]+)\)$/);
+                if (match) varName = match[1];
+            }
+
+            return `
+                    <div class="form-group">
+                        <label>Variation Name</label>
+                        <input type="text" id="new-game-variation-name" class="editor-textarea" value="${varName}" style="height: auto;"
+                            oninput="window.updateVariationTitle('${parentGame.id}')">
+                    </div>
+                    `;
+        })() : ''}
+
+
                  <div class="form-group">
                     <label>Category</label>
                     <select id="new-game-category" ${isEdit ? 'disabled' : ''}>
@@ -891,7 +916,7 @@ window.openGameModal = (gameId = null, preselectedCategory = null, templateGame 
                         ${renderField('Players', 'new-game-players', getVal('players', '2'), 'number')}
                     </div>
                      <div style="flex: 1">
-                        ${renderField('Round Time (mins)', 'new-game-duration', getVal('duration', '5'), 'number')}
+                        ${renderField('Round Time (mins)', 'new-game-duration', getVal('duration', '1'), 'number')}
                     </div>
                 </div>
                 
@@ -906,8 +931,8 @@ window.openGameModal = (gameId = null, preselectedCategory = null, templateGame 
                                      onchange="window.updateDifficultyColor(this)" ${parentGame && !isOverridden('difficulty') ? 'disabled' : ''}>
                                  <option value="">None</option>
                                  ${['Beginner', 'Intermediate', 'Advanced'].map(t =>
-        `<option value="${t}" ${getVal('difficulty') === t ? 'selected' : ''}>${t}</option>`
-    ).join('')}
+            `<option value="${t}" ${getVal('difficulty', 'Beginner') === t ? 'selected' : ''}>${t}</option>`
+        ).join('')}
                              </select>
                         </div>
                     </div>
@@ -920,8 +945,8 @@ window.openGameModal = (gameId = null, preselectedCategory = null, templateGame 
                              <select id="new-game-intensity" class="editor-textarea" style="height: auto; ${parentGame && !isOverridden('intensity') ? 'opacity:0.7;cursor:not-allowed' : ''}" 
                                      onchange="window.updateIntensityColor(this)" ${parentGame && !isOverridden('intensity') ? 'disabled' : ''}>
                                  ${['Flow', 'Cooperative', 'Adversarial'].map(t =>
-        `<option value="${t}" ${getVal('intensity') === t ? 'selected' : ''}>${t}</option>`
-    ).join('')}
+            `<option value="${t}" ${getVal('intensity') === t ? 'selected' : ''}>${t}</option>`
+        ).join('')}
                              </select>
                         </div>
                     </div>
@@ -933,8 +958,8 @@ window.openGameModal = (gameId = null, preselectedCategory = null, templateGame 
                 ${renderField('Game Initiation Conditions', 'new-game-initiation', getVal('initiation'), 'select', 1, ['Static', 'Inertial', 'Separated'])}
                 
                 ${renderField('Goals', 'new-game-goals', getVal('goals'), 'textarea', 2)}
-                ${renderField('Purpose', 'new-game-purpose', getVal('purpose'), 'textarea', 2)}
-                ${renderField('Focus of Intention', 'new-game-focus', getVal('focus'), 'textarea', 2)}
+                ${renderField('Intention', 'new-game-purpose', getVal('purpose'), 'textarea', 2)}
+                ${renderField('Focus of Attention', 'new-game-focus', getVal('focus'), 'textarea', 2)}
                 ${renderField('Description', 'new-game-desc', getVal('description'), 'textarea', 4)}
                 <div class="editor-controls" style="justify-content: space-between;">
                     <div style="display: flex; gap: 5px;">
@@ -959,7 +984,20 @@ window.openGameModal = (gameId = null, preselectedCategory = null, templateGame 
     const intSelect = document.getElementById('new-game-intensity');
     if (intSelect) window.updateIntensityColor(intSelect);
 
-    if (!isEdit) setTimeout(() => document.getElementById('new-game-title').focus(), 100);
+    if (parentGame) {
+        // Init Variation Title update if applicable
+        // We need to pass parent ID to the function, or just call it if we know context?
+        // We can just call it with the ID we have in scope.
+        window.updateVariationTitle(parentGame.id);
+    }
+
+    if (!isEdit) setTimeout(() => {
+        if (document.getElementById('new-game-variation-name')) {
+            document.getElementById('new-game-variation-name').focus();
+        } else {
+            document.getElementById('new-game-title').focus();
+        }
+    }, 100);
 };
 
 window.updateDifficultyColor = (select) => {
@@ -976,6 +1014,19 @@ window.updateIntensityColor = (select) => {
     if (val) {
         select.classList.add(`intensity-${val}`);
     }
+}
+
+window.updateVariationTitle = (parentId) => {
+    const parentGame = window.state.content.games.find(g => g.id === parentId);
+    if (!parentGame) return;
+
+    const varNameInput = document.getElementById('new-game-variation-name');
+    if (!varNameInput) return;
+
+    const varName = varNameInput.value;
+    const titleInput = document.getElementById('new-game-title');
+    // Ensure we don't double escape or anything, just simple concatenation
+    titleInput.value = parentGame.title + ' (' + varName + ')';
 }
 
 // Redirect old createGame calls

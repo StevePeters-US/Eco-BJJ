@@ -1,0 +1,27 @@
+{
+  "title": "Evening Class",
+  "date": "2026-02-12",
+  "conceptId": "bloodchokes",
+  "segments": {
+    "standing": [
+      {
+        "gameId": "grips-robot-arms"
+      },
+      {
+        "gameId": "grips-robot-arms---flow-"
+      },
+      {
+        "gameId": "grips-robot-arms---flow-"
+      },
+      {
+        "gameId": "grips-robot-arms---flow--with-trips"
+      }
+    ],
+    "mobility": [],
+    "takedowns": [],
+    "discussion": [],
+    "applications": [],
+    "review": [],
+    "rolling": []
+  }
+}
