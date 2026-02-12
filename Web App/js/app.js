@@ -354,6 +354,7 @@ function generateClassStructure() {
                     // Total = Round Time * Players
                     totalDuration += (roundTime * players);
                 } else {
+                    // Continuous AND Switch on Win fall here
                     totalDuration += roundTime;
                 }
             } else {
@@ -415,6 +416,9 @@ function generateClassStructure() {
                     let t = gameMeta.type || 'Continuous';
                     let intensity = gameMeta.intensity || '';
                     let difficulty = gameMeta.difficulty || '';
+
+                    let totalGameTime = (t === 'Round Switching') ? (rt * p) : rt;
+                    durationTxt = `${totalGameTime}m`;
 
                     metaTags = `
                         <span class="meta-tag">⏱ ${durationTxt}</span>
@@ -951,7 +955,7 @@ window.openGameModal = (gameId = null, preselectedCategory = null, templateGame 
                         </div>
                     </div>
                      <div style="flex: 1">
-                         ${renderField('Type', 'new-game-type', getVal('type', 'Continuous'), 'select', 1, ['Continuous', 'Alternating', 'Round Switching'])}
+                         ${renderField('Type', 'new-game-type', getVal('type', 'Continuous'), 'select', 1, ['Continuous', 'Switch on Win', 'Round Switching'])}
                     </div>
                 </div>
 
@@ -1157,6 +1161,11 @@ window.submitGameForm = async (isEdit) => {
 
                 const overlay = document.querySelector('.modal-overlay');
                 if (overlay) overlay.remove();
+
+                // Force reload of content to ensure everything is synced
+                const contentRes = await fetch('data/content.json?v=' + Date.now());
+                state.content = await contentRes.json();
+
                 generateClassStructure();
 
             } else {
