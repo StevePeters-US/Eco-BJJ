@@ -33,10 +33,24 @@
       "images": []
     },
     {
+      "id": "test",
+      "title": "test",
+      "content": "# test\n\n",
+      "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/test/test.md",
+      "images": []
+    },
+    {
       "id": "mobility",
       "title": "Mobility",
       "content": "A class designed around conditioning and mobility for jiu jitsu. ",
       "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Mobility/Mobility.md",
+      "images": []
+    },
+    {
+      "id": "sweeps",
+      "title": "Sweeps",
+      "content": "# Sweeps\n\n",
+      "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Sweeps/Sweeps.md",
       "images": []
     },
     {
@@ -51,6 +65,13 @@
       "title": "Cadence",
       "content": "Overwhelming through speed\nEfficient (economy mode)\n",
       "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Cadence/Cadence.md",
+      "images": []
+    },
+    {
+      "id": "other",
+      "title": "Other",
+      "content": "# Other\n\n",
+      "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Other/Other.md",
       "images": []
     },
     {
@@ -81,7 +102,7 @@
       "title": "Grips",
       "description": "",
       "games": [
-        "grips-robot-arms-(variation)",
+        "grips-standing-vs-seated",
         "grips-standing-vs-seated",
         "grips-robot-arms---flow",
         "grips-robot-arms---flow--with-trips",
@@ -97,16 +118,27 @@
       ]
     },
     {
+      "id": "test",
+      "title": "test",
+      "description": "",
+      "games": []
+    },
+    {
       "id": "mobility",
       "title": "Mobility",
       "description": "",
       "games": [
-        "mobility-test-game-for-persistence",
         "mobility-butt-scoot-to-tripod-sweep",
         "mobility-auto-select-test",
-        "mobility-potato",
-        "mobility-layouttest",
-        "mobility-headergame"
+        "mobility-layouttest"
+      ]
+    },
+    {
+      "id": "sweeps",
+      "title": "Sweeps",
+      "description": "",
+      "games": [
+        "sweeps-tripod-balance"
       ]
     },
     {
@@ -126,6 +158,15 @@
       "title": "Cadence",
       "description": "",
       "games": []
+    },
+    {
+      "id": "other",
+      "title": "Other",
+      "description": "",
+      "games": [
+        "other-break-30s",
+        "other-break-15s"
+      ]
     },
     {
       "id": "arm-bars",
@@ -154,20 +195,20 @@
       "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/TwistingShoulderLocks/Games/VerificationGame.md"
     },
     {
-      "title": "Robot arms (Variation)",
-      "description": "Starting standing. Defensive player move their hands up and down and in smooth arcs. The offesive player should lighlty follow the hands of the defensive player. \n\nBoth players should keep a strong posture and a low base.",
+      "title": "Standing vs seated",
+      "description": "",
       "category": "Grips",
-      "goals": "Offsensive player needs to keep thier hands in contact with the defensive player's hands with getting over extended or tripping.",
-      "purpose": "Learn how to make subtle connections to your opponent",
-      "focus": "Offense should always be applying light pressure towards the defensive player's midline.",
+      "goals": "",
+      "purpose": "",
+      "focus": "",
       "duration": "2",
       "players": "2",
       "type": "Round Switching",
       "intensity": "Flow",
       "difficulty": "Beginner",
       "parentId": "",
-      "id": "grips-robot-arms-(variation)",
-      "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Grips/Games/RobotarmsVariation.md"
+      "id": "grips-standing-vs-seated",
+      "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Grips/Games/Standingvsseated.md"
     },
     {
       "title": "Standing vs seated",
@@ -250,22 +291,6 @@
       "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Pressure/Games/4corners.md"
     },
     {
-      "title": "Test Game for Persistence",
-      "description": "Test Description",
-      "category": "Mobility",
-      "goals": "Test Goals",
-      "purpose": "Test Purpose",
-      "focus": "",
-      "duration": "",
-      "players": "2",
-      "type": "",
-      "intensity": "",
-      "difficulty": "",
-      "parentId": "",
-      "id": "mobility-test-game-for-persistence",
-      "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Mobility/Games/TestGameforPersistence.md"
-    },
-    {
       "title": "Butt scoot to tripod sweep",
       "description": "",
       "category": "Mobility",
@@ -298,22 +323,6 @@
       "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Mobility/Games/AutoSelectTest.md"
     },
     {
-      "title": "potato",
-      "description": "Description of potato.",
-      "category": "Mobility",
-      "goals": "",
-      "purpose": "",
-      "focus": "",
-      "duration": "",
-      "players": "2",
-      "type": "",
-      "intensity": "",
-      "difficulty": "",
-      "parentId": "",
-      "id": "mobility-potato",
-      "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Mobility/Games/potato.md"
-    },
-    {
       "title": "LayoutTest",
       "description": "Description of LayoutTest.",
       "category": "Mobility",
@@ -330,20 +339,20 @@
       "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Mobility/Games/LayoutTest.md"
     },
     {
-      "title": "HeaderGame",
-      "description": "Description of HeaderGame.",
-      "category": "Mobility",
-      "goals": "",
+      "title": "Tripod Balance",
+      "description": "",
+      "category": "Sweeps",
+      "goals": "Offensive player needs to keep the defenders foot off of the ground",
       "purpose": "",
       "focus": "",
-      "duration": "",
+      "duration": "1",
       "players": "2",
-      "type": "",
-      "intensity": "",
-      "difficulty": "",
+      "type": "Round Switching",
+      "intensity": "Adversarial",
+      "difficulty": "Beginner",
       "parentId": "",
-      "id": "mobility-headergame",
-      "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Mobility/Games/HeaderGame.md"
+      "id": "sweeps-tripod-balance",
+      "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Sweeps/Games/TripodBalance.md"
     },
     {
       "title": "Standing",
@@ -424,6 +433,38 @@
       "parentId": "",
       "id": "standing-testgame",
       "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Standing/Games/TestGame.md"
+    },
+    {
+      "title": "Break 30s",
+      "description": "",
+      "category": "Other",
+      "goals": "",
+      "purpose": "",
+      "focus": "",
+      "duration": "0.5",
+      "players": "2",
+      "type": "Continuous",
+      "intensity": "Flow",
+      "difficulty": "Beginner",
+      "parentId": "",
+      "id": "other-break-30s",
+      "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Other/Games/Break30s.md"
+    },
+    {
+      "title": "Break 15s",
+      "description": "",
+      "category": "Other",
+      "goals": "",
+      "purpose": "",
+      "focus": "",
+      "duration": "0.25",
+      "players": "2",
+      "type": "Continuous",
+      "intensity": "Flow",
+      "difficulty": "Beginner",
+      "parentId": "",
+      "id": "other-break-15s",
+      "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Other/Games/Break15s.md"
     },
     {
       "title": "ModalGame",

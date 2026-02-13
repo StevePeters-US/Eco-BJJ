@@ -359,7 +359,8 @@ function generateClassStructure() {
         currentGames.forEach(g => {
             const gameMeta = state.content.games.find(x => x.id === g.gameId);
             if (gameMeta) {
-                let roundTime = parseInt(gameMeta.duration) || 5;
+                let roundTime = parseFloat(gameMeta.duration);
+                if (isNaN(roundTime)) roundTime = 5;
                 let players = parseInt(gameMeta.players) || 2;
                 let type = gameMeta.type || 'Continuous';
 
@@ -424,14 +425,21 @@ function generateClassStructure() {
                 let durationTxt = '';
                 let metaTags = '';
                 if (gameMeta) {
-                    let rt = parseInt(gameMeta.duration) || 5;
+                    let rt = parseFloat(gameMeta.duration);
+                    if (isNaN(rt)) rt = 5;
                     let p = parseInt(gameMeta.players) || 2;
                     let t = gameMeta.type || 'Continuous';
                     let intensity = gameMeta.intensity || '';
                     let difficulty = gameMeta.difficulty || '';
 
                     let totalGameTime = (t === 'Round Switching') ? (rt * p) : rt;
-                    durationTxt = `${totalGameTime}m`;
+
+                    if (totalGameTime < 1) {
+                        durationTxt = `${Math.round(totalGameTime * 60)}s`;
+                    } else {
+                        // Remove trailing zeros if integer
+                        durationTxt = `${parseFloat(totalGameTime.toFixed(2))}m`;
+                    }
 
                     metaTags = `
                         <span class="meta-tag">⏱ ${durationTxt}</span>
@@ -1018,7 +1026,7 @@ window.openGameModal = (gameId = null, preselectedCategory = null, templateGame 
     };
 
     // Helper to render fields with toggle
-    const renderField = (label, id, value, type = 'text', rows = 1, opts = [], isParent = false) => {
+    const renderField = (label, id, value, type = 'text', rows = 1, opts = [], isParent = false, step = null) => {
         const override = isOverridden(id.replace('new-game-', '').replace('desc', 'description'));
         const fieldName = id.replace('new-game-', '').replace('desc', 'description');
 
@@ -1043,7 +1051,8 @@ window.openGameModal = (gameId = null, preselectedCategory = null, templateGame 
         } else {
             // Escape double quotes for input value attribute
             const safeValue = String(value).replace(/"/g, '&quot;');
-            inputHtml = `<input type="${type}" id="${id}" class="editor-textarea" value="${safeValue}" ${disabled} style="${style} height: auto;" spellcheck="true">`;
+            const stepAttr = step ? `step="${step}"` : '';
+            inputHtml = `<input type="${type}" id="${id}" class="editor-textarea" value="${safeValue}" ${disabled} ${stepAttr} style="${style} height: auto;" spellcheck="true">`;
         }
 
         return `
@@ -1115,7 +1124,7 @@ window.openGameModal = (gameId = null, preselectedCategory = null, templateGame 
 
                  <div class="form-group">
                     <label>Category</label>
-                    <select id="new-game-category" ${isEdit ? 'disabled' : ''}>
+                    <select id="new-game-category">
                         <option value="" disabled ${!game && !preselectedCategory ? 'selected' : ''}>Select Category...</option>
                         ${optionsHtml}
                     </select>
@@ -1126,7 +1135,22 @@ window.openGameModal = (gameId = null, preselectedCategory = null, templateGame 
                         ${renderField('Players', 'new-game-players', getVal('players', '2'), 'number')}
                     </div>
                      <div style="flex: 1">
-                        ${renderField('Round Time (mins)', 'new-game-duration', getVal('duration', '1'), 'number')}
+                        ${(() => {
+            const dVal = parseFloat(getVal('duration', '3'));
+            const mins = Math.floor(dVal);
+            const secs = Math.round((dVal - mins) * 60);
+            return `
+                            <div class="form-group">
+                                <label>Round Time</label>
+                                <div style="display: flex; gap: 5px; align-items: center;">
+                                    <input type="number" id="new-game-duration-mins" class="editor-textarea" value="${mins}" style="height: auto; width: 70px;" min="0" placeholder="Min">
+                                    <span>m</span>
+                                    <input type="number" id="new-game-duration-secs" class="editor-textarea" value="${secs}" style="height: auto; width: 70px;" min="0" max="60" step="5" placeholder="Sec">
+                                    <span>s</span>
+                                </div>
+                            </div>
+                            `;
+        })()}
                     </div>
                 </div>
                 
@@ -1284,7 +1308,12 @@ window.submitGameForm = async (isEdit) => {
     const focus = getFieldVal('new-game-focus', 'focus');
     const description = getFieldVal('new-game-desc', 'description');
     const players = getFieldVal('new-game-players', 'players');
-    const duration = getFieldVal('new-game-duration', 'duration');
+
+    // Duration from split fields
+    const dMins = parseFloat(document.getElementById('new-game-duration-mins').value) || 0;
+    const dSecs = parseFloat(document.getElementById('new-game-duration-secs').value) || 0;
+    const duration = dMins + (dSecs / 60);
+
     const gameType = getFieldVal('new-game-type', 'gameType');
     const intensity = getFieldVal('new-game-intensity', 'intensity');
     const difficulty = getFieldVal('new-game-difficulty', 'difficulty');
@@ -1331,6 +1360,25 @@ window.submitGameForm = async (isEdit) => {
 
             if (response.ok) {
                 const result = await response.json();
+
+                // DELETE OLD FILE IF WE ARE MOVING CATEGORIES
+                if (isEdit) {
+                    const editId = document.getElementById('game-edit-id').value;
+                    const originalGame = window.state.content.games.find(g => g.id === editId);
+                    if (originalGame && (originalGame.category !== category || originalGame.title !== name)) {
+                        try {
+                            await fetch('/api/delete', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ path: originalGame.path })
+                            });
+                            console.log("Deleted old file on move:", originalGame.path);
+                        } catch (e) {
+                            console.error("Failed to delete old file:", e);
+                        }
+                    }
+                }
+
                 const newId = (category + '-' + name).toLowerCase().replace(/[\s\/]/g, '-');
 
                 const gameData = {
@@ -1564,8 +1612,41 @@ window.submitConceptForm = async (isEdit) => {
             }
 
             if (response.ok) {
+                const overlay = document.querySelector('.modal-overlay');
+                if (overlay) overlay.remove();
+
+                // Fetch updated content without reload
+                const contentRes = await fetch('data/content.json?v=' + Date.now());
+                window.state.content = await contentRes.json();
+
+                // Update Category Dropdown in Game Editor if open
+                const catSelect = document.getElementById('new-game-category');
+                if (catSelect) {
+                    const currentVal = catSelect.value;
+                    const newValue = (!isEdit && !currentVal) ? name : currentVal; // Auto-select new concept if creating
+
+                    // Re-render options
+                    const categories = window.state.content.categories || [];
+                    catSelect.innerHTML = `
+                        <option value="" disabled ${!newValue ? 'selected' : ''}>Select Category...</option>
+                        ${categories.map(c => `<option value="${c.title}" ${c.title === newValue ? 'selected' : ''}>${c.title}</option>`).join('')}
+                     `;
+                }
+
+                // Update Main Concept Dropdown (Setup Panel)
+                const mainConceptSelect = document.getElementById('concept-select');
+                if (mainConceptSelect) {
+                    const currentVal = mainConceptSelect.value;
+                    // If isEdit, preserve selection. If new, maybe select it? 
+                    // Let's just refresh the list and preserve selection.
+                    const concepts = window.state.content.concepts || [];
+                    mainConceptSelect.innerHTML = `
+                        <option value="" disabled ${!currentVal ? 'selected' : ''}>Select a Concept...</option>
+                        ${concepts.map(c => `<option value="${c.id}" ${c.id === currentVal ? 'selected' : ''}>${c.title}</option>`).join('')}
+                     `;
+                }
+
                 alert(isEdit ? 'Concept updated!' : 'Concept created!');
-                window.location.reload();
             } else {
                 alert('Error creating: ' + await response.text());
             }

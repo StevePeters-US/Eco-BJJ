@@ -127,11 +127,6 @@ def get_categories_and_games():
         if not os.path.isdir(concept_path):
             continue
             
-        # Check for Games subfolder
-        games_dir = os.path.join(concept_path, 'Games')
-        if not os.path.exists(games_dir):
-            continue
-            
         # Initialize category (Concept name is the category)
         if concept_name not in categories:
             categories[concept_name] = {
@@ -140,6 +135,11 @@ def get_categories_and_games():
                 "description": "", # Could read concept file for this?
                 "games": []
             }
+            
+        # Check for Games subfolder
+        games_dir = os.path.join(concept_path, 'Games')
+        if not os.path.exists(games_dir):
+            continue
             
         # Scan games in this folder
         for file in os.listdir(games_dir):

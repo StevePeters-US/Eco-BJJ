@@ -25,6 +25,12 @@ class EcoHandler(http.server.SimpleHTTPRequestHandler):
         else:
             self.send_error(404, "Endpoint not found")
 
+    def do_DELETE(self):
+        if self.path == '/api/delete':
+            self.handle_delete()
+        else:
+            self.send_error(404, "Endpoint not found")
+
     def do_GET(self):
         if self.path == '/api/list_classes':
             self.handle_list_classes()
