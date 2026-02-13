@@ -797,7 +797,9 @@ input:-webkit-autofill:active,
     margin-bottom: var(--spacing-sm);
 }
 
+
 .edit-theory-btn {
+
     opacity: 0.7;
 }
 
@@ -951,52 +953,200 @@ details[open] summary.category-header::before {
 
 /* Print Styles */
 @media print {
+
+    /* Hide Browser Defaults (Header/Footer) & Set Margins */
+    @page {
+        size: auto;
+        margin: 0mm;
+    }
+
+    /* Layout Reset */
     body {
-        background: white;
+        background-color: white;
+        color: black;
+        margin: 1.5cm;
+        /* Restore margins for content */
+        padding: 0;
+    }
+
+    #app {
+        max-width: 100%;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+    }
+
+    .main-container {
+        display: block;
+        grid-template-columns: 1fr;
+    }
+
+    /* Hide UI Elements */
+    .app-header,
+    #setup-panel,
+    .btn,
+    .icon-btn,
+    .add-game-row,
+    .add-section-container,
+    .section-controls,
+    .game-card-actions,
+    input[type="range"],
+    .modal-overlay,
+    .remove-btn,
+    .empty-slot-btn,
+    .new-concept-btn,
+    .image-close-btn,
+    .form-group,
+    #new-game-btn,
+    .timeline-controls {
+        display: none !important;
+    }
+
+    /* Force Preview Panel Visibility */
+    #preview-panel {
+        display: block !important;
+        width: 100%;
+        border: none;
+        box-shadow: none;
+        padding: 0;
+        margin: 0;
+        background: transparent;
+    }
+
+    /* Section & Card Styling for Print */
+    .class-segment {
+        page-break-inside: avoid;
+        border-left: 2px solid #ccc;
+        margin-bottom: 20px;
+        padding-left: 10px;
+        /* Reduce indentation if needed */
+    }
+
+    /* Remove Arrows Globally */
+    .section-summary::before,
+    .game-title::before,
+    summary::before {
+        content: '' !important;
+        display: none !important;
+    }
+
+    .section-summary {
+        pointer-events: none;
+        padding-bottom: 0 !important;
+        /* Remove bottom padding on summary */
+    }
+
+    .section-title {
+        border-bottom: none !important;
+        font-size: 1.4rem;
+        color: black;
+        margin-left: 0;
+        /* Align left */
+        margin-bottom: 0 !important;
+        /* Ensure no margin below title */
+        line-height: 1.2;
+        /* Tighten line height if needed */
+    }
+
+    /* Ensure all details are expanded for print */
+    details {
+        display: block !important;
+    }
+
+    .section-content {
+        padding-top: 0 !important;
+        /* Remove padding entirely */
+        padding-left: 0 !important;
+        /* Align with title */
+        margin-top: 0 !important;
+        /* Ensure no margin */
+    }
+
+    details>summary {
+        list-style: none;
+    }
+
+    /* Game Cards */
+    .game-card {
+        border: 1px solid #ddd;
+        break-inside: avoid;
+        box-shadow: none;
+        margin-bottom: 10px;
+        margin-top: 0 !important;
+        /* Remove top margin to pull closer to header */
+        background: white !important;
+        /* Remove dark mode bg */
+        color: black !important;
+    }
+
+    .game-card-summary {
+        background: #f5f5f5 !important;
+        border-bottom: 1px solid #ddd;
+        color: black;
+        padding: 5px 10px;
+        /* Compress vertical space */
+    }
+
+    .game-title {
+        color: black !important;
+        font-weight: bold;
+        margin-left: 0 !important;
+        /* Fix alignment after removing arrow */
+    }
+
+    .game-header-left {
+        gap: 5px;
+        /* Tighter gap */
+    }
+
+    .game-card-content {
+        display: block !important;
+        /* Attempt to show content */
+        color: black;
+        border-top: none;
+        padding: 10px;
+        /* Reduce padding */
+    }
+
+    /* Typography Overrides */
+    p,
+    h1,
+    h2,
+    h3,
+    h4,
+    li,
+    div {
+        color: black !important;
+    }
+
+    .meta-tag {
+        border: 1px solid #ccc;
+        background: white !important;
+        color: black !important;
+    }
+
+    /* Concept Discussion Clean Up */
+    .theory-content {
+        background: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
         color: black;
     }
 
-    .app-header,
-    .form-group,
-    .empty-slot-btn,
-    #setup-panel,
-    #new-game-btn
+    .theory-images {
+        margin-top: 10px;
+    }
 
-    /* If exists */
-        {
-        display: none !important;
+    /* Link URLs */
+    a {
+        text-decoration: underline;
+        color: black !important;
     }
 
     /* Ensure dropped images print */
     .dropped-image-wrapper {
         border: none;
         background: transparent;
-    }
-
-    .image-close-btn {
-        display: none;
-    }
-
-    #preview-panel {
-        display: block !important;
-        background: none;
-        border: none;
-        box-shadow: none;
-        padding: 0;
-    }
-
-    .class-segment {
-        border-left: 2px solid #ccc;
-        page-break-inside: avoid;
-    }
-
-    .segment-badge {
-        background: white;
-        border-color: black;
-    }
-
-    .selected-game {
-        border: 1px solid #ccc;
-        background: white;
     }
 }
