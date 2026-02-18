@@ -15,7 +15,32 @@
       }
     ],
     "mobility": [],
-    "takedowns": [],
+    "takedowns": [
+      {
+        "gameId": "standing-ape-hanger-single-leg"
+      },
+      {
+        "gameId": "other-break-15s"
+      },
+      {
+        "gameId": "standing-single-leg---holding"
+      },
+      {
+        "gameId": "other-break-15s"
+      },
+      {
+        "gameId": "standing-ape-hanger-single-leg---holding"
+      },
+      {
+        "gameId": "other-break-15s"
+      },
+      {
+        "gameId": "standing-uchi-mata"
+      },
+      {
+        "gameId": "other-break-15s"
+      }
+    ],
     "discussion": [],
     "applications": [],
     "review": [],
@@ -46,6 +71,15 @@
     "recap": [
       {
         "gameId": "sweeps-tripod-balance"
+      },
+      {
+        "gameId": "mobility-butt-scoot-to-tripod"
+      },
+      {
+        "gameId": "grips-grip-defense---back-standing"
+      },
+      {
+        "gameId": "grips-grip-defense---back-side-control"
       }
     ]
   },
@@ -59,7 +93,7 @@
     {
       "id": "recap",
       "title": "Recap",
-      "targetDuration": 15,
+      "targetDuration": 10,
       "type": "game"
     },
     {

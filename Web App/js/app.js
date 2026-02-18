@@ -75,6 +75,58 @@ function updateAppTitle() {
         if (concept) {
             content += `<div class="concept-subtitle">${concept.title}</div>`;
         }
+
+        // Calculate Global Time
+        let globalCurrent = 0;
+        let globalTarget = 0;
+
+        if (state.structure) {
+            state.structure.forEach(segment => {
+                globalTarget += (parseFloat(segment.targetDuration) || 0);
+
+                let segmentDuration = 0;
+                // If fixed duration (Discussion, Review, Free Roll, Custom Fixed), "current" is just the target/slider value
+                const isFixed = segment.type === 'discussion' || segment.type === 'review' || segment.type === 'rolling' || segment.type === 'fixed';
+
+                if (isFixed) {
+                    segmentDuration = (parseFloat(segment.targetDuration) || 0);
+                } else {
+                    // Start with 0 for games
+                    if (state.segments[segment.id]) {
+                        state.segments[segment.id].forEach(g => {
+                            const gameMeta = state.content.games.find(x => x.id === g.gameId);
+                            if (gameMeta) {
+                                let rt = parseFloat(gameMeta.duration) || 5;
+                                let p = parseInt(gameMeta.players) || 2;
+                                let t = gameMeta.type || 'Continuous';
+                                if (t === 'Round Switching') segmentDuration += (rt * p);
+                                else segmentDuration += rt;
+                            } else {
+                                segmentDuration += 5;
+                            }
+                        });
+                    }
+                }
+
+                globalCurrent += segmentDuration;
+            });
+        }
+
+        // Format
+        // We need formatDuration. It is attached to window but safer to use if available or define helper.
+        // It is defined in app.js later. We can rely on hoisting? No, it's assigned to window.
+        // Let's use window.formatDuration if available, else simple fallback.
+        const format = (v) => window.formatDuration ? window.formatDuration(v) : v + "m";
+
+        const formattedCurrent = format(globalCurrent);
+        const formattedTarget = format(globalTarget);
+
+        content += `
+            <div style="font-size: 0.6em; color: #4caf50; margin-top: 5px; font-weight: normal;">
+                Total Time: ${formattedCurrent} / ${formattedTarget}
+            </div>
+        `;
+
         titleDisplay.innerHTML = content;
     }
 }
@@ -502,6 +554,7 @@ function generateClassStructure() {
                         <div class="game-card-actions">
                             <button class="icon-btn xs-btn" ${isFirst ? 'disabled style="opacity:0.3"' : ''} onclick="window.handleMoveGame(event, '${segment.id}', ${index}, -1)" title="Move Up">↑</button>
                             <button class="icon-btn xs-btn" ${isLast ? 'disabled style="opacity:0.3"' : ''} onclick="window.handleMoveGame(event, '${segment.id}', ${index}, 1)" title="Move Down">↓</button>
+                            <button class="icon-btn" title="Duplicate" onclick="window.handleDuplicateGame(event, '${segment.id}', ${index})">⧉</button>
                             <button class="icon-btn edit-btn" title="Edit Game" onclick="window.handleEditGame(event, '${segment.id}', ${index})">✎</button>
                             <button class="icon-btn remove-btn" title="Remove" onclick="window.handleRemoveGame(event, '${segment.id}', ${index})">×</button>
                         </div>
@@ -529,7 +582,7 @@ function generateClassStructure() {
         }
 
         // Determine segment category (Fixed Duration vs Game Container)
-        const isFixedDuration = segment.type === 'discussion' || segment.type === 'review';
+        const isFixedDuration = segment.type === 'discussion' || segment.type === 'review' || segment.type === 'rolling' || segment.type === 'fixed';
 
         // Time Badge Logic
         // Slider value = targetDuration
@@ -538,12 +591,22 @@ function generateClassStructure() {
         let sliderValue = segment.targetDuration;
 
         // Color logic based on difference from target
+        // Yellow if under time (more than 30s under)
+        // Green if within 30 seconds of desired time
+        // Red if over (more than 30s over)
+
         let timeColor = '#888';
-        if (totalDuration > 0) {
-            const diff = totalDuration - segment.targetDuration;
-            if (Math.abs(diff) <= 2) timeColor = '#4caf50'; // Green
-            else if (diff > 2) timeColor = '#f44336'; // Red (Over)
-            else timeColor = '#ff9800'; // Orange (Under)
+
+        const diff = totalDuration - segment.targetDuration;
+
+        if (totalDuration === 0 && !isFixedDuration) {
+            timeColor = '#888'; // Grey if empty container
+        } else if (isFixedDuration) {
+            timeColor = '#4caf50'; // Always Green for fixed
+        } else {
+            if (diff < -0.5) timeColor = '#fbc02d'; // Yellow (Under > 30s)
+            else if (diff > 0.5) timeColor = '#f44336'; // Red (Over > 30s)
+            else timeColor = '#4caf50'; // Green (Within 30s)
         }
 
         const formattedTime = formatDuration(totalDuration); // Current sum of games
@@ -561,12 +624,16 @@ function generateClassStructure() {
             <input type="range"
                 min="0.25" max="30" step="0.25"
                 value="${sliderValue}"
-                style="width: 100px; accent-color: var(--accent-color);"
+                style="width: 100px; accent-color: ${timeColor};"
                 oninput="${onInputScript}"
                 onchange="updateSectionDuration('${segment.id}', this.value)"
                 onclick="event.stopPropagation()"
             />
-            <span id="display-${segment.id}" style="color: ${timeColor}; font-family: monospace; font-size: 0.9rem; min-width: 90px;">
+            <span id="display-${segment.id}" 
+                  style="color: ${timeColor}; font-family: monospace; font-size: 0.9rem; min-width: 90px; cursor: pointer;"
+                  title="Double-click to set time manually"
+                  ondblclick="const val = prompt('Enter target duration (min):', '${segment.targetDuration}'); if(val) window.updateSectionDuration('${segment.id}', val); event.stopPropagation();"
+            >
                 ${displayText}
             </span>
         </span>
@@ -622,12 +689,15 @@ function generateClassStructure() {
 window.addSection = () => {
     const title = prompt("Enter new section title:", "New Section");
     if (title) {
+        // Simple confirm for type
+        const isFixed = confirm("Is this a Fixed Duration section (e.g. Discussion, Review)?\n\nOK = Yes (Fixed Time)\nCancel = No (Sum of Games)");
+
         const newId = 'section-' + Date.now();
         state.structure.push({
             id: newId,
             title: title,
             targetDuration: 10,
-            type: 'game' // Default to game for flexibility
+            type: isFixed ? 'fixed' : 'game'
         });
         generateClassStructure();
     }
@@ -690,6 +760,19 @@ window.handleEditGame = (event, segmentId, index) => {
         window.openGameModal(gameData.gameId, null, null, segmentId);
     } else {
         console.error(`Game data at index ${index} in segment ${segmentId} is undefined`);
+    }
+};
+
+window.handleDuplicateGame = (event, segmentId, index) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const games = state.segments[segmentId];
+    if (games && games[index]) {
+        // Deep clone
+        const newGame = JSON.parse(JSON.stringify(games[index]));
+        // Insert after
+        games.splice(index + 1, 0, newGame);
+        generateClassStructure();
     }
 };
 

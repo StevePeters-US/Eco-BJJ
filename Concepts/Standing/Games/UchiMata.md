@@ -1,10 +1,10 @@
 ---
-title: Ape Hanger single leg
+title: Uchi Mata
 category: Standing
 players: 2
-duration: 1
+duration: 4
 type: Round Switching
 intensity: Flow
-difficulty: Beginner
+difficulty: Intermediate
 ---
 

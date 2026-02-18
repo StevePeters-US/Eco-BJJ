@@ -105,10 +105,13 @@
       "description": "",
       "games": [
         "grips-standing-vs-seated",
+        "grips-grip-defense-(back)",
+        "grips-grip-defense---back-side-control",
         "grips-standing-vs-seated",
         "grips-robot-arms---flow",
         "grips-robot-arms---flow--with-trips",
-        "grips-robot-arms"
+        "grips-robot-arms",
+        "grips-grip-defense---back-standing"
       ]
     },
     {
@@ -132,7 +135,8 @@
       "games": [
         "mobility-butt-scoot-to-tripod-sweep",
         "mobility-auto-select-test",
-        "mobility-layouttest"
+        "mobility-layouttest",
+        "mobility-butt-scoot-to-tripod"
       ]
     },
     {
@@ -148,11 +152,14 @@
       "title": "Standing",
       "description": "",
       "games": [
+        "standing-uchi-mata",
         "standing-standing",
         "standing-russian-tie-defense",
         "standing-ape-hanger-single-leg",
         "standing-sandwich-grips",
-        "standing-testgame"
+        "standing-testgame",
+        "standing-ape-hanger-single-leg---holding",
+        "standing-single-leg---holding"
       ]
     },
     {
@@ -229,6 +236,38 @@
       "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Grips/Games/Standingvsseated.md"
     },
     {
+      "title": "Grip Defense (Back)",
+      "description": "Offensive player starts on the back with hooks in. Defensive player has a strong grip on one of the offensive player's hands. Varitaions of this game can be played with the offensive player having double underhooks or one underhook.",
+      "category": "Grips",
+      "goals": "",
+      "purpose": "",
+      "focus": "",
+      "duration": "1",
+      "players": "",
+      "type": "",
+      "intensity": "",
+      "difficulty": "",
+      "parentId": "",
+      "id": "grips-grip-defense-(back)",
+      "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Grips/Games/GripDefenseBack.md"
+    },
+    {
+      "title": "Grip Defense - Back Side Control",
+      "description": "Defensive player starts in bottom side control with their back facing the offensive player. Defensive player has a strong grip on offensive player's top hand.",
+      "category": "Grips",
+      "goals": "Offensive player needs to connect their hands. Defensive player needs to stand up",
+      "purpose": "",
+      "focus": "",
+      "duration": "1",
+      "players": "2",
+      "type": "Round Switching",
+      "intensity": "Adversarial",
+      "difficulty": "Beginner",
+      "parentId": "",
+      "id": "grips-grip-defense---back-side-control",
+      "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Grips/Games/GripDefense-BackSideControl.md"
+    },
+    {
       "title": "Standing vs seated",
       "description": "",
       "category": "Grips",
@@ -291,6 +330,22 @@
       "parentId": "",
       "id": "grips-robot-arms",
       "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Grips/Games/Robotarms.md"
+    },
+    {
+      "title": "Grip Defense - Back Standing",
+      "description": "Starting standing with the offensive player behind the defensive player with a looping grip around their torso.",
+      "category": "Grips",
+      "goals": "Defensive player wants to fit the side of their hip into the void created by oofensive player's hands. Drop hips and drag themselves away from offensive player to open grips",
+      "purpose": "Defend grips immediately, before they get thrown on their head",
+      "focus": "Defensive player needs to get their hips low and as far away from the other player as possible. Do not allow offensive player to elevate.",
+      "duration": "1",
+      "players": "2",
+      "type": "Round Switching",
+      "intensity": "Flow",
+      "difficulty": "Beginner",
+      "parentId": "",
+      "id": "grips-grip-defense---back-standing",
+      "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Grips/Games/GripDefense-BackStanding.md"
     },
     {
       "title": "4 corners",
@@ -357,6 +412,22 @@
       "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Mobility/Games/LayoutTest.md"
     },
     {
+      "title": "Butt Scoot to Tripod",
+      "description": "Offensive player starts seated with the defnesive player standing. Offensive player butt scoots to tripod sweep.",
+      "category": "Mobility",
+      "goals": "",
+      "purpose": "",
+      "focus": "",
+      "duration": "2",
+      "players": "2",
+      "type": "Continuous",
+      "intensity": "Flow",
+      "difficulty": "Beginner",
+      "parentId": "",
+      "id": "mobility-butt-scoot-to-tripod",
+      "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Mobility/Games/ButtScoottoTripod.md"
+    },
+    {
       "title": "Tripod Balance",
       "description": "",
       "category": "Sweeps",
@@ -371,6 +442,22 @@
       "parentId": "",
       "id": "sweeps-tripod-balance",
       "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Sweeps/Games/TripodBalance.md"
+    },
+    {
+      "title": "Uchi Mata",
+      "description": "",
+      "category": "Standing",
+      "goals": "",
+      "purpose": "",
+      "focus": "",
+      "duration": "4",
+      "players": "2",
+      "type": "Round Switching",
+      "intensity": "Flow",
+      "difficulty": "Intermediate",
+      "parentId": "",
+      "id": "standing-uchi-mata",
+      "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Standing/Games/UchiMata.md"
     },
     {
       "title": "Standing",
@@ -411,11 +498,11 @@
       "goals": "",
       "purpose": "",
       "focus": "",
-      "duration": "",
+      "duration": "1",
       "players": "2",
-      "type": "",
-      "intensity": "",
-      "difficulty": "",
+      "type": "Round Switching",
+      "intensity": "Flow",
+      "difficulty": "Beginner",
       "parentId": "",
       "id": "standing-ape-hanger-single-leg",
       "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Standing/Games/ApeHangersingleleg.md"
@@ -451,6 +538,38 @@
       "parentId": "",
       "id": "standing-testgame",
       "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Standing/Games/TestGame.md"
+    },
+    {
+      "title": "Ape Hanger single leg - Holding",
+      "description": "Offensive player starts with a collar grip, breaking the defensive player's posture and picking up their leg. The game starts flwoing, but become adversarial as soon as the defensive player's foot is off the ground.",
+      "category": "Standing",
+      "goals": "Offensive player needs to keep the defensive player's leg in the air",
+      "purpose": "",
+      "focus": "",
+      "duration": "1",
+      "players": "2",
+      "type": "Round Switching",
+      "intensity": "Adversarial",
+      "difficulty": "Beginner",
+      "parentId": "",
+      "id": "standing-ape-hanger-single-leg---holding",
+      "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Standing/Games/ApeHangersingleleg-Holding.md"
+    },
+    {
+      "title": "Single Leg - Holding",
+      "description": "Offensive player starts by picking up one of the other player's legs.",
+      "category": "Standing",
+      "goals": "Offensive player needs to hold the other player's leg in the air, defensive player need to get both feet on the mat",
+      "purpose": "",
+      "focus": "Offensive player needs to maintain strong posture and drive the defensive player backwards using their head",
+      "duration": "1",
+      "players": "2",
+      "type": "Round Switching",
+      "intensity": "Adversarial",
+      "difficulty": "Beginner",
+      "parentId": "",
+      "id": "standing-single-leg---holding",
+      "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/Standing/Games/SingleLeg-Holding.md"
     },
     {
       "title": "Break 30s",
