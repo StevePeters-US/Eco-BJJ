@@ -249,44 +249,53 @@ async function loadClass() {
         document.body.appendChild(overlay);
 
         document.getElementById('confirm-load-btn').onclick = async () => {
-            const selectedName = document.getElementById('load-class-select').value;
-            if (selectedName) {
-                // Load it
-                const res = await fetch('/api/load_class', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: selectedName })
-                });
+            try {
+                const selectedName = document.getElementById('load-class-select').value;
+                console.log("Attempting to load:", selectedName);
+                if (selectedName) {
+                    // Load it
+                    const res = await fetch('/api/load_class', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name: selectedName })
+                    });
 
-                if (res.ok) {
-                    const result = await res.json();
-                    const loadedData = result.data;
+                    if (res.ok) {
+                        const result = await res.json();
+                        console.log("Load result:", result);
+                        const loadedData = result.data;
 
-                    // Restore State
-                    state.classTitle = loadedData.title || selectedName;
-                    state.selectedConceptId = loadedData.conceptId;
-                    state.segments = loadedData.segments || {};
-                    state.structure = loadedData.structure || JSON.parse(JSON.stringify(DEFAULT_STRUCTURE));
+                        // Restore State
+                        state.classTitle = loadedData.title || selectedName;
+                        state.selectedConceptId = loadedData.conceptId;
+                        state.segments = loadedData.segments || {};
+                        state.structure = loadedData.structure || JSON.parse(JSON.stringify(DEFAULT_STRUCTURE));
 
-                    // Update UI
-                    const titleInput = document.getElementById('class-title-input');
-                    if (titleInput) titleInput.value = state.classTitle;
+                        // Update UI
+                        const titleInput = document.getElementById('class-title-input');
+                        if (titleInput) titleInput.value = state.classTitle;
 
-                    const conceptSelect = document.getElementById('concept-select');
-                    if (conceptSelect) conceptSelect.value = state.selectedConceptId;
+                        const conceptSelect = document.getElementById('concept-select');
+                        if (conceptSelect) conceptSelect.value = state.selectedConceptId;
 
-                    const dateInput = document.getElementById('class-date-input');
-                    if (dateInput && loadedData.date) {
-                        dateInput.value = loadedData.date;
+                        const dateInput = document.getElementById('class-date-input');
+                        if (dateInput && loadedData.date) {
+                            dateInput.value = loadedData.date;
+                        }
+
+                        // Re-render
+                        generateClassStructure();
+
+                        document.querySelector('.modal-overlay').remove();
+                    } else {
+                        const errText = await res.text();
+                        console.error("Error loading class:", errText);
+                        alert("Error loading class: " + errText);
                     }
-
-                    // Re-render
-                    generateClassStructure();
-
-                    document.querySelector('.modal-overlay').remove();
-                } else {
-                    alert("Error loading class");
                 }
+            } catch (error) {
+                console.error("Exception in load class handler:", error);
+                alert("Exception loading class: " + error.message);
             }
         };
 
@@ -499,7 +508,7 @@ function generateClassStructure() {
                     </summary>
                     <div class="game-card-content">
                         ${goals ? `<div class="game-info-row"><strong>Goals:</strong> ${goals}</div>` : ''}
-                        ${purpose ? `<div class="game-info-row"><strong>Intention:</strong> ${purpose}</div>` : ''}
+                        ${purpose ? `<div class="game-info-row"><strong>Learning Objectives:</strong> ${purpose}</div>` : ''}
                         ${focus ? `<div class="game-info-row"><strong>Focus:</strong> ${focus}</div>` : ''}
                         ${description ? `<div class="game-info-row game-description">${markedParse(description)}</div>` : ''}
                     </div>
@@ -519,40 +528,50 @@ function generateClassStructure() {
             contentHtml = gamesHtml;
         }
 
-        // Time Badge Logic (Manual Override or Auto-calc)
-        let displayDuration = totalDuration;
-        // Check for manual override
-        if (state.sectionDurations && state.sectionDurations[segment.id] !== undefined) {
-            displayDuration = state.sectionDurations[segment.id];
-        } else if (totalDuration === 0) {
-            displayDuration = segment.targetDuration;
-        }
+        // Determine segment category (Fixed Duration vs Game Container)
+        const isFixedDuration = segment.type === 'discussion' || segment.type === 'review';
 
-        // Color logic based on difference from target (optional, keeping simple for now)
+        // Time Badge Logic
+        // Slider value = targetDuration
+        // Display = [Current] / [Target]
+
+        let sliderValue = segment.targetDuration;
+
+        // Color logic based on difference from target
         let timeColor = '#888';
-        if (displayDuration > 0) {
-            const diff = displayDuration - segment.targetDuration;
+        if (totalDuration > 0) {
+            const diff = totalDuration - segment.targetDuration;
             if (Math.abs(diff) <= 2) timeColor = '#4caf50'; // Green
             else if (diff > 2) timeColor = '#f44336'; // Red (Over)
             else timeColor = '#ff9800'; // Orange (Under)
         }
 
-        const formattedTime = formatDuration(displayDuration);
+        const formattedTime = formatDuration(totalDuration); // Current sum of games
+        const targetFormatted = formatDuration(segment.targetDuration);
 
-        // Editable Time Slider
+        // Conditional Formatting
+        const displayText = isFixedDuration ? targetFormatted : `${formattedTime} / ${targetFormatted}`;
+        const onInputScript = isFixedDuration ?
+            `document.getElementById('display-${segment.id}').innerText = window.formatDuration(this.value)` :
+            `document.getElementById('display-${segment.id}').innerText = '${formattedTime} / ' + window.formatDuration(this.value)`;
+
+
         const timeDisplay = `
-            <span style="display: inline-flex; align-items: center; margin-left: 10px; gap: 8px;">
-                <input type="range" 
-                       min="0.25" max="30" step="0.25"
-                       value="${displayDuration}"
-                       style="width: 100px; accent-color: var(--accent-color);"
-                       oninput="document.getElementById('display-${segment.id}').innerText = window.formatDuration(this.value)"
-                       onchange="updateSectionDuration('${segment.id}', this.value)"
-                       onclick="event.stopPropagation()"
-                />
-                <span id="display-${segment.id}" style="color: ${timeColor}; font-family: monospace; font-size: 0.9rem; min-width: 45px;">${formattedTime}</span>
+        <span style="display: inline-flex; align-items: center; margin-left: 10px; gap: 8px;">
+            <input type="range"
+                min="0.25" max="30" step="0.25"
+                value="${sliderValue}"
+                style="width: 100px; accent-color: var(--accent-color);"
+                oninput="${onInputScript}"
+                onchange="updateSectionDuration('${segment.id}', this.value)"
+                onclick="event.stopPropagation()"
+            />
+            <span id="display-${segment.id}" style="color: ${timeColor}; font-family: monospace; font-size: 0.9rem; min-width: 90px;">
+                ${displayText}
             </span>
+        </span>
         `;
+
 
         // Section Controls
         const isFirst = index === 0;
@@ -726,17 +745,14 @@ window.formatDuration = (val) => {
 };
 
 // Handler for manual time update
+// Handler for manual time update
 window.updateSectionDuration = (segmentId, value) => {
-    if (!state.sectionDurations) {
-        state.sectionDurations = {};
+    // Find segment
+    const segment = state.structure.find(s => s.id === segmentId);
+    if (segment) {
+        segment.targetDuration = parseFloat(value);
+        generateClassStructure();
     }
-    state.sectionDurations[segmentId] = parseInt(value) || 0;
-    // We don't necessarily need to re-render everything, but it preserves consistency
-    // However, re-rendering kills focus. Ideally, we just update the state.
-    // If we want color updates, we might need to re-render or update style manually.
-    // For now, let's just update state. Re-render might be jarring if typing.
-    // Actually, onchange triggers on blur/enter, so re-render is fine.
-    generateClassStructure();
 };
 
 window.removeGame = (segmentId, index) => {
@@ -1192,9 +1208,9 @@ window.openGameModal = (gameId = null, preselectedCategory = null, templateGame 
                 ${renderField('Game Initiation Conditions', 'new-game-initiation', getVal('initiation'), 'select', 1, ['Static', 'Inertial', 'Separated'])}
                 
                 ${renderField('Goals', 'new-game-goals', getVal('goals'), 'textarea', 2)}
-                ${renderField('Intention', 'new-game-purpose', getVal('purpose'), 'textarea', 2)}
                 ${renderField('Focus of Attention', 'new-game-focus', getVal('focus'), 'textarea', 2)}
                 ${renderField('Description', 'new-game-desc', getVal('description'), 'textarea', 4)}
+                ${renderField('Learning Objectives', 'new-game-purpose', getVal('purpose'), 'textarea', 2)}
                 <div class="editor-controls" style="justify-content: space-between;">
                     <div style="display: flex; gap: 5px;">
                         ${isEdit ? `<button class="btn remove-btn" onclick="window.deleteGame('${game.id}')" style="background: #d32f2f; color: white;">Delete</button>` : ''}

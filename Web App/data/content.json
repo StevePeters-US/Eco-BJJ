@@ -95,7 +95,9 @@
       "id": "bloodchokes",
       "title": "BloodChokes",
       "description": "",
-      "games": []
+      "games": [
+        "bloodchokes-triangle-defense"
+      ]
     },
     {
       "id": "grips",
@@ -193,6 +195,22 @@
       "parentId": "",
       "id": "twistingshoulderlocks-verification-game",
       "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/TwistingShoulderLocks/Games/VerificationGame.md"
+    },
+    {
+      "title": "Triangle Defense",
+      "description": "",
+      "category": "BloodChokes",
+      "goals": "",
+      "purpose": "",
+      "focus": "",
+      "duration": "1",
+      "players": "2",
+      "type": "Round Switching",
+      "intensity": "Adversarial",
+      "difficulty": "Intermediate",
+      "parentId": "",
+      "id": "bloodchokes-triangle-defense",
+      "path": "/home/steve/Documents/BJJ/Eco-BJJ/Concepts/BloodChokes/Games/TriangleDefense.md"
     },
     {
       "title": "Standing vs seated",

@@ -52,9 +52,15 @@ def parse_game_file(filepath):
             
             # Fallback for old purpose format in body if not in frontmatter
             if not game_data['purpose']:
-                purpose_match = re.search(r'\*\*Purpose\*\*\s*\n*(.*)', body)
-                if purpose_match:
-                    game_data['purpose'] = purpose_match.group(1).strip()
+                # Try new "Learning Objectives" header first
+                lo_match = re.search(r'\*\*Learning Objectives\*\*\s*\n*(.*)', body)
+                if lo_match:
+                    game_data['purpose'] = lo_match.group(1).strip()
+                else:
+                    # Fallback to old "Purpose"
+                    purpose_match = re.search(r'\*\*Purpose\*\*\s*\n*(.*)', body)
+                    if purpose_match:
+                        game_data['purpose'] = purpose_match.group(1).strip()
             
             games.append(game_data)
             return games
