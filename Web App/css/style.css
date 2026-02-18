@@ -1025,22 +1025,31 @@ details[open] summary.category-header::before {
     visibility: visible;
 }
 
+/* Hide print-only elements on screen */
+.print-header,
+.print-footer {
+    display: none;
+}
+
 /* Print Styles */
 @media print {
 
-    /* Hide Browser Defaults (Header/Footer) & Set Margins */
+
+    /* Page Setup */
     @page {
         size: auto;
-        margin: 0mm;
+        margin: 0.75in 1.5cm 0.75in 1.5cm;
+        /* top right bottom left — extra bottom for footer */
+        counter-increment: page;
     }
 
     /* Layout Reset */
     body {
         background-color: white;
         color: black;
-        margin: 1.5cm;
-        /* Restore margins for content */
+        margin: 0;
         padding: 0;
+        font-size: 10pt;
     }
 
     #app {
@@ -1072,7 +1081,8 @@ details[open] summary.category-header::before {
     .image-close-btn,
     .form-group,
     #new-game-btn,
-    .timeline-controls {
+    .timeline-controls,
+    .class-header {
         display: none !important;
     }
 
@@ -1087,16 +1097,97 @@ details[open] summary.category-header::before {
         background: transparent;
     }
 
-    /* Section & Card Styling for Print */
+    /* ── Print Header ── */
+    .print-header {
+        display: flex !important;
+        justify-content: space-between;
+        align-items: baseline;
+        border-bottom: 2px solid #222;
+        margin-bottom: 8px;
+        padding-bottom: 4px;
+    }
+
+    .print-header-left {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+    }
+
+    .print-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: black;
+    }
+
+    .print-concept {
+        font-size: 0.85rem;
+        color: #444;
+        font-style: italic;
+    }
+
+    .print-date {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #222;
+        white-space: nowrap;
+    }
+
+    /* ── Print Footer ── */
+    .print-footer {
+        display: flex !important;
+        justify-content: space-between;
+        align-items: center;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 4px 1.5cm;
+        font-size: 0.75rem;
+        color: #555 !important;
+        border-top: 1px solid #bbb;
+        background: white;
+    }
+
+    .print-footer-left {
+        color: #555 !important;
+    }
+
+    .print-footer-right {
+        color: #555 !important;
+    }
+
+    /* CSS page counter — works in Chrome/Edge print */
+    .print-page-num::after {
+        content: counter(page);
+    }
+
+    /* ── Section Spacing (reduce whitespace) ── */
     .class-segment {
         page-break-inside: avoid;
         border-left: 2px solid #ccc;
-        margin-bottom: 20px;
-        padding-left: 10px;
-        /* Reduce indentation if needed */
+        margin-bottom: 6px;
+        padding-left: 8px;
     }
 
-    /* Remove Arrows Globally */
+    details {
+        display: block !important;
+        margin: 0 !important;
+    }
+
+    details>summary {
+        list-style: none;
+    }
+
+    .section-collapsible {
+        margin: 0 !important;
+    }
+
+    .section-summary {
+        pointer-events: none;
+        padding: 2px 0 !important;
+        margin: 0 !important;
+    }
+
     .section-summary::before,
     .game-title::before,
     summary::before {
@@ -1104,82 +1195,61 @@ details[open] summary.category-header::before {
         display: none !important;
     }
 
-    .section-summary {
-        pointer-events: none;
-        padding-bottom: 0 !important;
-        /* Remove bottom padding on summary */
-    }
-
     .section-title {
         border-bottom: none !important;
-        font-size: 1.4rem;
+        font-size: 1.1rem;
         color: black;
         margin-left: 0;
-        /* Align left */
-        margin-bottom: 0 !important;
-        /* Ensure no margin below title */
+        margin-bottom: 2px !important;
         line-height: 1.2;
-        /* Tighten line height if needed */
-    }
-
-    /* Ensure all details are expanded for print */
-    details {
-        display: block !important;
     }
 
     .section-content {
-        padding-top: 0 !important;
-        /* Remove padding entirely */
-        padding-left: 0 !important;
-        /* Align with title */
-        margin-top: 0 !important;
-        /* Ensure no margin */
+        padding: 2px 0 0 0 !important;
+        margin: 0 !important;
     }
 
-    details>summary {
-        list-style: none;
-    }
-
-    /* Game Cards */
+    /* ── Game Cards ── */
     .game-card {
-        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        margin-bottom: 4px;
         margin-top: 0 !important;
-        /* Remove top margin to pull closer to header */
         background: white !important;
-        /* Remove dark mode bg */
         color: black !important;
+        page-break-inside: avoid;
     }
 
     .game-card-summary {
-        background: #f5f5f5 !important;
-        border-bottom: 1px solid #ddd;
+        background: #f0f0f0 !important;
+        border-bottom: 1px solid #ccc;
         color: black;
-        padding: 5px 10px;
-        /* Compress vertical space */
+        padding: 3px 8px;
     }
 
     .game-title {
         color: black !important;
         font-weight: bold;
         margin-left: 0 !important;
-        /* Fix alignment after removing arrow */
+        font-size: 0.95rem;
     }
 
     .game-header-left {
-        gap: 5px;
-        /* Tighter gap */
+        gap: 6px;
     }
 
     .game-card-content {
         display: block !important;
-        /* Attempt to show content */
         color: black;
         border-top: none;
-        padding: 10px;
-        /* Reduce padding */
+        padding: 4px 8px;
     }
 
-    /* Typography Overrides */
+    .game-info-row {
+        margin-bottom: 2px;
+        font-size: 0.85rem;
+    }
+
+    /* ── Typography ── */
     p,
     h1,
     h2,
@@ -1191,31 +1261,33 @@ details[open] summary.category-header::before {
     }
 
     .meta-tag {
-        border: 1px solid #ccc;
+        border: 1px solid #999;
         background: white !important;
         color: black !important;
+        padding: 1px 4px;
+        font-size: 0.7rem;
     }
 
-    /* Concept Discussion Clean Up */
+    /* ── Concept Discussion ── */
     .theory-content {
         background: transparent !important;
         border: none !important;
         padding: 0 !important;
-        margin: 0 !important;
+        margin: 3px 0 !important;
         color: black;
     }
 
     .theory-images {
-        margin-top: 10px;
+        margin-top: 4px;
     }
 
-    /* Link URLs */
+    /* ── Links ── */
     a {
         text-decoration: underline;
         color: black !important;
     }
 
-    /* Ensure dropped images print */
+    /* ── Dropped Images ── */
     .dropped-image-wrapper {
         border: none;
         background: transparent;

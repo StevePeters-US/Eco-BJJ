@@ -68,11 +68,37 @@ function updateAppTitle() {
     const fullTitle = getFormattedTitle();
     document.title = fullTitle;
 
+    // Update Print Headers
+    const printTitle = document.getElementById('print-class-title');
+    if (printTitle) printTitle.textContent = state.classTitle || 'Class';
+
+    const printDate = document.getElementById('print-class-date');
+    const dateInput = document.getElementById('class-date-input');
+    if (printDate && dateInput) {
+        if (dateInput.value) {
+            const parts = dateInput.value.split('-');
+            if (parts.length === 3) {
+                printDate.textContent = `${parts[1]}/${parts[2]}/${parts[0]}`;
+            } else {
+                printDate.textContent = dateInput.value;
+            }
+        } else {
+            printDate.textContent = '';
+        }
+    }
+
+    // Update concept in print header/footer
+    const concept = state.content && state.content.concepts ? state.content.concepts.find(t => t.id === state.selectedConceptId) : null;
+    const conceptTitle = concept ? concept.title : '';
+    const printConcept = document.getElementById('print-class-concept');
+    if (printConcept) printConcept.textContent = conceptTitle;
+    const footerConcept = document.getElementById('print-footer-concept');
+    if (footerConcept) footerConcept.textContent = conceptTitle;
+
     // Also update on-page header if generated
     const titleDisplay = document.getElementById('class-title');
     if (titleDisplay) {
         let content = fullTitle;
-        const concept = state.content && state.content.concepts ? state.content.concepts.find(t => t.id === state.selectedConceptId) : null;
         if (concept) {
             content += `<div class="concept-subtitle">${concept.title}</div>`;
         }
