@@ -42,7 +42,77 @@
       }
     ],
     "discussion": [],
-    "applications": [],
+    "applications": [
+      {
+        "gameId": "bloodchokes-triangle-defense"
+      },
+      {
+        "gameId": "other-break-30s"
+      },
+      {
+        "gameId": "bloodchokes-triangle-defense-(breaking)"
+      },
+      {
+        "gameId": "other-break-30s"
+      },
+      {
+        "gameId": "bloodchokes-triangle-defense-(breaking)-(locked-in)"
+      },
+      {
+        "gameId": "other-break-30s"
+      },
+      {
+        "gameId": "bloodchokes-triangle-defense-(mounted)"
+      },
+      {
+        "gameId": "other-break-1m"
+      },
+      {
+        "gameId": "bloodchokes-triangle---finishing-mechanics"
+      },
+      {
+        "gameId": "other-break-1m"
+      },
+      {
+        "gameId": "bloodchokes-anaconda---breakdown"
+      },
+      {
+        "gameId": "other-break-30s"
+      },
+      {
+        "gameId": "bloodchokes-darce-from-turtle"
+      },
+      {
+        "gameId": "other-break-30s"
+      },
+      {
+        "gameId": "bloodchokes-darce-from-side-control---clearing-the-arm"
+      },
+      {
+        "gameId": "other-break-30s"
+      },
+      {
+        "gameId": "bloodchokes-darce-from-side-control---completing-the-loop"
+      },
+      {
+        "gameId": "other-break-1m"
+      },
+      {
+        "gameId": "bloodchokes-darce-from-side-control---finishing-mechanics"
+      },
+      {
+        "gameId": "other-break-30s"
+      },
+      {
+        "gameId": "bloodchokes-darce---counter-arm-bar-position"
+      },
+      {
+        "gameId": "other-break-30s"
+      },
+      {
+        "gameId": "bloodchokes-darce---counter-arm-bar-gripping"
+      }
+    ],
     "review": [],
     "rolling": [],
     "warmups": [
@@ -80,6 +150,9 @@
       },
       {
         "gameId": "grips-grip-defense---back-side-control"
+      },
+      {
+        "gameId": "grips-grip-defense---back-side-control-(one-arm-trapped)"
       }
     ]
   },
@@ -126,5 +199,12 @@
       "targetDuration": 15,
       "type": "rolling"
     }
-  ]
+  ],
+  "displayState": {
+    "collapsedSections": [],
+    "expandedCards": [
+      "applications-13",
+      "applications-21"
+    ]
+  }
 }

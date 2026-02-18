@@ -22,7 +22,8 @@ let state = {
     classTitle: "",
     segments: {}, // { segmentId: [ { gameId: '...', ... } ] }
     structure: JSON.parse(JSON.stringify(DEFAULT_STRUCTURE)), // Clone default
-    expandedCards: new Set() // Track expanded state: "segmentId-index"
+    expandedCards: new Set(), // Track expanded state: "segmentId-index"
+    collapsedSections: new Set() // Track collapsed state: "segmentId" (Default Open)
 };
 
 // Expose state globally for event handlers
@@ -240,7 +241,11 @@ async function saveClass() {
         date: dateStr,
         conceptId: state.selectedConceptId,
         segments: state.segments, // Maps segmentId -> array of game objects
-        structure: state.structure // Save dynamic structure
+        structure: state.structure, // Save dynamic structure
+        displayState: {
+            collapsedSections: Array.from(state.collapsedSections),
+            expandedCards: Array.from(state.expandedCards)
+        }
     };
 
     console.log("Saving class:", classData);
@@ -322,6 +327,15 @@ async function loadClass() {
                         state.selectedConceptId = loadedData.conceptId;
                         state.segments = loadedData.segments || {};
                         state.structure = loadedData.structure || JSON.parse(JSON.stringify(DEFAULT_STRUCTURE));
+
+                        // Restore Display State
+                        if (loadedData.displayState) {
+                            state.collapsedSections = new Set(loadedData.displayState.collapsedSections || []);
+                            state.expandedCards = new Set(loadedData.displayState.expandedCards || []);
+                        } else {
+                            state.collapsedSections = new Set();
+                            state.expandedCards = new Set();
+                        }
 
                         // Update UI
                         const titleInput = document.getElementById('class-title-input');
@@ -471,7 +485,7 @@ function generateClassStructure() {
                 </details>
             `;
         } else if (segment.type === 'review') {
-            contentHtml = `<p class="segment-note">Review concepts</p>`;
+            contentHtml = `<p class="segment-note">Review Concepts. Students should discuss what worked for them and what didn't.</p>`;
         } else {
             // Game List
             let gamesHtml = currentGames.map((g, index) => {
@@ -652,8 +666,10 @@ function generateClassStructure() {
             </div>
         `;
 
+        const isOpen = !state.collapsedSections.has(segment.id);
+
         segmentEl.innerHTML = `
-                <details class="section-collapsible" open>
+                <details class="section-collapsible" ${isOpen ? 'open' : ''} ontoggle="window.toggleSection('${segment.id}', this.open)">
                 <summary class="section-summary">
                     <span class="section-header-content">
                         <span class="section-title" contenteditable="true" 
@@ -739,6 +755,14 @@ window.toggleCard = (key, isOpen) => {
         state.expandedCards.add(key);
     } else {
         state.expandedCards.delete(key);
+    }
+};
+
+window.toggleSection = (id, isOpen) => {
+    if (isOpen) {
+        state.collapsedSections.delete(id);
+    } else {
+        state.collapsedSections.add(id);
     }
 };
 
@@ -1097,6 +1121,31 @@ window.openGameModal = (gameId = null, preselectedCategory = null, templateGame 
         };
     }
 
+    // Initialize Draft Overrides
+    window.draftOverrides = {};
+    if (game && parentGame) {
+        // Pre-populate draft overrides with current game values if they exist
+        ['difficulty', 'intensity', 'goals', 'purpose', 'focus', 'description', 'players', 'duration', 'gameType', 'initiation'].forEach(field => {
+            if (game[field] !== undefined && game[field] !== '') {
+                // For DOM IDs, we need to map field names to IDs potentially, or just key by ID in toggleField
+                // Let's store by field name for simplicity if we canMap? 
+                // Actually toggleField uses element ID.
+                // Let's just rely on toggleField to save when unchecked. 
+                // But wait, if we load an existing variation, we want "draft" to have the value SO THAT if they uncheck and recheck, it's there?
+                // No, if they uncheck, we save the CURRENT value to draft.
+                // If they recheck, we restore from draft.
+                // So we don't need to pre-populate draftOverrides unless we want to support "Uncheck -> Recheck" returning to the *original* variation value immediately.
+                // Yes, that is desired.
+
+                // Map field to ID
+                let id = `new-game-${field}`;
+                if (field === 'description') id = 'new-game-desc';
+
+                window.draftOverrides[id] = game[field];
+            }
+        });
+    }
+
     // Helper to get value: Child -> Parent -> Default
     const getVal = (field, def = '') => {
         // DYNAMIC TITLE LOGIC FOR VARIATIONS
@@ -1113,7 +1162,8 @@ window.openGameModal = (gameId = null, preselectedCategory = null, templateGame 
             return `${parentGame.title} (${varName})`;
         }
 
-        if (game && game[field] !== undefined && game[field] !== '') return game[field];
+        // Treat null as inherit (for fields saved as null in variations)
+        if (game && game[field] !== undefined && game[field] !== null && game[field] !== '') return game[field];
         if (parentGame && parentGame[field]) return parentGame[field];
         return def;
     };
@@ -1121,7 +1171,8 @@ window.openGameModal = (gameId = null, preselectedCategory = null, templateGame 
     // Helper to check if overridden
     const isOverridden = (field) => {
         if (!parentGame) return true; // No parent = always editable
-        return (game && game[field] !== undefined && game[field] !== '');
+        // Treat null or undefined as NOT overridden
+        return (game && game[field] !== undefined && game[field] !== null && game[field] !== '');
     };
 
     // Helper to render fields with toggle
@@ -1172,13 +1223,26 @@ window.openGameModal = (gameId = null, preselectedCategory = null, templateGame 
             el.disabled = !checked;
             el.style.opacity = checked ? '1' : '0.7';
             el.style.cursor = checked ? 'text' : 'not-allowed';
+
             if (!checked && parentGame) {
+                // Save current value to draft before overwriting
+                if (!window.draftOverrides) window.draftOverrides = {};
+                window.draftOverrides[elemId] = el.value;
+
                 // Restore parent value
                 const fieldName = elemId.replace('new-game-', '').replace('desc', 'description');
                 let val = parentGame[fieldName] || '';
                 if (fieldName === 'difficulty') window.updateDifficultyColor(el);
                 if (fieldName === 'intensity') window.updateIntensityColor(el);
                 el.value = val;
+            } else if (checked && parentGame) {
+                // Restore from draft if exists
+                if (window.draftOverrides && window.draftOverrides[elemId] !== undefined) {
+                    el.value = window.draftOverrides[elemId];
+                    const fieldName = elemId.replace('new-game-', '').replace('desc', 'description');
+                    if (fieldName === 'difficulty') window.updateDifficultyColor(el);
+                    if (fieldName === 'intensity') window.updateIntensityColor(el);
+                }
             }
         }
     };
