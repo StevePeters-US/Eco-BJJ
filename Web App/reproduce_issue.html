@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Split View Repro</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body { background: #222; color: #fff; font-family: sans-serif; }
+        /* Mock vars usually in root */
+        :root {
+            --bg-panel: #333;
+            --border-subtle: #444;
+            --radius-md: 8px;
+            --radius-sm: 4px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --spacing-sm: 8px;
+            --spacing-xs: 4px;
+            --text-secondary: #aaa;
+            --text-accent: #8bf;
+            --border-active: #555;
+            --bg-card: #2a2a2a;
+        }
+    </style>
+</head>
+<body>
+
+<div class="modal-overlay">
+    <div class="modal big-modal" id="modal">
+        <div class="modal-header">
+            <h3>Game Editor</h3>
+            <button onclick="toggleReferenceView()">Toggle Reference</button>
+        </div>
+        
+        <!-- Simulate the structure in app.js -->
+        <div class="modal-body" id="modal-body">
+            <input type="hidden" value="1">
+            <input type="hidden" value="2">
+            
+            <div class="editor-pane">
+                <h4>Editor Pane</h4>
+                <p>Content goes here...</p>
+                <div class="form-group"><label>Title</label><input type="text" class="editor-textarea"></div>
+                <div class="form-group"><label>Desc</label><textarea class="editor-textarea" rows="10"></textarea></div>
+            </div>
+            
+            <div class="reference-pane hidden" id="reference-pane">
+                <div class="reference-header">
+                    <label>Reference Game</label>
+                    <select><option>Game A</option></select>
+                </div>
+                <div class="reference-content">
+                    <h4>Description</h4>
+                    <p>Reference content...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleReferenceView() {
+        const refPane = document.getElementById('reference-pane');
+        const body = document.getElementById('modal-body');
+        const modal = document.getElementById('modal');
+        
+        modal.classList.toggle('split-view');
+        body.classList.toggle('split-layout');
+        refPane.classList.toggle('hidden');
+        
+        console.log('Toggled. Body classes:', body.className);
+    }
+</script>
+
+</body>
+</html>

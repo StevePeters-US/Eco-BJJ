@@ -1255,7 +1255,12 @@ window.openGameModal = (gameId = null, preselectedCategory = null, templateGame 
     overlay.innerHTML = `
                 <div class="modal modal-lg">
             <div class="modal-header">
-                <h3>${isEdit ? 'Edit Game' : 'Create New Game'}</h3>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <h3>${isEdit ? 'Edit Game' : 'Create New Game'}</h3>
+                    <button onclick="window.toggleReferenceView()" class="btn-small" style="font-size: 0.8rem; border: 1px solid var(--border-subtle); margin-left: 10px;">
+                        Toggle Reference
+                    </button>
+                </div>
                 <button onclick="this.closest('.modal-overlay').remove()">×</button>
             </div>
             <div class="modal-body">
@@ -1263,6 +1268,7 @@ window.openGameModal = (gameId = null, preselectedCategory = null, templateGame 
                 <input type="hidden" id="game-parent-id" value="${parentGame ? parentGame.id : ''}">
                 <input type="hidden" id="game-segment-id" value="${segmentId || ''}">
 
+            <div class="editor-pane">
                 ${renderField('Game Title', 'new-game-title', getVal('title'), 'text', 1, [], false)}
 
                 ${parentGame ? (() => {
@@ -1369,10 +1375,40 @@ window.openGameModal = (gameId = null, preselectedCategory = null, templateGame 
                     </div>
                 </div>
             </div>
+            <div class="reference-pane hidden" id="reference-pane">
+                <div class="reference-header">
+                    <label>Reference Game</label>
+                    <select id="reference-game-select" onchange="window.updateReferenceContent()">
+                        ${window.state.content.games.map(g => `<option value="${g.id}">${g.title}</option>`).join('')}
+                    </select>
+                </div>
+                <div id="reference-content" class="reference-content">
+                    <!-- Content populated by JS -->
+                </div>
+            </div>
+            </div> <!-- End split-layout body -->
         </div>
                 `;
 
     document.body.appendChild(overlay);
+
+    // Initialize Split View State (optional, default closed)
+
+    // Select Parent Game by default if exists
+    if (parentGame) {
+        const refSelect = document.getElementById('reference-game-select');
+        if (refSelect) {
+            refSelect.value = parentGame.id;
+            window.updateReferenceContent();
+        }
+    } else if (game) {
+        // Default to self if editing
+        const refSelect = document.getElementById('reference-game-select');
+        if (refSelect) {
+            refSelect.value = game.id;
+            window.updateReferenceContent();
+        }
+    }
     // Init Difficulty Color
     const diffSelect = document.getElementById('new-game-difficulty');
     if (diffSelect) window.updateDifficultyColor(diffSelect);
@@ -1424,6 +1460,63 @@ window.updateVariationTitle = (parentId) => {
     const titleInput = document.getElementById('new-game-title');
     // Ensure we don't double escape or anything, just simple concatenation
     titleInput.value = parentGame.title + ' (' + varName + ')';
+}
+
+window.toggleReferenceView = () => {
+    const refPane = document.getElementById('reference-pane');
+    if (!refPane) return;
+
+    const body = refPane.parentElement;
+    const modal = body ? body.parentElement : null;
+
+    if (modal && body) {
+        modal.classList.toggle('split-view');
+        body.classList.toggle('split-layout');
+        refPane.classList.toggle('hidden');
+
+        // Save preference? Maybe later.
+    }
+}
+
+window.updateReferenceContent = () => {
+    const select = document.getElementById('reference-game-select');
+    const content = document.getElementById('reference-content');
+    if (!select || !content) return;
+
+    const gameId = select.value;
+    const game = window.state.content.games.find(g => g.id === gameId);
+
+    if (!game) {
+        content.innerHTML = '<p>Select a game to view details.</p>';
+        return;
+    }
+
+    content.innerHTML = `
+        <h4>Description</h4>
+        <p>${game.description || 'No description.'}</p>
+        
+        <div class="reference-section-divider"></div>
+        
+        <h4>Goals</h4>
+        <p>${game.goals || 'No goals specified.'}</p>
+        
+        <div class="reference-section-divider"></div>
+        
+        <h4>Focus</h4>
+        <p>${game.focus || 'No focus specified.'}</p>
+        
+        <div class="reference-section-divider"></div>
+        
+        <h4>Learning Objectives</h4>
+        <p>${game.purpose || 'No objectives specified.'}</p>
+        
+        <div class="reference-section-divider"></div>
+        
+        <h4>Setup</h4>
+        <p><strong>Players:</strong> ${game.players || 2}</p>
+        <p><strong>Duration:</strong> ${game.duration || 3} mins</p>
+        <p><strong>Initiation:</strong> ${game.initiation || 'Static'}</p>
+    `;
 }
 
 // Redirect old createGame calls

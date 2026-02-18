@@ -798,6 +798,80 @@ input:-webkit-autofill:active,
 }
 
 
+/* Split View Modal */
+.modal.split-view {
+    width: 95vw;
+    max-width: 1400px;
+    height: 90vh;
+    /* Allow more height */
+    max-height: 90vh;
+}
+
+.modal-body.split-layout {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    gap: var(--spacing-lg);
+    padding: 0;
+    overflow: hidden;
+}
+
+.editor-pane {
+    flex: 1 1 50%;
+    min-width: 0;
+    /* Allow shrinking */
+    overflow-y: auto;
+    padding: var(--spacing-md);
+}
+
+.reference-pane {
+    flex: 1 1 50%;
+    min-width: 0;
+    /* Allow shrinking */
+    overflow-y: auto;
+    padding: var(--spacing-md);
+    background: rgba(0, 0, 0, 0.2);
+    border-left: 1px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
+}
+
+.reference-pane.hidden {
+    display: none;
+}
+
+.reference-header {
+    margin-bottom: var(--spacing-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.reference-content {
+    flex: 1;
+    overflow-y: auto;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.reference-content h4 {
+    color: var(--text-accent);
+    margin-top: var(--spacing-md);
+    margin-bottom: var(--spacing-xs);
+    font-size: 1rem;
+}
+
+.reference-content p {
+    margin-top: 0;
+    line-height: 1.5;
+}
+
+.reference-section-divider {
+    border-top: 1px dashed var(--border-subtle);
+    margin: var(--spacing-md) 0;
+}
+
+
 .edit-theory-btn {
 
     opacity: 0.7;
@@ -1068,9 +1142,6 @@ details[open] summary.category-header::before {
 
     /* Game Cards */
     .game-card {
-        border: 1px solid #ddd;
-        break-inside: avoid;
-        box-shadow: none;
         margin-bottom: 10px;
         margin-top: 0 !important;
         /* Remove top margin to pull closer to header */
