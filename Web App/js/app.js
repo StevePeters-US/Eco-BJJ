@@ -4,26 +4,30 @@
 
 import { markedParse } from './utils.js';
 
-// Data State
-let state = {
-    content: null,
-    selectedConceptId: null,
-    classTitle: "",
-    segments: {} // { segmentId: [ { gameId: '...', ... } ] }
-};
-window.state = state; // Expose for Editor
-
-// Constants based on ClassStructure.md
-// Constants based on ClassStructure.md
-const CLASS_TEMPLATE = [
-    { id: 'standing', title: 'Standing', targetDuration: 10, type: 'standing' },
-    { id: 'mobility', title: 'Mobility', targetDuration: 15, type: 'game' },
+// Default Structure
+const DEFAULT_STRUCTURE = [
+    { id: 'warmups', title: 'Warm Ups', targetDuration: 10, type: 'standing' },
+    { id: 'recap', title: 'Recap', targetDuration: 15, type: 'game' },
     { id: 'takedowns', title: 'Takedowns', targetDuration: 15, type: 'takedown' },
     { id: 'discussion', title: 'Concept Discussion', targetDuration: 5, type: 'discussion' },
     { id: 'applications', title: 'Concept Applications', targetDuration: 30, type: 'game' },
     { id: 'review', title: 'Review', targetDuration: 5, type: 'review' },
     { id: 'rolling', title: 'Free Roll', targetDuration: 15, type: 'rolling' }
 ];
+
+// Data State
+let state = {
+    content: null,
+    selectedConceptId: null,
+    classTitle: "",
+    segments: {}, // { segmentId: [ { gameId: '...', ... } ] }
+    structure: JSON.parse(JSON.stringify(DEFAULT_STRUCTURE)), // Clone default
+    expandedCards: new Set(), // Track expanded state: "segmentId-index"
+    collapsedSections: new Set() // Track collapsed state: "segmentId" (Default Open)
+};
+
+// Expose state globally for event handlers
+window.state = state;
 
 async function init() {
     try {
@@ -64,14 +68,92 @@ function updateAppTitle() {
     const fullTitle = getFormattedTitle();
     document.title = fullTitle;
 
+    // Update Print Headers
+    const printTitle = document.getElementById('print-class-title');
+    if (printTitle) printTitle.textContent = state.classTitle || 'Class';
+
+    const printDate = document.getElementById('print-class-date');
+    const dateInput = document.getElementById('class-date-input');
+    if (printDate && dateInput) {
+        if (dateInput.value) {
+            const parts = dateInput.value.split('-');
+            if (parts.length === 3) {
+                printDate.textContent = `${parts[1]}/${parts[2]}/${parts[0]}`;
+            } else {
+                printDate.textContent = dateInput.value;
+            }
+        } else {
+            printDate.textContent = '';
+        }
+    }
+
+    // Update concept in print header/footer
+    const concept = state.content && state.content.concepts ? state.content.concepts.find(t => t.id === state.selectedConceptId) : null;
+    const conceptTitle = concept ? concept.title : '';
+    const printConcept = document.getElementById('print-class-concept');
+    if (printConcept) printConcept.textContent = conceptTitle;
+    const footerConcept = document.getElementById('print-footer-concept');
+    if (footerConcept) footerConcept.textContent = conceptTitle;
+
     // Also update on-page header if generated
     const titleDisplay = document.getElementById('class-title');
     if (titleDisplay) {
         let content = fullTitle;
-        const concept = state.content && state.content.concepts ? state.content.concepts.find(t => t.id === state.selectedConceptId) : null;
         if (concept) {
             content += `<div class="concept-subtitle">${concept.title}</div>`;
         }
+
+        // Calculate Global Time
+        let globalCurrent = 0;
+        let globalTarget = 0;
+
+        if (state.structure) {
+            state.structure.forEach(segment => {
+                globalTarget += (parseFloat(segment.targetDuration) || 0);
+
+                let segmentDuration = 0;
+                // If fixed duration (Discussion, Review, Free Roll, Custom Fixed), "current" is just the target/slider value
+                const isFixed = segment.type === 'discussion' || segment.type === 'review' || segment.type === 'rolling' || segment.type === 'fixed';
+
+                if (isFixed) {
+                    segmentDuration = (parseFloat(segment.targetDuration) || 0);
+                } else {
+                    // Start with 0 for games
+                    if (state.segments[segment.id]) {
+                        state.segments[segment.id].forEach(g => {
+                            const gameMeta = state.content.games.find(x => x.id === g.gameId);
+                            if (gameMeta) {
+                                let rt = parseFloat(gameMeta.duration) || 5;
+                                let p = parseInt(gameMeta.players) || 2;
+                                let t = gameMeta.type || 'Continuous';
+                                if (t === 'Round Switching') segmentDuration += (rt * p);
+                                else segmentDuration += rt;
+                            } else {
+                                segmentDuration += 5;
+                            }
+                        });
+                    }
+                }
+
+                globalCurrent += segmentDuration;
+            });
+        }
+
+        // Format
+        // We need formatDuration. It is attached to window but safer to use if available or define helper.
+        // It is defined in app.js later. We can rely on hoisting? No, it's assigned to window.
+        // Let's use window.formatDuration if available, else simple fallback.
+        const format = (v) => window.formatDuration ? window.formatDuration(v) : v + "m";
+
+        const formattedCurrent = format(globalCurrent);
+        const formattedTarget = format(globalTarget);
+
+        content += `
+            <div style="font-size: 0.6em; color: #4caf50; margin-top: 5px; font-weight: normal;">
+                Total Time: ${formattedCurrent} / ${formattedTarget}
+            </div>
+        `;
+
         titleDisplay.innerHTML = content;
     }
 }
@@ -184,7 +266,12 @@ async function saveClass() {
         title: name,
         date: dateStr,
         conceptId: state.selectedConceptId,
-        segments: state.segments // Maps segmentId -> array of game objects
+        segments: state.segments, // Maps segmentId -> array of game objects
+        structure: state.structure, // Save dynamic structure
+        displayState: {
+            collapsedSections: Array.from(state.collapsedSections),
+            expandedCards: Array.from(state.expandedCards)
+        }
     };
 
     console.log("Saving class:", classData);
@@ -245,38 +332,62 @@ async function loadClass() {
         document.body.appendChild(overlay);
 
         document.getElementById('confirm-load-btn').onclick = async () => {
-            const selectedName = document.getElementById('load-class-select').value;
-            if (selectedName) {
-                // Load it
-                const res = await fetch('/api/load_class', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: selectedName })
-                });
+            try {
+                const selectedName = document.getElementById('load-class-select').value;
+                console.log("Attempting to load:", selectedName);
+                if (selectedName) {
+                    // Load it
+                    const res = await fetch('/api/load_class', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name: selectedName })
+                    });
 
-                if (res.ok) {
-                    const result = await res.json();
-                    const loadedData = result.data;
+                    if (res.ok) {
+                        const result = await res.json();
+                        console.log("Load result:", result);
+                        const loadedData = result.data;
 
-                    // Restore State
-                    state.classTitle = loadedData.title || selectedName;
-                    state.selectedConceptId = loadedData.conceptId;
-                    state.segments = loadedData.segments || {};
+                        // Restore State
+                        state.classTitle = loadedData.title || selectedName;
+                        state.selectedConceptId = loadedData.conceptId;
+                        state.segments = loadedData.segments || {};
+                        state.structure = loadedData.structure || JSON.parse(JSON.stringify(DEFAULT_STRUCTURE));
 
-                    // Update UI
-                    const titleInput = document.getElementById('class-title-input');
-                    if (titleInput) titleInput.value = state.classTitle;
+                        // Restore Display State
+                        if (loadedData.displayState) {
+                            state.collapsedSections = new Set(loadedData.displayState.collapsedSections || []);
+                            state.expandedCards = new Set(loadedData.displayState.expandedCards || []);
+                        } else {
+                            state.collapsedSections = new Set();
+                            state.expandedCards = new Set();
+                        }
 
-                    const conceptSelect = document.getElementById('concept-select');
-                    if (conceptSelect) conceptSelect.value = state.selectedConceptId;
+                        // Update UI
+                        const titleInput = document.getElementById('class-title-input');
+                        if (titleInput) titleInput.value = state.classTitle;
 
-                    // Re-render
-                    generateClassStructure();
+                        const conceptSelect = document.getElementById('concept-select');
+                        if (conceptSelect) conceptSelect.value = state.selectedConceptId;
 
-                    document.querySelector('.modal-overlay').remove();
-                } else {
-                    alert("Error loading class");
+                        const dateInput = document.getElementById('class-date-input');
+                        if (dateInput && loadedData.date) {
+                            dateInput.value = loadedData.date;
+                        }
+
+                        // Re-render
+                        generateClassStructure();
+
+                        document.querySelector('.modal-overlay').remove();
+                    } else {
+                        const errText = await res.text();
+                        console.error("Error loading class:", errText);
+                        alert("Error loading class: " + errText);
+                    }
                 }
+            } catch (error) {
+                console.error("Exception in load class handler:", error);
+                alert("Exception loading class: " + error.message);
             }
         };
 
@@ -328,7 +439,15 @@ function generateClassStructure() {
     const timeline = document.getElementById('class-timeline');
     timeline.innerHTML = '';
 
-    CLASS_TEMPLATE.forEach((segment) => {
+    // Render Timeline Controls
+    const controlsHtml = `
+        <div class="timeline-controls" style="margin-bottom: 20px; display: flex; justify-content: flex-end;">
+            <button class="btn secondary" onclick="window.addSection()">+ Add Section</button>
+        </div>
+    `;
+    // We can append controls at bottom, but let's iterate first
+
+    state.structure.forEach((segment, index) => {
         // Init state for segment if needed
         if (!state.segments[segment.id]) {
             state.segments[segment.id] = [];
@@ -341,7 +460,8 @@ function generateClassStructure() {
         currentGames.forEach(g => {
             const gameMeta = state.content.games.find(x => x.id === g.gameId);
             if (gameMeta) {
-                let roundTime = parseInt(gameMeta.duration) || 5;
+                let roundTime = parseFloat(gameMeta.duration);
+                if (isNaN(roundTime)) roundTime = 5;
                 let players = parseInt(gameMeta.players) || 2;
                 let type = gameMeta.type || 'Continuous';
 
@@ -349,6 +469,7 @@ function generateClassStructure() {
                     // Total = Round Time * Players
                     totalDuration += (roundTime * players);
                 } else {
+                    // Continuous AND Switch on Win fall here
                     totalDuration += roundTime;
                 }
             } else {
@@ -390,7 +511,7 @@ function generateClassStructure() {
                 </details>
             `;
         } else if (segment.type === 'review') {
-            contentHtml = `<p class="segment-note">Review concepts</p>`;
+            contentHtml = `<p class="segment-note">Review Concepts. Students should discuss what worked for them and what didn't.</p>`;
         } else {
             // Game List
             let gamesHtml = currentGames.map((g, index) => {
@@ -405,11 +526,21 @@ function generateClassStructure() {
                 let durationTxt = '';
                 let metaTags = '';
                 if (gameMeta) {
-                    let rt = parseInt(gameMeta.duration) || 5;
+                    let rt = parseFloat(gameMeta.duration);
+                    if (isNaN(rt)) rt = 5;
                     let p = parseInt(gameMeta.players) || 2;
                     let t = gameMeta.type || 'Continuous';
                     let intensity = gameMeta.intensity || '';
                     let difficulty = gameMeta.difficulty || '';
+
+                    let totalGameTime = (t === 'Round Switching') ? (rt * p) : rt;
+
+                    if (totalGameTime < 1) {
+                        durationTxt = `${Math.round(totalGameTime * 60)}s`;
+                    } else {
+                        // Remove trailing zeros if integer
+                        durationTxt = `${parseFloat(totalGameTime.toFixed(2))}m`;
+                    }
 
                     metaTags = `
                         <span class="meta-tag">⏱ ${durationTxt}</span>
@@ -424,21 +555,53 @@ function generateClassStructure() {
                 // Build summary line for collapsed view
                 const summaryLine = goals ? goals : (purpose ? purpose : 'No description');
 
+                // Escape IDs for onclick handlers (Legacy/Fallback, now using indices)
+                const safeGameId = g.gameId.replace(/'/g, "\\'");
+                const safeSegmentId = segment.id.replace(/'/g, "\\'");
+
+                // Unique key for expansion state
+                const cardKey = `${segment.id}-${index}`;
+                const isExpanded = state.expandedCards.has(cardKey);
+
+                // Reordering Helpers
+                const isFirst = index === 0;
+                const isLast = index === currentGames.length - 1;
+
+                // DYNAMIC VARIANT NAMING LOGIC
+                // If it's a variation, construct title: "ParentName (VariationName)"
+                let displayTitle = title;
+                if (gameMeta && gameMeta.parentId) {
+                    const parent = state.content.games.find(p => p.id === gameMeta.parentId);
+                    if (parent) {
+                        let varName = gameMeta.variationName;
+                        if (!varName) {
+                            // Fallback: Parse from stored title "Parent (Variation)"
+                            const match = title.match(/\(([^)]+)\)$/);
+                            if (match) varName = match[1];
+                            else varName = 'Variation';
+                        }
+                        displayTitle = `${parent.title} (${varName})`;
+                    }
+                }
+
                 return `
-                        <details class="game-card" open>
+                        <details class="game-card" ${isExpanded ? 'open' : ''} ontoggle="window.toggleCard('${cardKey}', this.open)">
                     <summary class="game-card-summary">
                         <div class="game-header-left">
-                            <span class="game-title">${title}</span>
+                            <span class="game-title">${displayTitle}</span>
                             <span class="game-meta-inline">${metaTags}</span>
                         </div>
                         <div class="game-card-actions">
-                            <button class="icon-btn edit-btn" title="Edit Game" onclick="event.stopPropagation(); window.openGameModal('${g.gameId}', null, null, '${segment.id}')">✎</button>
-                            <button class="icon-btn remove-btn" title="Remove" onclick="event.stopPropagation(); removeGame('${segment.id}', ${index})">×</button>
+                            <button class="icon-btn xs-btn" ${isFirst ? 'disabled style="opacity:0.3"' : ''} onclick="window.handleMoveGame(event, '${segment.id}', ${index}, -1)" title="Move Up">↑</button>
+                            <button class="icon-btn xs-btn" ${isLast ? 'disabled style="opacity:0.3"' : ''} onclick="window.handleMoveGame(event, '${segment.id}', ${index}, 1)" title="Move Down">↓</button>
+                            <button class="icon-btn" title="Duplicate" onclick="window.handleDuplicateGame(event, '${segment.id}', ${index})">⧉</button>
+                            <button class="icon-btn edit-btn" title="Edit Game" onclick="window.handleEditGame(event, '${segment.id}', ${index})">✎</button>
+                            <button class="icon-btn remove-btn" title="Remove" onclick="window.handleRemoveGame(event, '${segment.id}', ${index})">×</button>
                         </div>
                     </summary>
                     <div class="game-card-content">
                         ${goals ? `<div class="game-info-row"><strong>Goals:</strong> ${goals}</div>` : ''}
-                        ${purpose ? `<div class="game-info-row"><strong>Purpose:</strong> ${purpose}</div>` : ''}
+                        ${purpose ? `<div class="game-info-row"><strong>Learning Objectives:</strong> ${purpose}</div>` : ''}
                         ${focus ? `<div class="game-info-row"><strong>Focus:</strong> ${focus}</div>` : ''}
                         ${description ? `<div class="game-info-row game-description">${markedParse(description)}</div>` : ''}
                     </div>
@@ -458,46 +621,91 @@ function generateClassStructure() {
             contentHtml = gamesHtml;
         }
 
-        // Time Badge Logic (Manual Override or Auto-calc)
-        let displayDuration = totalDuration;
-        // Check for manual override
-        if (state.sectionDurations && state.sectionDurations[segment.id] !== undefined) {
-            displayDuration = state.sectionDurations[segment.id];
-        } else if (totalDuration === 0) {
-            displayDuration = segment.targetDuration;
-        }
+        // Determine segment category (Fixed Duration vs Game Container)
+        const isFixedDuration = segment.type === 'discussion' || segment.type === 'review' || segment.type === 'rolling' || segment.type === 'fixed';
 
-        // Color logic based on difference from target (optional, keeping simple for now)
+        // Time Badge Logic
+        // Slider value = targetDuration
+        // Display = [Current] / [Target]
+
+        let sliderValue = segment.targetDuration;
+
+        // Color logic based on difference from target
+        // Yellow if under time (more than 30s under)
+        // Green if within 30 seconds of desired time
+        // Red if over (more than 30s over)
+
         let timeColor = '#888';
-        if (displayDuration > 0) {
-            const diff = displayDuration - segment.targetDuration;
-            if (Math.abs(diff) <= 2) timeColor = '#4caf50'; // Green
-            else if (diff > 2) timeColor = '#f44336'; // Red (Over)
-            else timeColor = '#ff9800'; // Orange (Under)
+
+        const diff = totalDuration - segment.targetDuration;
+
+        if (totalDuration === 0 && !isFixedDuration) {
+            timeColor = '#888'; // Grey if empty container
+        } else if (isFixedDuration) {
+            timeColor = '#4caf50'; // Always Green for fixed
+        } else {
+            if (diff < -0.5) timeColor = '#fbc02d'; // Yellow (Under > 30s)
+            else if (diff > 0.5) timeColor = '#f44336'; // Red (Over > 30s)
+            else timeColor = '#4caf50'; // Green (Within 30s)
         }
 
-        const formattedTime = formatDuration(displayDuration);
+        const formattedTime = formatDuration(totalDuration); // Current sum of games
+        const targetFormatted = formatDuration(segment.targetDuration);
 
-        // Editable Time Slider
+        // Conditional Formatting
+        const displayText = isFixedDuration ? targetFormatted : `${formattedTime} / ${targetFormatted}`;
+        const onInputScript = isFixedDuration ?
+            `document.getElementById('display-${segment.id}').innerText = window.formatDuration(this.value)` :
+            `document.getElementById('display-${segment.id}').innerText = '${formattedTime} / ' + window.formatDuration(this.value)`;
+
+
         const timeDisplay = `
-            <span style="display: inline-flex; align-items: center; margin-left: 10px; gap: 8px;">
-                <input type="range" 
-                       min="0.25" max="30" step="0.25"
-                       value="${displayDuration}"
-                       style="width: 100px; accent-color: var(--accent-color);"
-                       oninput="document.getElementById('display-${segment.id}').innerText = window.formatDuration(this.value)"
-                       onchange="updateSectionDuration('${segment.id}', this.value)"
-                       onclick="event.stopPropagation()"
-                />
-                <span id="display-${segment.id}" style="color: ${timeColor}; font-family: monospace; font-size: 0.9rem; min-width: 45px;">${formattedTime}</span>
+        <span style="display: inline-flex; align-items: center; margin-left: 10px; gap: 8px;">
+            <input type="range"
+                min="0.25" max="30" step="0.25"
+                value="${sliderValue}"
+                style="width: 100px; accent-color: ${timeColor};"
+                oninput="${onInputScript}"
+                onchange="updateSectionDuration('${segment.id}', this.value)"
+                onclick="event.stopPropagation()"
+            />
+            <span id="display-${segment.id}" 
+                  style="color: ${timeColor}; font-family: monospace; font-size: 0.9rem; min-width: 90px; cursor: pointer;"
+                  title="Double-click to set time manually"
+                  ondblclick="const val = prompt('Enter target duration (min):', '${segment.targetDuration}'); if(val) window.updateSectionDuration('${segment.id}', val); event.stopPropagation();"
+            >
+                ${displayText}
             </span>
+        </span>
         `;
 
+
+        // Section Controls
+        const isFirst = index === 0;
+        const isLast = index === state.structure.length - 1;
+
+        const controls = `
+            <div class="section-controls" style="display: inline-flex; gap: 5px; margin-left: 10px;" onclick="event.preventDefault(); event.stopPropagation();">
+                 <button class="icon-btn" ${isFirst ? 'disabled style="opacity:0.3"' : ''} onclick="window.moveSection(${index}, -1)" title="Move Up">↑</button>
+                 <button class="icon-btn" ${isLast ? 'disabled style="opacity:0.3"' : ''} onclick="window.moveSection(${index}, 1)" title="Move Down">↓</button>
+                 <button class="icon-btn" onclick="window.deleteSection(${index})" title="Delete Section" style="color: #f44336;">×</button>
+            </div>
+        `;
+
+        const isOpen = !state.collapsedSections.has(segment.id);
+
         segmentEl.innerHTML = `
-                <details class="section-collapsible" open>
+                <details class="section-collapsible" ${isOpen ? 'open' : ''} ontoggle="window.toggleSection('${segment.id}', this.open)">
                 <summary class="section-summary">
-                    <span class="section-title">${segment.title}</span>
-                    ${timeDisplay}
+                    <span class="section-header-content">
+                        <span class="section-title" contenteditable="true" 
+                            onblur="window.updateSectionTitle(${index}, this.innerText)"
+                            onkeydown="if(event.key==='Enter'){this.blur(); event.preventDefault();}"
+                            onclick="event.stopPropagation(); event.preventDefault();"
+                            style="cursor: text; border-bottom: 1px dashed #666; min-width: 100px; display: inline-block;">${segment.title}</span>
+                        ${timeDisplay}
+                    </span>
+                    ${controls}
                 </summary>
                 <div class="section-content">
                     ${contentHtml}
@@ -508,8 +716,153 @@ function generateClassStructure() {
         timeline.appendChild(segmentEl);
     });
 
+    // Append Add Section Button at the bottom
+    const addBtnDiv = document.createElement('div');
+    addBtnDiv.className = 'add-section-container';
+    addBtnDiv.style.textAlign = 'center';
+    addBtnDiv.style.marginTop = '20px';
+    addBtnDiv.innerHTML = `<button class="btn secondary" onclick="window.addSection()" style="width: 100%; border: 2px dashed #444; padding: 15px;">+ Add New Section</button>`;
+    timeline.appendChild(addBtnDiv);
+
     setupDragAndDrop();
 }
+
+// Section Management Helpers
+window.addSection = () => {
+    const title = prompt("Enter new section title:", "New Section");
+    if (title) {
+        // Simple confirm for type
+        const isFixed = confirm("Is this a Fixed Duration section (e.g. Discussion, Review)?\n\nOK = Yes (Fixed Time)\nCancel = No (Sum of Games)");
+
+        const newId = 'section-' + Date.now();
+        state.structure.push({
+            id: newId,
+            title: title,
+            targetDuration: 10,
+            type: isFixed ? 'fixed' : 'game'
+        });
+        generateClassStructure();
+    }
+};
+
+window.deleteSection = (index) => {
+    if (confirm("Are you sure you want to delete this section? Games within it will be removed from the plan.")) {
+        const section = state.structure[index];
+        // Clean up segments data
+        delete state.segments[section.id];
+        // Remove from structure
+        state.structure.splice(index, 1);
+        generateClassStructure();
+    }
+};
+
+window.moveSection = (index, direction) => {
+    const newIndex = index + direction;
+    if (newIndex >= 0 && newIndex < state.structure.length) {
+        const temp = state.structure[index];
+        state.structure[index] = state.structure[newIndex];
+        state.structure[newIndex] = temp;
+        generateClassStructure();
+    }
+};
+
+window.updateSectionTitle = (index, newTitle) => {
+    if (newTitle && newTitle.trim() !== "") {
+        state.structure[index].title = newTitle;
+        // No need to re-render entire structure if we just update title, 
+        // but re-rendering ensures state consistency and is safest.
+        // We'll rely on onblur or Enter key to trigger this.
+    }
+};
+
+// Card State Management
+window.toggleCard = (key, isOpen) => {
+    if (isOpen) {
+        state.expandedCards.add(key);
+    } else {
+        state.expandedCards.delete(key);
+    }
+};
+
+window.toggleSection = (id, isOpen) => {
+    if (isOpen) {
+        state.collapsedSections.delete(id);
+    } else {
+        state.collapsedSections.add(id);
+    }
+};
+
+window.handleEditGame = (event, segmentId, index) => {
+    event.preventDefault();
+    event.stopPropagation();
+    // Debug logging
+    console.log('handleEditGame called', { segmentId, index });
+
+    if (!state.segments[segmentId]) {
+        console.error(`Segment ${segmentId} not found in state`);
+        return;
+    }
+
+    const gameData = state.segments[segmentId][index];
+    console.log('Game Data found:', gameData);
+
+    if (gameData) {
+        window.openGameModal(gameData.gameId, null, null, segmentId);
+    } else {
+        console.error(`Game data at index ${index} in segment ${segmentId} is undefined`);
+    }
+};
+
+window.handleDuplicateGame = (event, segmentId, index) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const games = state.segments[segmentId];
+    if (games && games[index]) {
+        // Deep clone
+        const newGame = JSON.parse(JSON.stringify(games[index]));
+        // Insert after
+        games.splice(index + 1, 0, newGame);
+        generateClassStructure();
+    }
+};
+
+window.handleMoveGame = (event, segmentId, index, direction) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const games = state.segments[segmentId];
+    if (!games) return;
+
+    const newIndex = index + direction;
+    if (newIndex >= 0 && newIndex < games.length) {
+        // Swap
+        const temp = games[index];
+        games[index] = games[newIndex];
+        games[newIndex] = temp;
+
+        // Also swap expansion states if we want to be fancy, but simple re-render is fine.
+        // Actually, if we swap, the indices change, so the "expandedCards" set (which uses index) might get desynced visually vs content.
+        // Let's try to swap the keys in expandedCards too for a perfect experience.
+        const key1 = `${segmentId}-${index}`;
+        const key2 = `${segmentId}-${newIndex}`;
+        const has1 = state.expandedCards.has(key1);
+        const has2 = state.expandedCards.has(key2);
+
+        if (has1) state.expandedCards.delete(key1);
+        if (has2) state.expandedCards.delete(key2);
+
+        if (has1) state.expandedCards.add(key2);
+        if (has2) state.expandedCards.add(key1);
+
+        generateClassStructure();
+    }
+};
+
+window.handleRemoveGame = (event, segmentId, index) => {
+    event.preventDefault();
+    event.stopPropagation();
+    window.removeGame(segmentId, index);
+};
 
 // Helper to format minutes (float) to MM:SS
 window.formatDuration = (val) => {
@@ -525,17 +878,14 @@ window.formatDuration = (val) => {
 };
 
 // Handler for manual time update
+// Handler for manual time update
 window.updateSectionDuration = (segmentId, value) => {
-    if (!state.sectionDurations) {
-        state.sectionDurations = {};
+    // Find segment
+    const segment = state.structure.find(s => s.id === segmentId);
+    if (segment) {
+        segment.targetDuration = parseFloat(value);
+        generateClassStructure();
     }
-    state.sectionDurations[segmentId] = parseInt(value) || 0;
-    // We don't necessarily need to re-render everything, but it preserves consistency
-    // However, re-rendering kills focus. Ideally, we just update the state.
-    // If we want color updates, we might need to re-render or update style manually.
-    // For now, let's just update state. Re-render might be jarring if typing.
-    // Actually, onchange triggers on blur/enter, so re-render is fine.
-    generateClassStructure();
 };
 
 window.removeGame = (segmentId, index) => {
@@ -762,6 +1112,8 @@ import { Editor } from './editor.js';
 
 // Game Editor Modal
 window.openGameModal = (gameId = null, preselectedCategory = null, templateGame = null, segmentId = null) => {
+    console.log('openGameModal called', { gameId, preselectedCategory, segmentId });
+
     // Remove existing modal
     const existing = document.querySelector('.modal-overlay');
     if (existing) existing.remove();
@@ -780,6 +1132,10 @@ window.openGameModal = (gameId = null, preselectedCategory = null, templateGame 
             if (game.parentId) {
                 parentGame = window.state.content.games.find(g => g.id === game.parentId);
             }
+        } else {
+            console.error(`Game with ID ${gameId} not found in state.content.games`, window.state.content.games.map(g => g.id));
+            alert(`Error: Game data for ID "${gameId}" not found. It might have been deleted from the source content.`);
+            return;
         }
     } else if (templateGame) {
         // Create Variation
@@ -791,9 +1147,49 @@ window.openGameModal = (gameId = null, preselectedCategory = null, templateGame 
         };
     }
 
+    // Initialize Draft Overrides
+    window.draftOverrides = {};
+    if (game && parentGame) {
+        // Pre-populate draft overrides with current game values if they exist
+        ['difficulty', 'intensity', 'goals', 'purpose', 'focus', 'description', 'players', 'duration', 'gameType', 'initiation'].forEach(field => {
+            if (game[field] !== undefined && game[field] !== '') {
+                // For DOM IDs, we need to map field names to IDs potentially, or just key by ID in toggleField
+                // Let's store by field name for simplicity if we canMap? 
+                // Actually toggleField uses element ID.
+                // Let's just rely on toggleField to save when unchecked. 
+                // But wait, if we load an existing variation, we want "draft" to have the value SO THAT if they uncheck and recheck, it's there?
+                // No, if they uncheck, we save the CURRENT value to draft.
+                // If they recheck, we restore from draft.
+                // So we don't need to pre-populate draftOverrides unless we want to support "Uncheck -> Recheck" returning to the *original* variation value immediately.
+                // Yes, that is desired.
+
+                // Map field to ID
+                let id = `new-game-${field}`;
+                if (field === 'description') id = 'new-game-desc';
+
+                window.draftOverrides[id] = game[field];
+            }
+        });
+    }
+
     // Helper to get value: Child -> Parent -> Default
     const getVal = (field, def = '') => {
-        if (game && game[field] !== undefined && game[field] !== '') return game[field];
+        // DYNAMIC TITLE LOGIC FOR VARIATIONS
+        if (field === 'title' && parentGame) {
+            let varName = 'Variation';
+
+            if (game && game.variationName) {
+                varName = game.variationName;
+            } else if (game && game.title) {
+                // Fallback parse
+                const match = game.title.match(/\(([^)]+)\)$/);
+                if (match) varName = match[1];
+            }
+            return `${parentGame.title} (${varName})`;
+        }
+
+        // Treat null as inherit (for fields saved as null in variations)
+        if (game && game[field] !== undefined && game[field] !== null && game[field] !== '') return game[field];
         if (parentGame && parentGame[field]) return parentGame[field];
         return def;
     };
@@ -801,11 +1197,12 @@ window.openGameModal = (gameId = null, preselectedCategory = null, templateGame 
     // Helper to check if overridden
     const isOverridden = (field) => {
         if (!parentGame) return true; // No parent = always editable
-        return (game && game[field] !== undefined && game[field] !== '');
+        // Treat null or undefined as NOT overridden
+        return (game && game[field] !== undefined && game[field] !== null && game[field] !== '');
     };
 
     // Helper to render fields with toggle
-    const renderField = (label, id, value, type = 'text', rows = 1, opts = [], isParent = false) => {
+    const renderField = (label, id, value, type = 'text', rows = 1, opts = [], isParent = false, step = null) => {
         const override = isOverridden(id.replace('new-game-', '').replace('desc', 'description'));
         const fieldName = id.replace('new-game-', '').replace('desc', 'description');
 
@@ -822,13 +1219,16 @@ window.openGameModal = (gameId = null, preselectedCategory = null, templateGame 
         const style = disabled ? 'opacity: 0.7; cursor: not-allowed;' : '';
 
         if (type === 'textarea') {
-            inputHtml = `<textarea id="${id}" class="editor-textarea" rows="${rows}" ${disabled} style="${style}">${value}</textarea>`;
+            inputHtml = `<textarea id="${id}" class="editor-textarea" rows="${rows}" ${disabled} style="${style}" spellcheck="true">${value}</textarea>`;
         } else if (type === 'select') {
             inputHtml = `<select id="${id}" class="editor-textarea" ${disabled} style="${style} height: auto;">
                 ${opts.map(o => `<option value="${o}" ${value === o ? 'selected' : ''}>${o}</option>`).join('')}
              </select>`;
         } else {
-            inputHtml = `<input type="${type}" id="${id}" class="editor-textarea" value="${value}" ${disabled} style="${style} height: auto;">`;
+            // Escape double quotes for input value attribute
+            const safeValue = String(value).replace(/"/g, '&quot;');
+            const stepAttr = step ? `step="${step}"` : '';
+            inputHtml = `<input type="${type}" id="${id}" class="editor-textarea" value="${safeValue}" ${disabled} ${stepAttr} style="${style} height: auto;" spellcheck="true">`;
         }
 
         return `
@@ -849,13 +1249,26 @@ window.openGameModal = (gameId = null, preselectedCategory = null, templateGame 
             el.disabled = !checked;
             el.style.opacity = checked ? '1' : '0.7';
             el.style.cursor = checked ? 'text' : 'not-allowed';
+
             if (!checked && parentGame) {
+                // Save current value to draft before overwriting
+                if (!window.draftOverrides) window.draftOverrides = {};
+                window.draftOverrides[elemId] = el.value;
+
                 // Restore parent value
                 const fieldName = elemId.replace('new-game-', '').replace('desc', 'description');
                 let val = parentGame[fieldName] || '';
                 if (fieldName === 'difficulty') window.updateDifficultyColor(el);
                 if (fieldName === 'intensity') window.updateIntensityColor(el);
                 el.value = val;
+            } else if (checked && parentGame) {
+                // Restore from draft if exists
+                if (window.draftOverrides && window.draftOverrides[elemId] !== undefined) {
+                    el.value = window.draftOverrides[elemId];
+                    const fieldName = elemId.replace('new-game-', '').replace('desc', 'description');
+                    if (fieldName === 'difficulty') window.updateDifficultyColor(el);
+                    if (fieldName === 'intensity') window.updateIntensityColor(el);
+                }
             }
         }
     };
@@ -868,7 +1281,12 @@ window.openGameModal = (gameId = null, preselectedCategory = null, templateGame 
     overlay.innerHTML = `
                 <div class="modal modal-lg">
             <div class="modal-header">
-                <h3>${isEdit ? 'Edit Game' : 'Create New Game'}</h3>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <h3>${isEdit ? 'Edit Game' : 'Create New Game'}</h3>
+                    <button onclick="window.toggleReferenceView()" class="btn-small" style="font-size: 0.8rem; border: 1px solid var(--border-subtle); margin-left: 10px;">
+                        Toggle Reference
+                    </button>
+                </div>
                 <button onclick="this.closest('.modal-overlay').remove()">×</button>
             </div>
             <div class="modal-body">
@@ -876,11 +1294,32 @@ window.openGameModal = (gameId = null, preselectedCategory = null, templateGame 
                 <input type="hidden" id="game-parent-id" value="${parentGame ? parentGame.id : ''}">
                 <input type="hidden" id="game-segment-id" value="${segmentId || ''}">
 
+            <div class="editor-pane">
                 ${renderField('Game Title', 'new-game-title', getVal('title'), 'text', 1, [], false)}
+
+                ${parentGame ? (() => {
+            // Extract variation name from title: "Parent Title (Variation)" -> "Variation"
+            let varName = 'Variation';
+            const currentTitle = getVal('title');
+            const parentTitle = parentGame.title;
+            if (currentTitle && currentTitle.startsWith(parentTitle) && currentTitle.includes('(')) {
+                const match = currentTitle.match(/\(([^)]+)\)$/);
+                if (match) varName = match[1];
+            }
+
+            return `
+                    <div class="form-group">
+                        <label>Variation Name</label>
+                        <input type="text" id="new-game-variation-name" class="editor-textarea" value="${varName}" style="height: auto;"
+                            oninput="window.updateVariationTitle('${parentGame.id}')">
+                    </div>
+                    `;
+        })() : ''}
+
 
                  <div class="form-group">
                     <label>Category</label>
-                    <select id="new-game-category" ${isEdit ? 'disabled' : ''}>
+                    <select id="new-game-category">
                         <option value="" disabled ${!game && !preselectedCategory ? 'selected' : ''}>Select Category...</option>
                         ${optionsHtml}
                     </select>
@@ -891,7 +1330,22 @@ window.openGameModal = (gameId = null, preselectedCategory = null, templateGame 
                         ${renderField('Players', 'new-game-players', getVal('players', '2'), 'number')}
                     </div>
                      <div style="flex: 1">
-                        ${renderField('Round Time (mins)', 'new-game-duration', getVal('duration', '5'), 'number')}
+                        ${(() => {
+            const dVal = parseFloat(getVal('duration', '3'));
+            const mins = Math.floor(dVal);
+            const secs = Math.round((dVal - mins) * 60);
+            return `
+                            <div class="form-group">
+                                <label>Round Time</label>
+                                <div style="display: flex; gap: 5px; align-items: center;">
+                                    <input type="number" id="new-game-duration-mins" class="editor-textarea" value="${mins}" style="height: auto; width: 70px;" min="0" placeholder="Min">
+                                    <span>m</span>
+                                    <input type="number" id="new-game-duration-secs" class="editor-textarea" value="${secs}" style="height: auto; width: 70px;" min="0" max="60" step="5" placeholder="Sec">
+                                    <span>s</span>
+                                </div>
+                            </div>
+                            `;
+        })()}
                     </div>
                 </div>
                 
@@ -906,8 +1360,8 @@ window.openGameModal = (gameId = null, preselectedCategory = null, templateGame 
                                      onchange="window.updateDifficultyColor(this)" ${parentGame && !isOverridden('difficulty') ? 'disabled' : ''}>
                                  <option value="">None</option>
                                  ${['Beginner', 'Intermediate', 'Advanced'].map(t =>
-        `<option value="${t}" ${getVal('difficulty') === t ? 'selected' : ''}>${t}</option>`
-    ).join('')}
+            `<option value="${t}" ${getVal('difficulty', 'Beginner') === t ? 'selected' : ''}>${t}</option>`
+        ).join('')}
                              </select>
                         </div>
                     </div>
@@ -920,22 +1374,22 @@ window.openGameModal = (gameId = null, preselectedCategory = null, templateGame 
                              <select id="new-game-intensity" class="editor-textarea" style="height: auto; ${parentGame && !isOverridden('intensity') ? 'opacity:0.7;cursor:not-allowed' : ''}" 
                                      onchange="window.updateIntensityColor(this)" ${parentGame && !isOverridden('intensity') ? 'disabled' : ''}>
                                  ${['Flow', 'Cooperative', 'Adversarial'].map(t =>
-        `<option value="${t}" ${getVal('intensity') === t ? 'selected' : ''}>${t}</option>`
-    ).join('')}
+            `<option value="${t}" ${getVal('intensity') === t ? 'selected' : ''}>${t}</option>`
+        ).join('')}
                              </select>
                         </div>
                     </div>
                      <div style="flex: 1">
-                         ${renderField('Type', 'new-game-type', getVal('type', 'Continuous'), 'select', 1, ['Continuous', 'Alternating', 'Round Switching'])}
+                         ${renderField('Type', 'new-game-type', getVal('type', 'Continuous'), 'select', 1, ['Continuous', 'Switch on Win', 'Round Switching'])}
                     </div>
                 </div>
 
                 ${renderField('Game Initiation Conditions', 'new-game-initiation', getVal('initiation'), 'select', 1, ['Static', 'Inertial', 'Separated'])}
                 
                 ${renderField('Goals', 'new-game-goals', getVal('goals'), 'textarea', 2)}
-                ${renderField('Purpose', 'new-game-purpose', getVal('purpose'), 'textarea', 2)}
-                ${renderField('Focus of Intention', 'new-game-focus', getVal('focus'), 'textarea', 2)}
+                ${renderField('Focus of Attention', 'new-game-focus', getVal('focus'), 'textarea', 2)}
                 ${renderField('Description', 'new-game-desc', getVal('description'), 'textarea', 4)}
+                ${renderField('Learning Objectives', 'new-game-purpose', getVal('purpose'), 'textarea', 2)}
                 <div class="editor-controls" style="justify-content: space-between;">
                     <div style="display: flex; gap: 5px;">
                         ${isEdit ? `<button class="btn remove-btn" onclick="window.deleteGame('${game.id}')" style="background: #d32f2f; color: white;">Delete</button>` : ''}
@@ -947,10 +1401,40 @@ window.openGameModal = (gameId = null, preselectedCategory = null, templateGame 
                     </div>
                 </div>
             </div>
+            <div class="reference-pane hidden" id="reference-pane">
+                <div class="reference-header">
+                    <label>Reference Game</label>
+                    <select id="reference-game-select" onchange="window.updateReferenceContent()">
+                        ${window.state.content.games.map(g => `<option value="${g.id}">${g.title}</option>`).join('')}
+                    </select>
+                </div>
+                <div id="reference-content" class="reference-content">
+                    <!-- Content populated by JS -->
+                </div>
+            </div>
+            </div> <!-- End split-layout body -->
         </div>
                 `;
 
     document.body.appendChild(overlay);
+
+    // Initialize Split View State (optional, default closed)
+
+    // Select Parent Game by default if exists
+    if (parentGame) {
+        const refSelect = document.getElementById('reference-game-select');
+        if (refSelect) {
+            refSelect.value = parentGame.id;
+            window.updateReferenceContent();
+        }
+    } else if (game) {
+        // Default to self if editing
+        const refSelect = document.getElementById('reference-game-select');
+        if (refSelect) {
+            refSelect.value = game.id;
+            window.updateReferenceContent();
+        }
+    }
     // Init Difficulty Color
     const diffSelect = document.getElementById('new-game-difficulty');
     if (diffSelect) window.updateDifficultyColor(diffSelect);
@@ -959,7 +1443,20 @@ window.openGameModal = (gameId = null, preselectedCategory = null, templateGame 
     const intSelect = document.getElementById('new-game-intensity');
     if (intSelect) window.updateIntensityColor(intSelect);
 
-    if (!isEdit) setTimeout(() => document.getElementById('new-game-title').focus(), 100);
+    if (parentGame) {
+        // Init Variation Title update if applicable
+        // We need to pass parent ID to the function, or just call it if we know context?
+        // We can just call it with the ID we have in scope.
+        window.updateVariationTitle(parentGame.id);
+    }
+
+    if (!isEdit) setTimeout(() => {
+        if (document.getElementById('new-game-variation-name')) {
+            document.getElementById('new-game-variation-name').focus();
+        } else {
+            document.getElementById('new-game-title').focus();
+        }
+    }, 100);
 };
 
 window.updateDifficultyColor = (select) => {
@@ -976,6 +1473,76 @@ window.updateIntensityColor = (select) => {
     if (val) {
         select.classList.add(`intensity-${val}`);
     }
+}
+
+window.updateVariationTitle = (parentId) => {
+    const parentGame = window.state.content.games.find(g => g.id === parentId);
+    if (!parentGame) return;
+
+    const varNameInput = document.getElementById('new-game-variation-name');
+    if (!varNameInput) return;
+
+    const varName = varNameInput.value;
+    const titleInput = document.getElementById('new-game-title');
+    // Ensure we don't double escape or anything, just simple concatenation
+    titleInput.value = parentGame.title + ' (' + varName + ')';
+}
+
+window.toggleReferenceView = () => {
+    const refPane = document.getElementById('reference-pane');
+    if (!refPane) return;
+
+    const body = refPane.parentElement;
+    const modal = body ? body.parentElement : null;
+
+    if (modal && body) {
+        modal.classList.toggle('split-view');
+        body.classList.toggle('split-layout');
+        refPane.classList.toggle('hidden');
+
+        // Save preference? Maybe later.
+    }
+}
+
+window.updateReferenceContent = () => {
+    const select = document.getElementById('reference-game-select');
+    const content = document.getElementById('reference-content');
+    if (!select || !content) return;
+
+    const gameId = select.value;
+    const game = window.state.content.games.find(g => g.id === gameId);
+
+    if (!game) {
+        content.innerHTML = '<p>Select a game to view details.</p>';
+        return;
+    }
+
+    content.innerHTML = `
+        <h4>Description</h4>
+        <p>${game.description || 'No description.'}</p>
+        
+        <div class="reference-section-divider"></div>
+        
+        <h4>Goals</h4>
+        <p>${game.goals || 'No goals specified.'}</p>
+        
+        <div class="reference-section-divider"></div>
+        
+        <h4>Focus</h4>
+        <p>${game.focus || 'No focus specified.'}</p>
+        
+        <div class="reference-section-divider"></div>
+        
+        <h4>Learning Objectives</h4>
+        <p>${game.purpose || 'No objectives specified.'}</p>
+        
+        <div class="reference-section-divider"></div>
+        
+        <h4>Setup</h4>
+        <p><strong>Players:</strong> ${game.players || 2}</p>
+        <p><strong>Duration:</strong> ${game.duration || 3} mins</p>
+        <p><strong>Initiation:</strong> ${game.initiation || 'Static'}</p>
+    `;
 }
 
 // Redirect old createGame calls
@@ -1004,13 +1571,31 @@ window.submitGameForm = async (isEdit) => {
 
     const name = document.getElementById('new-game-title').value;
 
+    // VARIATION NAME LOGIC
+    let variationName = null;
+    if (gameParentId) {
+        const varNameInput = document.getElementById('new-game-variation-name');
+        if (varNameInput) {
+            variationName = varNameInput.value;
+        } else {
+            // Fallback parse if input missing (shouldn't happen in new UI)
+            const match = name.match(/\(([^)]+)\)$/);
+            if (match) variationName = match[1];
+        }
+    }
+
     // Explicitly grab all fields
     const goals = getFieldVal('new-game-goals', 'goals');
     const purpose = getFieldVal('new-game-purpose', 'purpose');
     const focus = getFieldVal('new-game-focus', 'focus');
     const description = getFieldVal('new-game-desc', 'description');
     const players = getFieldVal('new-game-players', 'players');
-    const duration = getFieldVal('new-game-duration', 'duration');
+
+    // Duration from split fields
+    const dMins = parseFloat(document.getElementById('new-game-duration-mins').value) || 0;
+    const dSecs = parseFloat(document.getElementById('new-game-duration-secs').value) || 0;
+    const duration = dMins + (dSecs / 60);
+
     const gameType = getFieldVal('new-game-type', 'gameType');
     const intensity = getFieldVal('new-game-intensity', 'intensity');
     const difficulty = getFieldVal('new-game-difficulty', 'difficulty');
@@ -1057,6 +1642,25 @@ window.submitGameForm = async (isEdit) => {
 
             if (response.ok) {
                 const result = await response.json();
+
+                // DELETE OLD FILE IF WE ARE MOVING CATEGORIES
+                if (isEdit) {
+                    const editId = document.getElementById('game-edit-id').value;
+                    const originalGame = window.state.content.games.find(g => g.id === editId);
+                    if (originalGame && (originalGame.category !== category || originalGame.title !== name)) {
+                        try {
+                            await fetch('/api/delete', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ path: originalGame.path })
+                            });
+                            console.log("Deleted old file on move:", originalGame.path);
+                        } catch (e) {
+                            console.error("Failed to delete old file:", e);
+                        }
+                    }
+                }
+
                 const newId = (category + '-' + name).toLowerCase().replace(/[\s\/]/g, '-');
 
                 const gameData = {
@@ -1072,7 +1676,8 @@ window.submitGameForm = async (isEdit) => {
                     duration: duration,
                     difficulty: difficulty,
                     initiation: initiation,
-                    parentId: gameParentId || null
+                    parentId: gameParentId || null,
+                    variationName: variationName
                 };
 
                 if (isEdit) {
@@ -1106,6 +1711,11 @@ window.submitGameForm = async (isEdit) => {
 
                 const overlay = document.querySelector('.modal-overlay');
                 if (overlay) overlay.remove();
+
+                // Force reload of content to ensure everything is synced
+                const contentRes = await fetch('data/content.json?v=' + Date.now());
+                state.content = await contentRes.json();
+
                 generateClassStructure();
 
             } else {
@@ -1284,8 +1894,41 @@ window.submitConceptForm = async (isEdit) => {
             }
 
             if (response.ok) {
+                const overlay = document.querySelector('.modal-overlay');
+                if (overlay) overlay.remove();
+
+                // Fetch updated content without reload
+                const contentRes = await fetch('data/content.json?v=' + Date.now());
+                window.state.content = await contentRes.json();
+
+                // Update Category Dropdown in Game Editor if open
+                const catSelect = document.getElementById('new-game-category');
+                if (catSelect) {
+                    const currentVal = catSelect.value;
+                    const newValue = (!isEdit && !currentVal) ? name : currentVal; // Auto-select new concept if creating
+
+                    // Re-render options
+                    const categories = window.state.content.categories || [];
+                    catSelect.innerHTML = `
+                        <option value="" disabled ${!newValue ? 'selected' : ''}>Select Category...</option>
+                        ${categories.map(c => `<option value="${c.title}" ${c.title === newValue ? 'selected' : ''}>${c.title}</option>`).join('')}
+                     `;
+                }
+
+                // Update Main Concept Dropdown (Setup Panel)
+                const mainConceptSelect = document.getElementById('concept-select');
+                if (mainConceptSelect) {
+                    const currentVal = mainConceptSelect.value;
+                    // If isEdit, preserve selection. If new, maybe select it? 
+                    // Let's just refresh the list and preserve selection.
+                    const concepts = window.state.content.concepts || [];
+                    mainConceptSelect.innerHTML = `
+                        <option value="" disabled ${!currentVal ? 'selected' : ''}>Select a Concept...</option>
+                        ${concepts.map(c => `<option value="${c.id}" ${c.id === currentVal ? 'selected' : ''}>${c.title}</option>`).join('')}
+                     `;
+                }
+
                 alert(isEdit ? 'Concept updated!' : 'Concept created!');
-                window.location.reload();
             } else {
                 alert('Error creating: ' + await response.text());
             }

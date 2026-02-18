@@ -52,9 +52,15 @@ def parse_game_file(filepath):
             
             # Fallback for old purpose format in body if not in frontmatter
             if not game_data['purpose']:
-                purpose_match = re.search(r'\*\*Purpose\*\*\s*\n*(.*)', body)
-                if purpose_match:
-                    game_data['purpose'] = purpose_match.group(1).strip()
+                # Try new "Learning Objectives" header first
+                lo_match = re.search(r'\*\*Learning Objectives\*\*\s*\n*(.*)', body)
+                if lo_match:
+                    game_data['purpose'] = lo_match.group(1).strip()
+                else:
+                    # Fallback to old "Purpose"
+                    purpose_match = re.search(r'\*\*Purpose\*\*\s*\n*(.*)', body)
+                    if purpose_match:
+                        game_data['purpose'] = purpose_match.group(1).strip()
             
             games.append(game_data)
             return games
@@ -127,11 +133,6 @@ def get_categories_and_games():
         if not os.path.isdir(concept_path):
             continue
             
-        # Check for Games subfolder
-        games_dir = os.path.join(concept_path, 'Games')
-        if not os.path.exists(games_dir):
-            continue
-            
         # Initialize category (Concept name is the category)
         if concept_name not in categories:
             categories[concept_name] = {
@@ -140,6 +141,11 @@ def get_categories_and_games():
                 "description": "", # Could read concept file for this?
                 "games": []
             }
+            
+        # Check for Games subfolder
+        games_dir = os.path.join(concept_path, 'Games')
+        if not os.path.exists(games_dir):
+            continue
             
         # Scan games in this folder
         for file in os.listdir(games_dir):

@@ -25,6 +25,12 @@ class EcoHandler(http.server.SimpleHTTPRequestHandler):
         else:
             self.send_error(404, "Endpoint not found")
 
+    def do_DELETE(self):
+        if self.path == '/api/delete':
+            self.handle_delete()
+        else:
+            self.send_error(404, "Endpoint not found")
+
     def do_GET(self):
         if self.path == '/api/list_classes':
             self.handle_list_classes()
@@ -199,7 +205,7 @@ class EcoHandler(http.server.SimpleHTTPRequestHandler):
                 goals = data.get('goals')
                 purpose = data.get('purpose')
                 focus = data.get('focus')
-                description = data.get('description', f'Description of {name}.')
+                description = data.get('description') or f'Description of {name}.'
 
                 # Prepare frontmatter fields
                 fm_fields = [
@@ -253,7 +259,7 @@ class EcoHandler(http.server.SimpleHTTPRequestHandler):
                         lines.append(f"{k}: {v}")
                         
                 lines.append("---\n")
-                lines.append(description)
+                lines.append(description if description else "")
                 
                 content = "\n".join(lines)
                 

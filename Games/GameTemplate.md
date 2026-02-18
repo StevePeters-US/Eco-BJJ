@@ -1,8 +1,5 @@
 # Game Name
 
-**Purpose**
-
-What is the point in playing this game? What principles are we trying to teach?
 
 **Environment**
 
@@ -44,3 +41,7 @@ How do we focus the players' attention so they can achieve their goals?
 **Notes**
 
 12/12/12 - Results of the game being used in practice.
+
+**Learning Objectives**
+
+What is the point in playing this game? What principles are we trying to teach?

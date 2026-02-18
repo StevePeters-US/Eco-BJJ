@@ -1,0 +1,210 @@
+{
+  "title": "Evening Class",
+  "date": "2026-02-18",
+  "conceptId": "bloodchokes",
+  "segments": {
+    "standing": [
+      {
+        "gameId": "grips-robot-arms"
+      },
+      {
+        "gameId": "grips-robot-arms---flow"
+      },
+      {
+        "gameId": "grips-robot-arms---flow--with-trips"
+      }
+    ],
+    "mobility": [],
+    "takedowns": [
+      {
+        "gameId": "standing-ape-hanger-single-leg"
+      },
+      {
+        "gameId": "other-break-15s"
+      },
+      {
+        "gameId": "standing-single-leg---holding"
+      },
+      {
+        "gameId": "other-break-15s"
+      },
+      {
+        "gameId": "standing-ape-hanger-single-leg---holding"
+      },
+      {
+        "gameId": "other-break-15s"
+      },
+      {
+        "gameId": "standing-uchi-mata"
+      },
+      {
+        "gameId": "other-break-15s"
+      }
+    ],
+    "discussion": [],
+    "applications": [
+      {
+        "gameId": "bloodchokes-triangle-defense"
+      },
+      {
+        "gameId": "other-break-30s"
+      },
+      {
+        "gameId": "bloodchokes-triangle-defense-(breaking)"
+      },
+      {
+        "gameId": "other-break-30s"
+      },
+      {
+        "gameId": "bloodchokes-triangle-defense-(breaking)-(locked-in)"
+      },
+      {
+        "gameId": "other-break-30s"
+      },
+      {
+        "gameId": "bloodchokes-triangle-defense-(mounted)"
+      },
+      {
+        "gameId": "other-break-1m"
+      },
+      {
+        "gameId": "bloodchokes-triangle---finishing-mechanics"
+      },
+      {
+        "gameId": "other-break-1m"
+      },
+      {
+        "gameId": "bloodchokes-anaconda---breakdown"
+      },
+      {
+        "gameId": "other-break-30s"
+      },
+      {
+        "gameId": "bloodchokes-darce-from-turtle"
+      },
+      {
+        "gameId": "other-break-30s"
+      },
+      {
+        "gameId": "bloodchokes-darce-from-side-control---clearing-the-arm"
+      },
+      {
+        "gameId": "other-break-30s"
+      },
+      {
+        "gameId": "bloodchokes-darce-from-side-control---completing-the-loop"
+      },
+      {
+        "gameId": "other-break-1m"
+      },
+      {
+        "gameId": "bloodchokes-darce-from-side-control---finishing-mechanics"
+      },
+      {
+        "gameId": "other-break-30s"
+      },
+      {
+        "gameId": "bloodchokes-darce---counter-arm-bar-position"
+      },
+      {
+        "gameId": "other-break-30s"
+      },
+      {
+        "gameId": "bloodchokes-darce---counter-arm-bar-gripping"
+      }
+    ],
+    "review": [],
+    "rolling": [],
+    "warmups": [
+      {
+        "gameId": "grips-robot-arms"
+      },
+      {
+        "gameId": "other-break-15s"
+      },
+      {
+        "gameId": "grips-robot-arms---flow"
+      },
+      {
+        "gameId": "grips-robot-arms---flow--with-trips"
+      },
+      {
+        "gameId": "other-break-15s"
+      },
+      {
+        "gameId": "grips-standing-vs-seated"
+      },
+      {
+        "gameId": "other-break-30s"
+      }
+    ],
+    "recap": [
+      {
+        "gameId": "sweeps-tripod-balance"
+      },
+      {
+        "gameId": "mobility-butt-scoot-to-tripod"
+      },
+      {
+        "gameId": "grips-grip-defense---back-standing"
+      },
+      {
+        "gameId": "grips-grip-defense---back-side-control"
+      },
+      {
+        "gameId": "grips-grip-defense---back-side-control-(one-arm-trapped)"
+      }
+    ]
+  },
+  "structure": [
+    {
+      "id": "warmups",
+      "title": "Warm Ups",
+      "targetDuration": 10,
+      "type": "standing"
+    },
+    {
+      "id": "recap",
+      "title": "Recap",
+      "targetDuration": 10,
+      "type": "game"
+    },
+    {
+      "id": "takedowns",
+      "title": "Takedowns",
+      "targetDuration": 15,
+      "type": "takedown"
+    },
+    {
+      "id": "discussion",
+      "title": "Concept Discussion",
+      "targetDuration": 5,
+      "type": "discussion"
+    },
+    {
+      "id": "applications",
+      "title": "Concept Applications",
+      "targetDuration": 30,
+      "type": "game"
+    },
+    {
+      "id": "review",
+      "title": "Review",
+      "targetDuration": 5,
+      "type": "review"
+    },
+    {
+      "id": "rolling",
+      "title": "Free Roll",
+      "targetDuration": 15,
+      "type": "rolling"
+    }
+  ],
+  "displayState": {
+    "collapsedSections": [],
+    "expandedCards": [
+      "applications-13",
+      "applications-21"
+    ]
+  }
+}
